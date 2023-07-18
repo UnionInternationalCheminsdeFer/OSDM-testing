@@ -1,3 +1,3 @@
 var GV = {
-    ACCESS_TOKEN : "accessToken",
+    ACCESS_TOKEN : "",
 }
