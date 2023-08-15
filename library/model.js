@@ -25,7 +25,7 @@ var FulfillmentMediaType = {
     TICKETLESS: "TICKETLESS",
 };
 
-class FulfillmentOption {
+var FulfillmentOption = class {
     type;
     media;
 
