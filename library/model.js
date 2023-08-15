@@ -25,7 +25,12 @@ var FulfillmentMediaType = {
     TICKETLESS: "TICKETLESS",
 };
 
-function FulfillmentOption(type, media) {
-    this.type = type;
-    this.media = media;
-};
+class FulfillmentOption {
+    type;
+    media;
+
+    constructor(type, media) {
+        this.type = type;
+        this.media = media;
+    }
+}
