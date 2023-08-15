@@ -26,9 +26,6 @@ var FulfillmentMediaType = {
 };
 
 var FulfillmentOption = class {
-    type;
-    media;
-
     constructor(type, media) {
         this.type = type;
         this.media = media;
