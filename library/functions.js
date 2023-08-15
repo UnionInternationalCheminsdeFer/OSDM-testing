@@ -12,7 +12,7 @@ osdmOfferSearchCriteria = function (
 ) {
     var offerSearchCriteria = new Object();
 
-    if (!currency) {
+    if (currency != null && currency != '') {
         offerSearchCriteria.currency = currency;
     }
 
