@@ -5,7 +5,7 @@ var GV = {
 var OFFER = {
     SEARCH_CRITERIA_CURRENCY : "offer_search_criteria_currency",
     SEARCH_CRITERIA : "offer_search_criteria",
-    FULFILLMENT_OPTIONS : "fulfillment_options",
+    FULFILLMENT_OPTIONS : "offer_fulfillment_options",
 }
 
 var FulfillmentOptionType = {

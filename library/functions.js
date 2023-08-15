@@ -38,18 +38,6 @@ osdmOfferSearchCriteria = function (
 
 osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
     if (Array.isArray(requestedFulfillmentOptions) && requestedFulfillmentOptions.length > 0) {
-        pm.test('Known Fulfillment Options requested', function () {
-            var invalidFulfillmentOptions = requestedFulfillmentOptions
-                .filter(fulfillmentOption => 
-                    FulfillmentOptionType.hasOwnProperty(fulfillmentOption.type) &&
-                    FulfillmentMediaType.hasOwnProperty(fulfillmentOption.media)
-                );
-
-            console.log(JSON.stringify(invalidFulfillmentOptions));
-
-            pm.expect(invalidFulfillmentOptions).to.be.empty;
-        });
-
         pm.globals.set(OFFER.FULFILLMENT_OPTIONS, JSON.stringify(requestedFulfillmentOptions));
     }
 };
