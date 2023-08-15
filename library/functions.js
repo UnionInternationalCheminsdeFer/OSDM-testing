@@ -20,7 +20,7 @@ osdmOfferSearchCriteria = function (
     }
 
     if (Array.isArray(offerParts) && offerParts.length > 0) {
-        offerSearchCriteria.offerParts = offerParts;
+        offerSearchCriteria.requestedOfferParts = offerParts;
     }
 
     if (Array.isArray(serviceClassTypes) && serviceClassTypes.length > 0) {
