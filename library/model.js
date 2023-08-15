@@ -8,14 +8,14 @@ var OFFER = {
     FULFILLMENT_OPTIONS : "fulfillment_options",
 }
 
-const FulfillmentOptionType = {
+var FulfillmentOptionType = {
     ETICKET: "ETICKET",
     CIT_PAPER: "CIT_PAPER",
     PASS_CHIP: "PASS_CHIP",
     PASS_REFERENCE: "PASS_REFERENCE",
 };
 
-const FulfillmentMediaType = {
+var FulfillmentMediaType = {
     ALLOCATOR_APP: "ALLOCATOR_APP",
     PDF_A4: "PDF_A4",
     PKPASS: "PKPASS",
