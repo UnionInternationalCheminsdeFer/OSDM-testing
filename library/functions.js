@@ -37,6 +37,8 @@ osdmOfferSearchCriteria = function (
 };
 
 osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
+    console.log(requestedFulfillmentOptions);
+
     if (Array.isArray(requestedFulfillmentOptions) && requestedFulfillmentOptions.length > 0) {
         pm.globals.set(OFFER.FULFILLMENT_OPTIONS, JSON.stringify(requestedFulfillmentOptions));
     }
