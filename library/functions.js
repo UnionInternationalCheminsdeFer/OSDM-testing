@@ -17,6 +17,8 @@ osdmOfferSearchCriteria = function (
 
     if (currency != null && currency != '') {
         offerSearchCriteria.currency = currency;
+
+        pm.globals.set(OFFER.SEARCH_CRITERIA_CURRENCY, currency);
     }
 
     if (Array.isArray(offerParts) && offerParts.length > 0) {
@@ -32,4 +34,22 @@ osdmOfferSearchCriteria = function (
     }
 
     pm.globals.set(OFFER.SEARCH_CRITERIA, JSON.stringify(offerSearchCriteria));
+};
+
+osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
+    if (Array.isArray(requestedFulfillmentOptions) && requestedFulfillmentOptions.length > 0) {
+        pm.test('Known Fulfillment Options requested', function () {
+            var invalidFulfillmentOptions = requestedFulfillmentOptions
+                .filter(fulfillmentOption => 
+                    FulfillmentOptionType.hasOwnProperty(fulfillmentOption.type) &&
+                    FulfillmentMediaType.hasOwnProperty(fulfillmentOption.media)
+                );
+
+            console.log(JSON.stringify(invalidFulfillmentOptions));
+
+            pm.expect(invalidFulfillmentOptions).to.be.empty;
+        });
+
+        pm.globals.set(OFFER.FULFILLMENT_OPTIONS, JSON.stringify(requestedFulfillmentOptions));
+    }
 };
