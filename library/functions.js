@@ -16,5 +16,5 @@ osdmOfferSearchCriteria = function (
         offerSearchCriteria.currency = currency;
     }
 
-    pm.globals.set(OFFER.SEARCH_CRITERIA, offerSearchCriteria);
+    pm.globals.set(OFFER.SEARCH_CRITERIA, JSON.stringify(offerSearchCriteria));
 };
