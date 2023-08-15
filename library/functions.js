@@ -10,7 +10,7 @@ osdmOfferSearchCriteria = function (
     offerParts,
     flexibilities,
     serviceClassTypes,
-    comfortClasses,
+    travelClasses,
     productTags,
 ) {
     var offerSearchCriteria = new Object();
@@ -27,8 +27,8 @@ osdmOfferSearchCriteria = function (
         offerSearchCriteria.serviceClassTypes = serviceClassTypes;
     }
 
-    if (Array.isArray(comfortClasses) && comfortClasses.length > 0) {
-        offerSearchCriteria.comfortClasses = comfortClasses;
+    if (Array.isArray(travelClasses) && travelClasses.length > 0) {
+        offerSearchCriteria.travelClasses = travelClasses;
     }
 
     pm.globals.set(OFFER.SEARCH_CRITERIA, JSON.stringify(offerSearchCriteria));
