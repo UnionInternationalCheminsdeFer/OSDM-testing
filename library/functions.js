@@ -6,9 +6,12 @@ setAuthToken = function () {
 
 osdmOfferSearchCriteria = function (
     currency,
+    offerMode,
     offerParts,
+    flexibilities,
     serviceClassTypes,
     comfortClasses,
+    productTags,
 ) {
     var offerSearchCriteria = new Object();
 
