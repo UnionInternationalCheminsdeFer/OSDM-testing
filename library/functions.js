@@ -12,8 +12,6 @@ osdmAnonymousPassengerSpecifications = function(passengerNumber) {
     for (let n = 1; n <= passengerNumber; n++) {
         var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", n);
 
-        console.log(passengerKey);
-
         var birthDate = new Date();
         birthDate.setFullYear(birthDate.getFullYear() - 26);
         birthDate.setDate(birthDate.getDate() -1);
