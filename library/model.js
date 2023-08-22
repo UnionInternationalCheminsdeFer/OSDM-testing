@@ -8,6 +8,30 @@ var OFFER = {
     FULFILLMENT_OPTIONS : "offer_fulfillment_options",
 }
 
+var OfferPartType = {
+    ADMISSION: "ADMISSION",
+    RESERVATION: "RESERVATION",
+    ANCILLARY: "ANCILLARY",
+    FARE_ADMISSION: "FARE_ADMISSION",
+    FARE_RESERVATION: "FARE_RESERVATION",
+    FARE_ANCILLARY: "FARE_ANCILLARY",
+    ALL: "ALL",
+}
+
+var ServiceClassType = {
+    BEST: "BEST",
+    HIGH: "HIGH",
+    STANDARD: "STANDARD",
+    BASIC: "BASIC",
+    ANY_CLASS: "ANY_CLASS",
+}
+
+var TravelClass = {
+    FIRST: "FIRST",
+    SECOND: "SECOND",
+    ANY_CLASS: "ANY_CLASS",
+}
+
 var FulfillmentOptionType = {
     ETICKET: "ETICKET",
     CIT_PAPER: "CIT_PAPER",
