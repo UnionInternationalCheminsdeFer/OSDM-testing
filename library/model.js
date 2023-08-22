@@ -3,6 +3,9 @@ var GV = {
 }
 
 var OFFER = {
+    PASSENGER_NUMBER : "offer_passenger_number",
+    PASSENGER_SPECIFICATIONS : "offer_passenger_specifications",
+    PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN: "passenger_specification_%PASSENGER_COUNT%_external_ref",
     SEARCH_CRITERIA_CURRENCY : "offer_search_criteria_currency",
     SEARCH_CRITERIA : "offer_search_criteria",
     FULFILLMENT_OPTIONS : "offer_fulfillment_options",
@@ -53,5 +56,13 @@ var FulfillmentOption = class {
     constructor(type, media) {
         this.type = type;
         this.media = media;
+    }
+}
+
+var AnonymousPassengerSpec = class {
+    constructor(externalRef, type, dateOfBirth) {
+        this.externalRef = externalRef;
+        this.type = type;
+        this.dateOfBirth = dateOfBirth;
     }
 }
