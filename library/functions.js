@@ -4,6 +4,32 @@ setAuthToken = function () {
     pm.globals.set(GV.ACCESS_TOKEN, jsonData.access_token);
 }
 
+osdmAnonymousPassengerSpecifications = function(passengerNumber) {
+    pm.globals.set(OFFER.PASSENGER_NUMBER, passengerNumber);
+
+    var passengerSpecs = [];
+
+    for (let n = 1; n <= passengerNumber; n++) {
+        var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", n);
+
+        console.log(passengerKey);
+
+        var birthDate = new Date();
+        birthDate.setFullYear(birthDate.getFullYear() - 26);
+        birthDate.setDate(birthDate.getDate() -1);
+
+        pm.globals.set(passengerKey, uuid.v4());
+
+        passengerSpecs.push(new AnonymousPassengerSpec(
+            pm.globals.get(passengerKey),
+            'PERSON',
+            birthDate.toISOString().substring(0,10),
+        ));
+    }
+
+    pm.globals.set(OFFER.PASSENGER_SPECIFICATIONS, JSON.stringify(passengerSpecs));
+};
+
 osdmOfferSearchCriteria = function (
     currency,
     offerMode,
