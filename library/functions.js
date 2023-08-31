@@ -20,7 +20,7 @@ osdmAnonymousPassengerSpecifications = function(passengerNumber) {
 
         passengerSpecs.push(new AnonymousPassengerSpec(
             pm.globals.get(passengerKey),
-            'PERSON',
+            PassengerType.PERSON,
             birthDate.toISOString().substring(0,10),
         ));
     }
