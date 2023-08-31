@@ -21,6 +21,22 @@ var OfferPartType = {
     ALL: "ALL",
 }
 
+var PassengerType = {
+    PERSON: "PERSON",
+    DOG: "DOG",
+    PET: "PET",
+    LUGGAGE: "LUGGAGE",
+    PRM: "PRM",
+    BICYCLE: "BICYCLE",
+    PRAM: "PRAM",
+    COMPANION_DOG: "COMPANION_DOG",
+    CAR: "CAR",
+    MOTORCYCLE: "MOTORCYCLE",
+    TRAILER: "TRAILER",
+    FAMILY_CHILD: "FAMILY_CHILD",
+    WHEELCHAIR: "WHEELCHAIR"
+}
+
 var ServiceClassType = {
     BEST: "BEST",
     HIGH: "HIGH",
