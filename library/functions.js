@@ -34,7 +34,8 @@ osdmTripSpecification = function (legDefinitions) {
     }
 
     var tripSpecification = new TripSpecification(
-        pm.globals.get(TRIP.EXTERNAL_REF)
+        pm.globals.get(TRIP.EXTERNAL_REF),
+        legSpecs
     );
 
     pm.globals.set(OFFER.TRIP_SPECIFICATIONS, JSON.stringify(tripSpecification));
