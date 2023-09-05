@@ -86,8 +86,6 @@ osdmOfferSearchCriteria = function (
 
     if (currency != null && currency != '') {
         offerSearchCriteria.currency = currency;
-
-        pm.globals.set(OFFER.SEARCH_CRITERIA_CURRENCY, currency);
     }
 
     if (Array.isArray(offerParts) && offerParts.length > 0) {
