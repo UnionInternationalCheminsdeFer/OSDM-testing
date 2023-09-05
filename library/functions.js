@@ -65,3 +65,6 @@ osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
         pm.globals.set(OFFER.FULFILLMENT_OPTIONS, JSON.stringify(requestedFulfillmentOptions));
     }
 };
+
+validateOfferConformsToOfferSearchCriteria = function (offer) {
+};
