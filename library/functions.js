@@ -20,7 +20,7 @@ osdmTripSpecification = function (legDefinitions) {
 
     for (let n = 1; n <= legDefinitions.length; n++) {
         var legKey = TRIP.LEG_SPECIFICATION_REF_PATTERN.replace("%LEG_COUNT%", n);
-        var legDef = legDefinitions[n];
+        var legDef = legDefinitions[n-1];
 
         var datedJourney = new DatedJourney([legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
         var timedLegSpec = new TimedLegSpecification(datedJourney);
