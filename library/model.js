@@ -89,19 +89,23 @@ var AnonymousPassengerSpec = class {
     }
 }
 
+var TripLegDefinition = class {
+    constructor(startStopPlaceRef, startDateTime, endStopPlaceRef, endDateTime, vehicleNumber, carrier) {
+        this.startStopPlaceRef = startStopPlaceRef;
+        this.startDateTime = startDateTime;
+        this.endStopPlaceRef = endStopPlaceRef;
+        this.endDateTime = endDateTime;
+        this.vehicleNumber = vehicleNumber;
+        this.carrier = carrier;
+    }
+}
+
 var TripSpecification = class {
     constructor(externalRef, legs) {
         this.externalRef = externalRef;
         this.legs = legs;
     }
 };
-
-var TripLegDefinition = class {
-    constructor(vehicleNumber, carrier) {
-        this.vehicleNumber = vehicleNumber;
-        this.carrier = carrier;
-    }
-}
 
 var TripLegSpecification = class {
     constructor(externalRef, timedLeg) {
@@ -111,13 +115,16 @@ var TripLegSpecification = class {
 };
 
 var TimedLegSpecification = class {
-    constructor(service) {
+    constructor(start, end, service) {
+        this.start = start;
+        this.end = end;
         this.service = service;
     }
 }
 
 var DatedJourney = class {
     constructor(vehicleNumbers, carriers) {
+        this.productCategory = new ProductCategory();
         this.vehicleNumbers = vehicleNumbers;
         this.carriers = carriers;
     }
@@ -126,5 +133,40 @@ var DatedJourney = class {
 var NamedCompany = class {
     constructor(ref) {
         this.ref = ref;
+    }
+};
+
+var ProductCategory = class {
+    constructor() {
+        this.productCategoryRef = "urn:uic:sbc:37";
+        this.name = "Normal Train";
+        this.shortName = "Train";
+    }
+};
+
+var BoardSpecification = class {
+    constructor(stopPlaceRef, serviceDeparture) {
+        this.stopPlaceRef = stopPlaceRef;
+        this.serviceDeparture = serviceDeparture;
+    }
+};
+
+var AlignSpecification = class {
+    constructor(stopPlaceRef, serviceArrival) {
+        this.stopPlaceRef = stopPlaceRef;
+        this.serviceArrival = serviceArrival;
+    }
+}
+
+var StopPlaceRef = class {
+    constructor(stopPlaceRef) {
+        this.objectType = "StopPlaceRef";
+        this.stopPlaceRef = stopPlaceRef;
+    }
+};
+
+var ServiceTime = class {
+    constructor(timetabledTime) {
+        this.timetabledTime = timetabledTime;
     }
 };

@@ -22,8 +22,16 @@ osdmTripSpecification = function (legDefinitions) {
         var legKey = TRIP.LEG_SPECIFICATION_REF_PATTERN.replace("%LEG_COUNT%", n);
         var legDef = legDefinitions[n-1];
 
+        var boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime));
+        var alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef, new ServiceTime(legDef.endDateTime)));
+
+
         var datedJourney = new DatedJourney([legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
-        var timedLegSpec = new TimedLegSpecification(datedJourney);
+        var timedLegSpec = new TimedLegSpecification(
+            boardSpec,
+            alignSpec,
+            datedJourney
+        );
 
         pm.globals.set(legKey, uuid.v4());
 
