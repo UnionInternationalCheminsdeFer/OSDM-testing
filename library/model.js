@@ -89,7 +89,7 @@ var AnonymousPassengerSpec = class {
     }
 }
 
-var TripSpecification =  class {
+var TripSpecification = class {
     constructor(externalRef, legs) {
         this.externalRef = externalRef;
         this.legs = legs;
@@ -117,9 +117,6 @@ var TimedLegSpecification = class {
 }
 
 var DatedJourney = class {
-    vehicleNumbers;
-    carriers;
-
     constructor(vehicleNumbers, carriers) {
         this.vehicleNumbers = vehicleNumbers;
         this.carriers = carriers;
