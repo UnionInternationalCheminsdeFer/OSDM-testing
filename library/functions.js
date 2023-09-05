@@ -112,4 +112,14 @@ osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
 };
 
 validateOfferConformsToOfferSearchCriteria = function (offer) {
+    pm.test("Offer is available", function () {
+        pm.expect(pm.globals.get(OFFER.SEARCH_CRITERIA)).not.be.null;
+    });
+
+    pm.test("Offer Search Criteria are available", function () {
+        pm.expect(pm.globals.get(OFFER.SEARCH_CRITERIA)).to.be.a('string');
+    });
+
+    //offerSearchCriteria = JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA));
+    //offerSearchCriteria.requestedOfferParts
 };
