@@ -23,7 +23,7 @@ osdmTripSpecification = function (legDefinitions) {
         var legDef = legDefinitions[n-1];
 
         var boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime));
-        var alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef, new ServiceTime(legDef.endDateTime)));
+        var alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef), new ServiceTime(legDef.endDateTime));
 
 
         var datedJourney = new DatedJourney([legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
