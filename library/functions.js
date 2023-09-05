@@ -46,7 +46,7 @@ osdmTripSpecification = function (legDefinitions) {
         legSpecs
     );
 
-    pm.globals.set(OFFER.TRIP_SPECIFICATIONS, JSON.stringify(tripSpecification));
+    pm.globals.set(OFFER.TRIP_SPECIFICATIONS, JSON.stringify([tripSpecification]));
 };
 
 osdmAnonymousPassengerSpecifications = function(passengerNumber) {
