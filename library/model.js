@@ -117,6 +117,9 @@ var TimedLegSpecification = class {
 }
 
 var DatedJourney = class {
+    vehicleNumbers;
+    carriers;
+
     constructor(vehicleNumbers, carriers) {
         this.vehicleNumbers = vehicleNumbers;
         this.carriers = carriers;
