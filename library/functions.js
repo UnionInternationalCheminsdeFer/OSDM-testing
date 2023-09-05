@@ -1,8 +1,44 @@
+var uuid = require('uuid');
+
 setAuthToken = function () {
     let jsonData = JSON.parse(responseBody);
     
     pm.globals.set(GV.ACCESS_TOKEN, jsonData.access_token);
 }
+
+osdmTripSpecification = function (legDefinitions) {
+    pm.test('Trip Specification has at least one leg', function () {
+        pm.expect(legDefinitions).to.be.an("array");
+        pm.expect(legDefinitions.length).to.be.above(0);
+
+        if (legDefinitions.length == 0) return; // Stop execution if legs are missing
+    });
+
+    pm.globals.set(TRIP.EXTERNAL_REF, uuid.v4());
+
+    var legSpecs = [];
+
+    for (let n = 1; n <= legDefinitions.length; n++) {
+        var legKey = TRIP.LEG_SPECIFICATION_REF_PATTERN.replace("%LEG_COUNT%", n);
+        var legDef = legDefinitions[n];
+
+        var datedJourney = new DatedJourney([legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
+        var timedLegSpec = new TimedLegSpecification(datedJourney);
+
+        pm.globals.set(legKey, uuid.v4());
+
+        legSpecs.push(new TripLegSpecification(
+            pm.globals.get(legKey),
+            timedLegSpec
+        ));
+    }
+
+    var tripSpecification = new TripSpecification(
+        pm.globals.get(TRIP.EXTERNAL_REF)
+    );
+
+    pm.globals.set(OFFER.TRIP_SPECIFICATIONS, JSON.stringify(tripSpecification));
+};
 
 osdmAnonymousPassengerSpecifications = function(passengerNumber) {
     pm.globals.set(OFFER.PASSENGER_NUMBER, passengerNumber);
