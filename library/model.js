@@ -126,7 +126,7 @@ var TimedLegSpecification = class {
 }
 
 var DatedJourney = class {
-    constructor(vehicleNumbers, carriers, productCategory) {
+    constructor(productCategory, vehicleNumbers, carriers) {
         this.productCategory = productCategory;
         this.vehicleNumbers = vehicleNumbers;
         this.carriers = carriers;
