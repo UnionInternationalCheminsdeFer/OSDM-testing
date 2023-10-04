@@ -90,11 +90,14 @@ var AnonymousPassengerSpec = class {
 }
 
 var TripLegDefinition = class {
-    constructor(startStopPlaceRef, startDateTime, endStopPlaceRef, endDateTime, vehicleNumber, carrier) {
+    constructor(startStopPlaceRef, startDateTime, endStopPlaceRef, endDateTime, productCategoryRef, productCategoryName, productCategoryShortName,vehicleNumber, carrier) {
         this.startStopPlaceRef = startStopPlaceRef;
         this.startDateTime = startDateTime;
         this.endStopPlaceRef = endStopPlaceRef;
         this.endDateTime = endDateTime;
+        this.productCategoryRef = productCategoryRef;
+        this.productCategoryName = productCategoryName;
+        this.productCategoryShortName = productCategoryShortName;
         this.vehicleNumber = vehicleNumber;
         this.carrier = carrier;
     }
@@ -123,8 +126,8 @@ var TimedLegSpecification = class {
 }
 
 var DatedJourney = class {
-    constructor(vehicleNumbers, carriers) {
-        this.productCategory = new ProductCategory();
+    constructor(vehicleNumbers, carriers, productCategory) {
+        this.productCategory = productCategory;
         this.vehicleNumbers = vehicleNumbers;
         this.carriers = carriers;
     }
@@ -137,10 +140,10 @@ var NamedCompany = class {
 };
 
 var ProductCategory = class {
-    constructor() {
-        this.productCategoryRef = "urn:uic:sbc:37";
-        this.name = "Normal Train";
-        this.shortName = "Train";
+    constructor(productCategoryRef, name, shortName) {
+        this.productCategoryRef = productCategoryRef;
+        this.name = name;
+        this.shortName = shortName;
     }
 };
 

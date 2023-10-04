@@ -25,8 +25,12 @@ osdmTripSpecification = function (legDefinitions) {
         var boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime));
         var alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef), new ServiceTime(legDef.endDateTime));
 
+        var productCategory = legDef.productCategoryRef == null ? 
+            null :
+            new productCategory(legDef.productCategoryRef, legDef.productCategoryName, legDef.productCategoryShortName);
 
-        var datedJourney = new DatedJourney([legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
+        var datedJourney = new DatedJourney(productCategory, [legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
+
         var timedLegSpec = new TimedLegSpecification(
             boardSpec,
             alignSpec,
