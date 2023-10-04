@@ -27,7 +27,7 @@ osdmTripSpecification = function (legDefinitions) {
 
         var productCategory = legDef.productCategoryRef == null ? 
             null :
-            new productCategory(legDef.productCategoryRef, legDef.productCategoryName, legDef.productCategoryShortName);
+            new ProductCategory(legDef.productCategoryRef, legDef.productCategoryName, legDef.productCategoryShortName);
 
         var datedJourney = new DatedJourney(productCategory, [legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
 
