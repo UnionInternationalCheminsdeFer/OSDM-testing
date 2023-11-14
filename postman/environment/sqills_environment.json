@@ -1,33 +1,35 @@
 {
-	"id": "11e9c346-587c-4f13-977f-d6840eabbb0c",
-	"name": "Sqills Demo environment",
+	"id": "1f64a9a9-af98-4665-a577-3adbb07fc37e",
+	"name": "Sqills",
 	"values": [
 		{
 			"key": "access_token",
 			"value": "Provide your own value here",
-			"type": "secret",
 			"enabled": true
 		},
 		{
 			"key": "data_base",
-			"value": "https://dddi5qilhq5vk.cloudfront.net/otst/data/",
-			"type": "default",
+			"value": "https://dddi5qilhq5vk.cloudfront.net/otst/data/trips_sqills.json",
 			"enabled": true
 		},
 		{
 			"key": "library_base",
 			"value": "https://dddi5qilhq5vk.cloudfront.net/otst/library/",
-			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "api_base",
 			"value": "https://sqills-osdm-test.osdm-s3-adapter.s3p.cloud",
+			"enabled": true
+		},
+		{
+			"key": "data_file",
+			"value": "[\n  {\n    \"type\":\"DEFAULT\",\n    \"origin\": \"urn:uic:stn:8400058\",\n    \"destination\": \"urn:uic:stn:8727100\",\n    \"start_datetime\": \"%TRIP_DATE%T07:00:00+02:00\",\n    \"end_datetime\": \"%TRIP_DATE%T10:20:00+02:00\",\n    \"product_category_ref\": \"\",\n    \"product_category_name\": \"\",\n    \"product_category_short_name\": \"\",\n    \"vehicle_number\": \"OSDM_101\",\n    \"operator_code\": \"urn:uic:rics:1\"\n  },\n  {\n   \"type\":\"BOTH\",\n    \"origin\": \"urn:uic:stn:8400058\",\n    \"destination\": \"urn:uic:stn:8727100\",\n    \"start_datetime\": \"%TRIP_DATE%T07:00:00+02:00\",\n    \"end_datetime\": \"%TRIP_DATE%T10:20:00+02:00\",\n    \"product_category_ref\": \"\",\n    \"product_category_name\": \"\",\n    \"product_category_short_name\": \"\",\n    \"vehicle_number\": \"OSDM_101\",\n    \"operator_code\": \"urn:uic:rics:1\"\n  }\n]",
 			"type": "default",
 			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2023-02-22T16:57:33.435Z",
-	"_postman_exported_using": "Postman/10.10.7"
+	"_postman_exported_at": "2023-11-14T12:20:41.345Z",
+	"_postman_exported_using": "Postman/8.12.7"
 }
