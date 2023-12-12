@@ -13,6 +13,8 @@ var OFFER = {
     PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN: "passenger_specification_%PASSENGER_COUNT%_external_ref",
     TRIP_SPECIFICATIONS : "offer_trip_specifications",
     SEARCH_CRITERIA_CURRENCY : "offer_search_criteria_currency",
+    SEARCH_CRITERIA_SERVICE_CLASS : "offer_search_criteria_service_class",
+    SEARCH_CRITERIA_TRAVEL_CLASS : "offer_search_criteria_travel_class",
     SEARCH_CRITERIA : "offer_search_criteria",
     FULFILLMENT_OPTIONS : "offer_fulfillment_options",
 }
