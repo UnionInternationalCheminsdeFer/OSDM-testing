@@ -11,7 +11,12 @@ Each request should validate if all required variables are set before it builds 
 ### Globally Used Variables
 
 - `api_base`: OSDM API location
+- `library_base`: Location where the function library is downloadable from
 - `access_token`: OAuth access token
+
+## Running the Scenarios
+
+An environment is required both for running in Postman and in the testing tool runner application.
 
 ## Building a Trip
 
