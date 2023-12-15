@@ -2,7 +2,8 @@
 	"info": {
 		"_postman_id": "7e05d893-e306-4e7c-8530-652773d652fb",
 		"name": "OTST Trip Specification-Offer Booking (Sqills)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17867548"
 	},
 	"item": [
 		{
@@ -34,9 +35,10 @@
 							"",
 							"",
 							"pm.globals.set(\"offer_id\", offer.offerId);",
+							"pm.globals.set(\"offers\", jsonData.offers);",
 							"",
-							"var reservationOfferPart = offer.reservationOfferParts[0];",
-							"pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
+							"//var reservationOfferPart = offer.reservationOfferParts[0];",
+							"// pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
 							""
 						],
 						"type": "text/javascript"
@@ -135,10 +137,26 @@
 					"listen": "test",
 					"script": {
 						"exec": [
+							"eval(globals.osdmHelpers);\r",
+							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
 							"pm.globals.set(\"booking_id\", jsonData.booking.id);\r",
-							"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);"
+							"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);\r",
+							"\r",
+							"pm.test('Successfully created booking', function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"validateBookingResponse(\r",
+							"JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS)), \r",
+							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), \r",
+							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
+							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
+							"pm.globals.get(\"offers\"),\r",
+							"pm.globals.get(\"offer_id\"),\r",
+							"jsonData.booking,  \r",
+							"pm.globals.get(\"SCENARIO_TYPE\"));"
 						],
 						"type": "text/javascript"
 					}
@@ -347,6 +365,7 @@
 					"                pm.globals.set(\"offer_search_criteria_travel_class\", jsonData[dataFileIndex].travel_class);",
 					"                pm.globals.set(\"offer_search_criteria_search_class\", jsonData[dataFileIndex].service_class);",
 					"                pm.globals.set(\"SCENARIO_TYPE\",scenario_type);",
+					"                pm.globals.set(\"LOGGING_TYPE\",\"FULL\");",
 					"",
 					"                foundCorrectDataSet = true;",
 					"                console.log(\"correct data set was found for this scenario type:\"+scenario_type);",
@@ -387,6 +406,7 @@
 					"                        pm.globals.set(\"offer_search_criteria_travel_class\", jsonData[dataFileIndex].travel_class);",
 					"                        pm.globals.set(\"offer_search_criteria_search_class\", jsonData[dataFileIndex].service_class);",
 					"                        pm.globals.set(\"SCENARIO_TYPE\",scenario_type);",
+					"                        pm.globals.set(\"LOGGING_TYPE\",\"NONE\");",
 					"",
 					"                        foundCorrectDataSet = true;",
 					"                        console.log(\"correct data set was found for this scenario type:\"+scenario_type);",
