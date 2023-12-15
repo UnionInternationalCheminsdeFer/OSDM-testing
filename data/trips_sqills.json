@@ -1,0 +1,17 @@
+[
+  {
+    "type": "BOTH",
+    "currency": "EUR",
+    "service_class": "STANDARD",
+    "travel_class": "SECOND",
+    "origin": "urn:uic:stn:8400058",
+    "destination": "urn:uic:stn:8727100",
+    "start_datetime": "%TRIP_DATE%T07:00:00+02:00",
+    "end_datetime": "%TRIP_DATE%T10:20:00+02:00",
+    "product_category_ref": "",
+    "product_category_name": "",
+    "product_category_short_name": "",
+    "vehicle_number": "OSDM_101",
+    "operator_code": "urn:uic:rics:1"
+  }
+]
