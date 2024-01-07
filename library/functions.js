@@ -6,6 +6,37 @@ setAuthToken = function () {
     pm.globals.set(GV.ACCESS_TOKEN, jsonData.access_token);
 }
 
+osdmTripSearchCriteria = function (legDefinitions) {
+	pm.test('Trip Search Criteria has at least one leg', function () {
+        pm.expect(legDefinitions).to.be.an("array");
+        pm.expect(legDefinitions.length).to.be.above(0);
+
+        if (legDefinitions.length == 0) return; // Stop execution if legs are missing
+    });
+
+	if (legDefinitions.length > 1) {
+		console.log("WARNING TripSearchCriteria currently doesn't generate via points when multiple legs are provided");
+	}
+
+	var legDef = legDefinitions[0];
+
+	var carrierFilter = legDef.carrier ? new CarrierFilter([legDef.carrier], false) : null;
+	var vehicleFilter = new VehicleFilter([legDef.vehicleNumber], null, false);
+
+	var tripDataFilter = new TripDataFilter(carrierFilter, vehicleFilter);
+
+	var tripParameters = new TripParameters(tripDataFilter);
+
+	var tripSearchCriteria = new TripSearchCriteria(
+		legDef.start_datetime_local,
+		new StopPlaceRef(legDef.startStopPlaceRef),
+		new StopPlaceRef(legDef.endStopPlaceRef),
+		tripParameters
+	);
+
+	pm.globals.set(OFFER.TRIP_SEARCH_CRITERIA, JSON.stringify(tripSearchCriteria));
+};
+
 osdmTripSpecification = function (legDefinitions) {
     pm.test('Trip Specification has at least one leg', function () {
         pm.expect(legDefinitions).to.be.an("array");
