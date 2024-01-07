@@ -6,6 +6,7 @@
     "travel_class": "SECOND",
     "origin": "urn:uic:stn:5453613",
     "destination": "urn:uic:stn:5454212",
+    "start_datetime_local": "%TRIP_DATE%T07:05:00",
     "start_datetime": "%TRIP_DATE%T07:05:00+01:00",
     "end_datetime": "%TRIP_DATE%T10:11:00+01:00",
     "product_category_ref": "",
