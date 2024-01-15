@@ -12,6 +12,7 @@ var OFFER = {
     PASSENGER_SPECIFICATIONS : "offer_passenger_specifications",
     PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN: "passenger_specification_%PASSENGER_COUNT%_external_ref",
     TRIP_SPECIFICATIONS : "offer_trip_specifications",
+    TRIP_SEARCH_CRITERIA : "offer_trip_search_criteria",
     SEARCH_CRITERIA_CURRENCY : "offer_search_criteria_currency",
     SEARCH_CRITERIA_SERVICE_CLASS : "offer_search_criteria_service_class",
     SEARCH_CRITERIA_TRAVEL_CLASS : "offer_search_criteria_travel_class",
@@ -175,3 +176,40 @@ var ServiceTime = class {
         this.timetabledTime = timetabledTime;
     }
 };
+
+var TripSearchCriteria = class {
+    constructor(departureTime, origin, destination, parameters) {
+        this.departureTime = departureTime;
+        this.origin = origin;
+        this.destination = destination;
+        this.parameters = parameters;
+    }
+};
+
+var TripParameters = class {
+    constructor(dataFilter) {
+        this.dataFilter = dataFilter;
+    }
+};
+
+var TripDataFilter = class {
+    constructor(carrierFilter, vehicleFilter) {
+        this.carrierFilter = carrierFilter;
+        this.vehicleFilter = vehicleFilter;
+    }
+};
+
+var CarrierFilter = class {
+    constructor(carriers, exclude = true) {
+        this.carriers = carriers;
+        this.exclude = exclude;
+    }
+}
+
+var VehicleFilter = class {
+    constructor(vehicleNumbers, lineNumbers = null, exclude = true) {
+        this.vehicleNumbers = vehicleNumbers;
+        this.lineNumbers = lineNumbers;
+        this.exclude = exclude;
+    }
+}
