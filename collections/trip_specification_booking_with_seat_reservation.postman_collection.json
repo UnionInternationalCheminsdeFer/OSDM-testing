@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "75ca31d9-9cc0-4c3b-8982-a32edf9f3f4b",
-		"name": "OTST Trip Specification-Offer Reservation Only (BILETO)",
+		"name": "OTST Trip Specification - Offer Reservation Only",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "17867548"
 	},
@@ -73,7 +73,6 @@
 							"pm.globals.set(\"offers\", jsonData.offers);",
 							"",
 							"validateOfferResponse(",
-							"JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS)), ",
 							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), ",
 							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), ",
 							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), ",
@@ -227,7 +226,6 @@
 							"});\r",
 							"\r",
 							"validateBookingResponse(\r",
-							"JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS)), \r",
 							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), \r",
 							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
 							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
