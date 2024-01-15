@@ -28,12 +28,12 @@ osdmTripSearchCriteria = function (legDefinitions) {
 	var tripParameters = new TripParameters(tripDataFilter);
 
 	var tripSearchCriteria = new TripSearchCriteria(
-		legDef.start_datetime_local,
+		legDef.startDateTime.substring(0, legDef.startDateTime.length - 6) ,
 		new StopPlaceRef(legDef.startStopPlaceRef),
 		new StopPlaceRef(legDef.endStopPlaceRef),
 		tripParameters
 	);
-
+	
 	pm.globals.set(OFFER.TRIP_SEARCH_CRITERIA, JSON.stringify(tripSearchCriteria));
 };
 
@@ -158,17 +158,15 @@ validateOfferConformsToOfferSearchCriteria = function (offer) {
 };
 
 
-validateOfferResponse = function(tripSpecifications, passengerSpecifications, searchCriteria, fulfillmentOptions, offers, trips, scenarioType) {
+validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfillmentOptions, offers, trips, scenarioType) {
 	
 	pm.test("offers are returned", function () {
 	    pm.expect(offers).not.to.be.empty;
 
-        validationLogger("trip:"+pm.globals.get(OFFER.TRIP_SPECIFICATIONS));
         validationLogger(passengerSpecifications);
         validationLogger(pm.globals.get(OFFER.FULFILLMENT_OPTIONS));
         validationLogger(searchCriteria);
         validationLogger(offers);
-        //validationLogger(anonymousPassengerSpecifications);
         validationLogger("type:"+pm.globals.get("SCENARIO_TYPE"));
 
         
@@ -302,7 +300,7 @@ validateOfferResponse = function(tripSpecifications, passengerSpecifications, se
 
                                     if(searchCriteria!=undefined&&searchCriteria.currency!=undefined) {
                                         
-                                        pm.test("Correct currency is returned", function () {
+                                        pm.test("Reservation: correct currency is returned", function () {
                                             pm.expect(reservationOfferPart.price.currency).to.equal(searchCriteria.currency);
                                         });
 
@@ -356,14 +354,14 @@ validateOfferResponse = function(tripSpecifications, passengerSpecifications, se
                         pm.expect(foundAdmissions).to.equal(amounts);
                     });
 
-                    pm.test("Correct reservations are returned", function () {
+				    pm.test("Correct reservations are returned", function () {
                         pm.expect(foundReservations).to.equal(amounts);
                     });
 
-                    if(amounts==foundAdmissions&&amounts==foundReservations) {
+				    if(amounts==foundAdmissions&&amounts==foundReservations) {
                         found = true;
                     }
-
+                    
                     break;
                 case "RESERVATION":
 
@@ -393,55 +391,58 @@ validateOfferResponse = function(tripSpecifications, passengerSpecifications, se
 	    }
 	});
 
-    var requiredTrip = JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS));
-
-    pm.test("trips are returned", function () {
-	    pm.expect(trips).not.to.be.empty;
-
-        var found = false;
-        var tripIndex = 0;
-        var tripLength = trips.length;
-
-        while(found==false&&tripIndex<tripLength){
-            var trip = trips[tripIndex];
-
-            var legsFound = 0;
-            var legFound = true;
-            var legIndex = 0;
-            var legLength = trip.legs.length;
-            while(legFound==true&&legIndex<legLength){
-                var leg = trip.legs[legIndex];
-                
-                legFound = false;
-
-                requiredTrip[0].legs.forEach(function(requiredLeg){
-
-                    if(requiredLeg.timedLeg.start.stopPlaceRef.stopPlaceRef==leg.timedLeg.start.stopPlaceRef.stopPlaceRef&&
-                        requiredLeg.timedLeg.end.stopPlaceRef.stopPlaceRef==leg.timedLeg.end.stopPlaceRef.stopPlaceRef &&
-                        requiredLeg.timedLeg.service.vehicleNumbers[0]==leg.timedLeg.service.vehicleNumbers[0] &&
-                        requiredLeg.timedLeg.service.carriers[0].ref==leg.timedLeg.service.carriers[0].ref
-                        ) {
-                        legsFound++;
-                        legFound = true;
-                    }
-                });
-
-                legIndex++;
-            }
-
-            if(legFound==false){
-                found = false;
-            } else if(legsFound==requiredTrip[0].legs.length){
-                found = true;
-            }
-
-            tripIndex++;
-        }
-
-        pm.test("Correct legs are returned", function () {
-	        pm.expect(found).to.equal(true);
-        });
-    });
+	if(pm.globals.get(OFFER.TRIP_SPECIFICATIONS)!=undefined&&pm.globals.get(OFFER.TRIP_SPECIFICATIONS)!=null) {
+	    var requiredTrip = JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS));
+	    validationLogger("requiredTrip:"+requiredTrip);
+	
+	    pm.test("trips are returned", function () {
+		    pm.expect(trips).not.to.be.empty;
+	
+	        var found = false;
+	        var tripIndex = 0;
+	        var tripLength = trips.length;
+	
+	        while(found==false&&tripIndex<tripLength){
+	            var trip = trips[tripIndex];
+	
+	            var legsFound = 0;
+	            var legFound = true;
+	            var legIndex = 0;
+	            var legLength = trip.legs.length;
+	            while(legFound==true&&legIndex<legLength){
+	                var leg = trip.legs[legIndex];
+	                
+	                legFound = false;
+	
+	                requiredTrip[0].legs.forEach(function(requiredLeg){
+	
+	                    if(requiredLeg.timedLeg.start.stopPlaceRef.stopPlaceRef==leg.timedLeg.start.stopPlaceRef.stopPlaceRef&&
+	                        requiredLeg.timedLeg.end.stopPlaceRef.stopPlaceRef==leg.timedLeg.end.stopPlaceRef.stopPlaceRef &&
+	                        requiredLeg.timedLeg.service.vehicleNumbers[0]==leg.timedLeg.service.vehicleNumbers[0] &&
+	                        requiredLeg.timedLeg.service.carriers[0].ref==leg.timedLeg.service.carriers[0].ref
+	                        ) {
+	                        legsFound++;
+	                        legFound = true;
+	                    }
+	                });
+	
+	                legIndex++;
+	            }
+	
+	            if(legFound==false){
+	                found = false;
+	            } else if(legsFound==requiredTrip[0].legs.length){
+	                found = true;
+	            }
+	
+	            tripIndex++;
+	        }
+	
+	        pm.test("Correct legs are returned", function () {
+		        pm.expect(found).to.equal(true);
+	        });
+	    });
+	}
 	
 	pm.test("anonymousPassengerSpecifications are returned", function () {
 	    let response = pm.response.json();
@@ -449,7 +450,7 @@ validateOfferResponse = function(tripSpecifications, passengerSpecifications, se
 	});
 };
 
-validateBookingResponse = function(tripSpecifications, passengerSpecifications, searchCriteria, fulfillmentOptions, offers, offerId, booking, scenarioType) {
+validateBookingResponse = function( passengerSpecifications, searchCriteria, fulfillmentOptions, offers, offerId, booking, scenarioType, state) {
 
 	var bookingId = booking.id;
 	var createdOn = new Date(booking.createdOn);
@@ -505,7 +506,7 @@ validateBookingResponse = function(tripSpecifications, passengerSpecifications, 
     }
     
     var found = bookedOffers.some(function(bookedOffer){
-		return compareOffers(bookedOffer, offer, booking);
+		return compareOffers(bookedOffer, offer, booking, state);
 	});
 	
 	pm.test("Correct offer "+offer.offerId+" is returned", function () {
@@ -531,7 +532,7 @@ validateBookingResponse = function(tripSpecifications, passengerSpecifications, 
 
 };
 
-compareOffers = function(bookedOffer, offer, booking){
+compareOffers = function(bookedOffer, offer, booking, state){
 	validationLogger("Comparing "+bookedOffer.offerId+" to "+offer.offerId);
 	
 	if((bookedOffer.admissions==undefined||bookedOffer.admissions==null||bookedOffer.admissions.length==0)&&
@@ -543,7 +544,7 @@ compareOffers = function(bookedOffer, offer, booking){
 		bookedOffer.admissions.forEach(function(bookedAdmission){
 		
 			//check generic part
-			checkGenericBookedOfferPart(bookedAdmission);
+			checkGenericBookedOfferPart(bookedAdmission, state);
 			
 			var found = offer.admissionOfferParts.some(function(offeredAdmission){
 				return compareAdmissions (bookedAdmission, offeredAdmission, booking);
@@ -560,7 +561,7 @@ compareOffers = function(bookedOffer, offer, booking){
 		bookedOffer.reservations.forEach(function(bookedReservation){
 		
 			//check generic part
-			checkGenericBookedOfferPart(bookedReservation);
+			checkGenericBookedOfferPart(bookedReservation, state);
 		
 			var found = offer.reservationOfferParts.some(function(offeredReservation){
 				return compareReservations (bookedReservation, offeredReservation, booking);
@@ -739,7 +740,7 @@ validationLogger = function (message) {
 	}
 };
 
-checkGenericBookedOfferPart = function(offerPart){
+checkGenericBookedOfferPart = function(offerPart, state){
 	//check the creation date
 	var currentDate = new Date();
 	var createdOn = new Date(offerPart.createdOn);
@@ -752,17 +753,104 @@ checkGenericBookedOfferPart = function(offerPart){
         pm.expect(currentDate.getFullYear()).to.equal(createdOn.getFullYear());
     });
     
-    //check the confirmableUntil
-    pm.test("a correct confirmableUntil is returned on bookedofferpart", function () {
-    	var current = currentDate.getTime();
-    	var confirmation = confirmableUntil.getTime();
-        pm.expect(confirmation).to.be.above(current);
-    });
+    //check the confirmableUntil when this is a prebooked offer part
+    if(state=="PREBOOKED"){
+	    pm.test("a correct confirmableUntil is returned on bookedofferpart", function () {
+	    	var current = currentDate.getTime();
+	    	var confirmation = confirmableUntil.getTime();
+	        pm.expect(confirmation).to.be.above(current);
+	    });
+    }
     
     //check the status
     pm.test("a correct status is returned on bookedofferpart", function () {
-        pm.expect(offerPart.status).to.equal("PREBOOKED");
+        pm.expect(offerPart.status).to.equal(state);
     });
     
 };
 
+checkFulFilledBooking = function(booking, offer, state){
+
+	validationLogger("offer:"+offer);
+	var passengers = booking.passengers;
+
+	booking.bookedOffers.forEach(function(bookedOffer){
+	
+		//check the admissions
+		if(bookedOffer.admissions!=undefined&&bookedOffer.admissions!=null&&bookedOffer.admissions.length>0){
+			bookedOffer.admissions.forEach(function(bookedOfferPart){
+				checkGenericBookedOfferPart(bookedOfferPart,state);
+			});
+		}
+		
+		//check the reservations
+		if(bookedOffer.reservations!=undefined&&bookedOffer.reservations!=null&&bookedOffer.reservations.length>0){
+			bookedOffer.reservations.forEach(function(bookedOfferPart){
+				checkGenericBookedOfferPart(bookedOfferPart,state);
+			});
+		}
+
+		//confirmedPrice
+		var offerPrice = offer.offerSummary.minimalPrice;
+		var bookingPrice = booking.confirmedPrice;
+		
+		pm.test("Correct price is used on booking, compared to offer", function () {
+			pm.expect(offerPrice.amount).to.equal(bookingPrice.amount);
+			pm.expect(offerPrice.currency).to.equal(bookingPrice.currency);
+		});
+		
+		//fulfillments
+		booking.fulfillments.forEach(function(fulfillment) {
+			checkFulfillment(booking, fulfillment, state);
+		});
+		
+		//passengers
+		//check that all the passengers match the passengers from the offer
+		offer.passengerRefs.forEach(function(passenger){
+	
+			var found = false;
+			found = passengers.some(function(bookedPassenger){
+				validationLogger("checking "+bookedPassenger.externalRef+" against "+passenger);
+				if(bookedPassenger.externalRef==passenger){
+					return true;
+				}
+			});
+	
+			pm.test("passenger "+passenger+" returned", function () {
+				pm.expect(found).to.equal(true);
+			});
+	
+		});
+		
+		//purchaser
+		if(booking.purchaser!=undefined&&booking.purchaser!=null&&booking.purchaser.detail!=undefined&&booking.purchaser.detail!=null) {
+			pm.test("Correct Purchaser is returned", function () {
+				pm.expect(booking.purchaser.detail.firstName).not.to.be.empty;
+				pm.expect(booking.purchaser.detail.lastName).not.to.be.empty;
+			});
+		}
+		
+		//trips
+	});
+};
+
+checkFulfillment = function(booking, fulfillment, state){
+
+	pm.test("Correct booking reference is returned on fulfillment", function () {
+		pm.expect(fulfillment.bookingRef).to.equal(booking.id);
+	});
+
+	var currentDate = new Date();
+	var createdOn = new Date(fulfillment.createdOn);
+	
+	pm.test("Correct createdOn is returned on fulfillment", function () {
+        pm.expect(currentDate.getDate()).to.equal(createdOn.getDate());
+        pm.expect(currentDate.getMonth()).to.equal(createdOn.getMonth());
+        pm.expect(currentDate.getFullYear()).to.equal(createdOn.getFullYear());
+    });
+    
+    
+	pm.test("Correct state is returned on fulfillment", function () {
+		pm.expect(fulfillment.status).to.equal(state);
+	});
+};
