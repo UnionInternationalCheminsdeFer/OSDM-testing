@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "7e05d893-e306-4e7c-8530-652773d652fb",
-		"name": "OTST Trip Specification-Offer Booking (Sqills)",
+		"name": "OTST Trip Specification - Offer Booking",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "17867548"
 	},
@@ -25,7 +25,6 @@
 							"validateOfferConformsToOfferSearchCriteria(offer);",
 							"",
 							"validateOfferResponse(",
-							"JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS)), ",
 							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), ",
 							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), ",
 							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), ",
@@ -35,6 +34,7 @@
 							"",
 							"",
 							"pm.globals.set(\"offer_id\", offer.offerId);",
+							"pm.globals.set(\"offer\", offer);",
 							"pm.globals.set(\"offers\", jsonData.offers);",
 							"",
 							"//var reservationOfferPart = offer.reservationOfferParts[0];",
@@ -149,14 +149,14 @@
 							"});\r",
 							"\r",
 							"validateBookingResponse(\r",
-							"JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS)), \r",
 							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), \r",
 							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
 							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
 							"pm.globals.get(\"offers\"),\r",
 							"pm.globals.get(\"offer_id\"),\r",
 							"jsonData.booking,  \r",
-							"pm.globals.get(\"SCENARIO_TYPE\"));"
+							"pm.globals.get(\"SCENARIO_TYPE\"),\r",
+							"\"PREBOOKED\");"
 						],
 						"type": "text/javascript"
 					}
@@ -276,6 +276,69 @@
 						"bookings",
 						"{{booking_id}}",
 						"fulfillments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "05. Get Booking",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(globals.osdmHelpers);\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"// Verify whether the correct status code is returned\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"checkFulFilledBooking(\r",
+							"jsonData.booking,\r",
+							"pm.globals.get(\"offer\"),\r",
+							"\"FULFILLED\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Access-Token",
+						"value": "{{access_token}}",
+						"description": "Legacy Authorization Header; remove for 2.0",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_base}}/bookings/{{booking_id}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{booking_id}}"
 					]
 				}
 			},
