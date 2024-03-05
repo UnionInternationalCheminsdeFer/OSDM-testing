@@ -10,7 +10,7 @@
 		},
 		{
 			"key": "data_base",
-			"value": "https://otst-workbench.osdm.cz/data/",
+			"value": "https://testing.osdm.io/data/",
 			"type": "default",
 			"enabled": true
 		},
