@@ -351,8 +351,7 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"var scenario_type = \"BOTH\";",
-					"",
+					"var scenario_type = \"OTST_TSC_OB_2\";",
 					"",
 					"function pad(number) {",
 					"    return (number < 10) ? '0' + number : number;",

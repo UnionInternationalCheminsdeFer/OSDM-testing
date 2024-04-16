@@ -367,8 +367,7 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"var scenario_type = \"RESERVATION\";",
-					"",
+					"var scenario_type = \"OTST_TS_OR_4\";",
 					"",
 					"function pad(number) {",
 					"    return (number < 10) ? '0' + number : number;",

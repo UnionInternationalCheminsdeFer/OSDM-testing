@@ -131,6 +131,130 @@
 			"response": []
 		},
 		{
+			"name": "01. Get Offer Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(globals.osdmHelpers);",
+							"",
+							"pm.test('Successfully received offers', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"var offer = jsonData.offers[0];",
+							"validateOfferConformsToOfferSearchCriteria(offer);",
+							"",
+							"validateOfferResponse(",
+							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), ",
+							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), ",
+							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), ",
+							"jsonData.offers, ",
+							"jsonData.trips, ",
+							"pm.globals.get(\"SCENARIO_TYPE\"));",
+							"",
+							"",
+							"pm.globals.set(\"offer_id\", offer.offerId);",
+							"pm.globals.set(\"offer\", offer);",
+							"pm.globals.set(\"offers\", jsonData.offers);",
+							"",
+							"//var reservationOfferPart = offer.reservationOfferParts[0];",
+							"// pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"eval(globals.osdmHelpers);\r",
+							"\r",
+							"osdmTripSpecification([\r",
+							"    new TripLegDefinition(\r",
+							"        pm.globals.get(\"leg_1_start_stop_place_ref\"),\r",
+							"        pm.globals.get(\"leg_1_start_datetime\"),\r",
+							"        pm.globals.get(\"leg_1_end_stop_place_ref\"),\r",
+							"        pm.globals.get(\"leg_1_end_datetime\"),\r",
+							"        pm.globals.get(\"leg_1_product_category_ref\"),\r",
+							"        pm.globals.get(\"leg_1_product_category_name\"),\r",
+							"        pm.globals.get(\"leg_1_product_category_short_name\"),\r",
+							"        pm.globals.get(\"leg_1_vehicle_number\"),\r",
+							"        pm.globals.get(\"leg_1_operator_code\")\r",
+							"    )\r",
+							"]);\r",
+							"\r",
+							"osdmAnonymousPassengerSpecifications(1);\r",
+							"\r",
+							"osdmOfferSearchCriteria(\r",
+							"    pm.globals.get(\"offer_search_criteria_currency\"),\r",
+							"    null,\r",
+							"    [OfferPartType.RESERVATION],\r",
+							"    null,\r",
+							"    [pm.globals.get(\"offer_search_criteria_service_class\")],\r",
+							"    [pm.globals.get(\"offer_search_criteria_travel_class\")],\r",
+							"    null\r",
+							");\r",
+							"\r",
+							"osdmFulfillmentOptions([\r",
+							"    new FulfillmentOption(FulfillmentOptionType.ETICKET, FulfillmentMediaType.PDF_A4)\r",
+							"]);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"objectType\": \"OfferCollectionRequest\",\n    \"tripSpecifications\": {{offer_trip_specifications}},\n    \"anonymousPassengerSpecifications\": {{offer_passenger_specifications}},\n    \"offerSearchCriteria\": {{offer_search_criteria}},\n    \"requestedFulfillmentOptions\": {{offer_fulfillment_options}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_base}}/offers",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"offers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "03. Create a Booking",
 			"event": [
 				{
@@ -351,8 +475,7 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"var scenario_type = \"BOTH\";",
-					"",
+					"var scenario_type = \"OTST_TS_OB_1\";",
 					"",
 					"function pad(number) {",
 					"    return (number < 10) ? '0' + number : number;",
@@ -432,6 +555,8 @@
 					"",
 					"                foundCorrectDataSet = true;",
 					"                console.log(\"correct data set was found for this scenario type:\"+scenario_type);",
+					"            } else {",
+					"                console.log(\"skipping \"+jsonData[dataFileIndex].type);",
 					"            }",
 					"            dataFileIndex++;",
 					"        }",
