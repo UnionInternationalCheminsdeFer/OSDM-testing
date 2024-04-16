@@ -88,6 +88,7 @@ osdmAnonymousPassengerSpecifications = function(passengerNumber) {
     pm.globals.set(OFFER.PASSENGER_NUMBER, passengerNumber);
 
     var passengerSpecs = [];
+    var passengerReferences = [];
 
     for (let n = 1; n <= passengerNumber; n++) {
         var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", n);
@@ -103,9 +104,43 @@ osdmAnonymousPassengerSpecifications = function(passengerNumber) {
             PassengerType.PERSON,
             birthDate.toISOString().substring(0,10),
         ));
+        
+        passengerReferences.push(pm.globals.get(passengerKey));
+        
     }
 
     pm.globals.set(OFFER.PASSENGER_SPECIFICATIONS, JSON.stringify(passengerSpecs));
+    pm.globals.set(OFFER.PASSENGER_REFERENCES, JSON.stringify(passengerReferences));
+};
+
+osdmPassengerSpecifications = function(passengerNumber) {
+
+    var passengerSpecs = [];
+
+    for (let n = 1; n <= passengerNumber; n++) {
+        var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", n);
+
+        var birthDate = new Date();
+        birthDate.setFullYear(birthDate.getFullYear() - 26);
+        birthDate.setDate(birthDate.getDate() -1);
+
+        passengerSpecs.push(new PassengerSpec(
+            pm.globals.get(passengerKey),
+            PassengerType.PERSON,
+            birthDate.toISOString().substring(0,10),
+            new Detail("Pas"+n,"Senger"+n) 
+        ));
+    }
+
+    pm.globals.set(BOOKING.PASSENGER_SPECIFICATIONS, JSON.stringify(passengerSpecs));
+};
+
+osdmPurchaser = function() {
+        
+    var detail = new PurchaserDetail("Pur","Chaser","yourusername@example.com","0612345678");
+    var purchaser = new Purchaser(detail);
+
+    pm.globals.set(BOOKING.PURCHASER, JSON.stringify(purchaser));
 };
 
 osdmOfferSearchCriteria = function (
@@ -175,6 +210,26 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	    var requireReservation = false;
 	    
 	    switch(scenarioType) {
+	      case "OTST_TS_OB_1":
+	        requireAdmission = true;
+	        requireReservation = true;
+	        break;
+	      case "OTST_TSC_OB_2":
+	        requireAdmission = true;
+	        requireReservation = true;
+	        break;
+	      case "OTST_TS_OB_2PASS_3":
+	        requireAdmission = true;
+	        requireReservation = true;
+	        break;
+	      case "OTST_TS_OR_4":
+	        requireAdmission = true;
+	        requireReservation = true;
+	        break;
+	      case "OTST_TSC_OR_5":
+	        requireAdmission = true;
+	        requireReservation = true;
+	        break;
 	      case "BOTH":
 	        requireAdmission = true;
 	        requireReservation = true;
@@ -215,14 +270,21 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	            	//check admissions for items
 		            while(admissionOfferPartsIndex < admissionOfferPartsLength) {
 		                var admissionOfferPart = offer.admissionOfferParts[admissionOfferPartsIndex];
+		                
 
                          var passengerIndex = 0;
                          var passengerLenght = passengerSpecifications.length;
+                         
+                         validationLogger("checking admission: "+admissionOfferPartsIndex+" for "+passengerLenght+" passengers");
 
                          admissionOfferPart.passengerRefs.forEach(function(passengerRef){
                             while(passengerIndex<passengerLenght){
+                            
+                            	validationLogger("checking passengerSpecifications: "+passengerRef+" and "+passengerSpecifications[passengerIndex].externalRef);
                                 
                                 if(passengerSpecifications[passengerIndex].externalRef==passengerRef){
+                                
+                                	validationLogger("checking admission for passengerSpecifications: "+passengerRef);
 
                                     //check if fullfillment options were requested
                                     if(fulfillmentOptions!=undefined) {
@@ -246,7 +308,7 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
                                         foundAdmissions++;
                                     }
                                     
-                                }
+                                } 
 
                                 passengerIndex++;
                             }
@@ -348,7 +410,8 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 
                 var amounts = passengerSpecifications.length;
                 switch(scenarioType) {
-                case "BOTH":
+                
+                case "OTST_TS_OB_2PASS_3":
                     
                     pm.test("Correct admissions are returned", function () {
                         pm.expect(foundAdmissions).to.equal(amounts);
@@ -363,6 +426,58 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
                     }
                     
                     break;
+                case "OTST_TS_OB_1":
+                    
+                    pm.test("Correct admissions are returned", function () {
+                        pm.expect(foundAdmissions).to.equal(amounts);
+                    });
+
+				    pm.test("Correct reservations are returned", function () {
+                        pm.expect(foundReservations).to.equal(amounts);
+                    });
+
+				    if(amounts==foundAdmissions&&amounts==foundReservations) {
+                        found = true;
+                    }
+                    
+                    break;
+                case "OTST_TSC_OB_2":
+                    
+                    pm.test("Correct admissions are returned", function () {
+                        pm.expect(foundAdmissions).to.equal(amounts);
+                    });
+
+				    pm.test("Correct reservations are returned", function () {
+                        pm.expect(foundReservations).to.equal(amounts);
+                    });
+
+				    if(amounts==foundAdmissions&&amounts==foundReservations) {
+                        found = true;
+                    }
+                    
+                    break;
+                case "OTST_TS_OR_4":
+
+                    pm.test("Correct reservations are returned", function () {
+                        pm.expect(foundReservations).to.equal(amounts);
+                    });
+
+                    if(amounts==foundReservations) {
+                        found = true;
+                    }
+
+                    break;
+                case "OTST_TSC_OR_5":
+
+                    pm.test("Correct reservations are returned", function () {
+                        pm.expect(foundReservations).to.equal(amounts);
+                    });
+
+                    if(amounts==foundReservations) {
+                        found = true;
+                    }
+
+                    break;
                 case "RESERVATION":
 
                     pm.test("Correct reservations are returned", function () {
@@ -373,6 +488,21 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
                         found = true;
                     }
 
+                    break;
+                case "BOTH":
+                    
+                    pm.test("Correct admissions are returned", function () {
+                        pm.expect(foundAdmissions).to.equal(amounts);
+                    });
+
+				    pm.test("Correct reservations are returned", function () {
+                        pm.expect(foundReservations).to.equal(amounts);
+                    });
+
+				    if(amounts==foundAdmissions&&amounts==foundReservations) {
+                        found = true;
+                    }
+                    
                     break;
                 default:
                     pm.test("Correct admissions are returned", function () {

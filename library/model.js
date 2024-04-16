@@ -18,6 +18,12 @@ var OFFER = {
     SEARCH_CRITERIA_TRAVEL_CLASS : "offer_search_criteria_travel_class",
     SEARCH_CRITERIA : "offer_search_criteria",
     FULFILLMENT_OPTIONS : "offer_fulfillment_options",
+    PASSENGER_REFERENCES : "offer_passenger_references"
+}
+
+var BOOKING = {
+    PASSENGER_SPECIFICATIONS : "booking_passenger_specifications",
+    PURCHASER : "booking_purchaser"
 }
 
 var OfferPartType = {
@@ -90,6 +96,34 @@ var AnonymousPassengerSpec = class {
         this.type = type;
         this.dateOfBirth = dateOfBirth;
     }
+}
+
+var PassengerSpec = class {
+    constructor(externalRef, type, dateOfBirth, detail) {
+        this.externalRef = externalRef;
+        this.type = type;
+        this.dateOfBirth = dateOfBirth;
+        this.detail = detail;
+        console.log("called passengerSpec constructor");
+    }
+}
+
+function Detail(firstName, lastName) {
+	this.firstName = firstName;
+	this.lastName = lastName;
+}
+
+var Purchaser = class {
+    constructor(detail) {
+    	this.detail = detail;
+    }
+}
+
+function PurchaserDetail(firstName, lastName, email, phoneNumber) {
+	this.firstName = firstName;
+	this.lastName = lastName;
+	this.email = email;
+	this.phoneNumber = phoneNumber;
 }
 
 var TripLegDefinition = class {
