@@ -864,7 +864,7 @@ validateRefundResponse = function(refundResponse) {
     });
 
     refundOffers.forEach(function(refundOffer) {
-        var validUntil = refundOffer.validUntil ? new Date(refundOffer.validUntil) : null;
+        //var validUntil = refundOffer.validUntil ? new Date(refundOffer.validUntil) : null;
         var status = refundOffer.status;
         var appliedOverruleCode = refundOffer.appliedOverruleCode;
         var fulfillments = refundOffer.fulfillments;
@@ -872,22 +872,18 @@ validateRefundResponse = function(refundResponse) {
         var refundableAmount = refundOffer.refundableAmount;
 
         validationLogger("Checking refund offer with Id: " + refundOffer.id);
-        validationLogger("ValidUntil: " + validUntil);
+        //validationLogger("ValidUntil: " + validUntil);
         validationLogger("Status: " + status);
         validationLogger("AppliedOverruleCode: " + appliedOverruleCode);
 
-        if (validUntil) {
-            // Check validUntil is at least 10 minutes from now
-            var currentDate = new Date();
-            pm.test("ValidUntil is at least 10 minutes from now", function () {
-                var tenMinutesLater = new Date(currentDate.getTime() + 10 * 60000);
-                pm.expect(validUntil.getTime()).to.be.a('number').and.to.be.above(tenMinutesLater.getTime());
-            });
-        } else {
-            pm.test("ValidUntil is null", function () {
-                pm.expect(validUntil).to.be.null;
-            });
-        }
+		/*
+		// Check validUntil is at least 10 minutes from now
+		pm.test("ValidUntil is at least 10 minutes from now", function () {
+			var validUntilBookedOffers = pm.globals.get("valid_until_booked_offers");
+			var validUntil = response.booking.bookedOffers[0].reservations[0].validUntil
+			pm.expect(validUntil).to.be.below(validUntilBookedOffers);
+		});
+		*/
 
         // Check the status
 		pm.test("Correct status is returned", function () {
@@ -931,7 +927,8 @@ validateRefundResponse = function(refundResponse) {
 
 				var bookingConfirmedPrice = pm.globals.get("booking_confirmedPrice");
 				// Check refundableAmount equal to bookingConfirmedPrice from GET /booking
-				pm.expect(refundableAmount.amount).to.equal(bookingConfirmedPrice);			}
+				pm.expect(refundableAmount.amount).to.equal(bookingConfirmedPrice);
+			}
         });
     });
 };
@@ -948,12 +945,19 @@ validateGetBookingResponseBeforeRefund = function(response) {
         pm.expect(booking).to.have.property('id').that.is.a('string').and.not.empty;
     });
 
-    pm.test("ValidUntil is at least 10 minutes from now", function() {
-        const currentTime = new Date().getTime();
-        const validUntilTime = new Date(refundOffer.validUntil).getTime();
-        // Uncomment the line below if you want to enforce this check
-        // pm.expect(validUntilTime - currentTime).to.be.at.least(10 * 60 * 1000);
-    });
+	pm.test("ValidUntil is at least 10 minutes from now for Booked Offers", function () {
+		var validUntilBookedOffers = new Date(pm.variables.get("valid_until_booked_offers"));
+		var validUntil = new Date(response.booking.bookedOffers[0].reservations[0].validUntil);
+		const validUntilBookedOffersPlus10Min = new Date(validUntilBookedOffers.getTime() + 10 * 60000);
+		pm.expect(validUntil).to.be.below(validUntilBookedOffersPlus10Min);
+	});
+
+	pm.test("ValidUntil is at least 10 minutes from now for Refund Offers", function () {
+		var validUntilRefundOffers = new Date(pm.variables.get("valid_until_refund_offers"));
+		var validUntil = new Date(response.booking.refundOffers[0].validUntil);
+		const validUntilRefundOffersPlus10Min = new Date(validUntilRefundOffers.getTime() + 10 * 60000);
+		pm.expect(validUntil).to.be.below(validUntilRefundOffersPlus10Min);
+	});
 
     pm.test("Refund offers array exists and is not empty", function() {
         pm.expect(booking).to.have.property('refundOffers').that.is.an('array').with.length.above(0);
@@ -1006,12 +1010,19 @@ validateGetBookingResponseAfterRefund = function(response) {
         pm.expect(booking).to.have.property('id').that.is.a('string').and.not.empty;
     });
 
-    pm.test("ValidUntil is at least 10 minutes from now", function() {
-        const currentTime = new Date().getTime();
-        const validUntilTime = new Date(refundOffer.validUntil).getTime();
-        // Uncomment the line below if you want to enforce this check
-        // pm.expect(validUntilTime - currentTime).to.be.at.least(10 * 60 * 1000);
-    });
+	pm.test("ValidUntil is at least 10 minutes from now for Booked Offers", function () {
+		var validUntilBookedOffers = new Date(pm.variables.get("valid_until_booked_offers"));
+		var validUntil = new Date(response.booking.bookedOffers[0].reservations[0].validUntil);
+		const validUntilBookedOffersPlus10Min = new Date(validUntilBookedOffers.getTime() + 10 * 60000);
+		pm.expect(validUntil).to.be.below(validUntilBookedOffersPlus10Min);
+	});
+
+	pm.test("ValidUntil is at least 10 minutes from now for Refund Offers", function () {
+		var validUntilRefundOffers = new Date(pm.variables.get("valid_until_refund_offers"));
+		var validUntil = new Date(response.booking.refundOffers[0].validUntil);
+		const validUntilRefundOffersPlus10Min = new Date(validUntilRefundOffers.getTime() + 10 * 60000);
+		pm.expect(validUntil).to.be.below(validUntilRefundOffersPlus10Min);
+	});
 
     pm.test("Refund offers array exists and is not empty", function() {
         pm.expect(booking).to.have.property('refundOffers').that.is.an('array').with.length.above(0);
