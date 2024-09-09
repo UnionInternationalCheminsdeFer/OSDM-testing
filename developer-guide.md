@@ -1,3 +1,9 @@
+---
+layout: page
+title: Developer Guide
+permalink: /developer-guide/
+---
+
 # Developer Guide
 
 To develop new test scenarios, developer must have experience with the Postman application, basic proficiency in Javascript language and understand concepts of the OSDM specification itself as the structures and functions used to build the request and validate the result are mostly identical with objects from OSDM.
