@@ -7,7 +7,6 @@ setAuthToken = function () {
 }
 
 osdmTripSearchCriteria = function (legDefinitions) {
-	console.log("osdmTripSearchCriteria Method")
 	pm.test('Trip Search Criteria has at least one leg', function () {
         pm.expect(legDefinitions).to.be.an("array");
         pm.expect(legDefinitions.length).to.be.above(0);
@@ -451,6 +450,39 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	});
 };
 
+displayOfferResponse = function(response) {
+	// Iterate over each offer
+	response.offers.forEach((offer, index) => {
+		validationLogger(`Offer ${index + 1} Details:`);
+		validationLogger(`  Minimal Price amount: ${offer.offerSummary.minimalPrice.amount}`);
+		validationLogger(`  Overall Flexibility: ${offer.offerSummary.overallFlexibility}`);
+		validationLogger(`  Overall ServiceClass: ${offer.offerSummary.overallServiceClass.name}`);
+		validationLogger(`  Overall TravelClass: ${offer.offerSummary.overallTravelClass}`);
+		validationLogger(`  Overall AccommodationType: ${offer.offerSummary.overallAccommodationType}`);
+		validationLogger(`  Overall AccommodationSubType: ${offer.offerSummary.overallAccommodationSubType}`);
+		validationLogger(`  Number of passengers: ${response.anonymousPassengerSpecifications.length}`);
+		validationLogger(`      Type: ${response.anonymousPassengerSpecifications.map(spec => spec.type).join(', ')}`);
+		validationLogger(`      Cards: ${response.anonymousPassengerSpecifications.map(spec => spec.cards ? spec.cards.join(', ') : 'None').join(', ')}`);
+		
+		// Iterate over each trip
+		response.trips.forEach((trip, tripIndex) => {
+			validationLogger(`  Trip ${tripIndex + 1} Summary: ${trip.summary}`);
+			validationLogger(`  Number of trip legs: ${trip.legs.length}`);
+			validationLogger(`  Start Time: ${trip.startTime}`);
+			validationLogger(`  End Time: ${trip.endTime}`);
+
+			// Iterate over each leg in the trip
+			trip.legs.forEach((leg, legIndex) => {
+				validationLogger(`    Leg ${legIndex + 1} Details:`);
+				validationLogger(`        Start Stop Place Name: ${leg.timedLeg.start.stopPlaceName}`);
+				validationLogger(`        End Stop Place Name: ${leg.timedLeg.end.stopPlaceName}`);
+				validationLogger(`        Vehicle Numbers: ${leg.timedLeg.service.vehicleNumbers ? leg.timedLeg.service.vehicleNumbers.join(', ') : 'None'}`);
+				validationLogger(`        Line Numbers: ${leg.timedLeg.service.lineNumbers ? leg.timedLeg.service.lineNumbers.join(', ') : 'None'}`);
+			});
+		});
+	});
+}
+
 validateBookingResponse = function( passengerSpecifications, searchCriteria, fulfillmentOptions, offers, offerId, booking, scenarioType, state) {
 
 	var bookingId = booking.id;
@@ -532,6 +564,68 @@ validateBookingResponse = function( passengerSpecifications, searchCriteria, ful
 	});
 
 };
+
+displayBookingResponse = function(response) {
+	// Log booking information
+	validationLogger(`Booking ID: ${response.booking.id}`);
+	validationLogger(`Booking Code: ${response.booking.bookingCode}`);
+	validationLogger(`External Reference: ${response.booking.externalRef}`);
+	validationLogger(`Created On: ${response.booking.createdOn}`);
+	validationLogger(`Provisional Price: ${response.booking.provisionalPrice.amount} ${response.booking.provisionalPrice.currency}`);
+	validationLogger(`Number of Passengers: ${response.booking.passengers.length}`);
+
+	// Log passenger information
+	response.booking.passengers.forEach((passenger, passengerIndex) => {
+		validationLogger(`Passenger ${passengerIndex + 1} Details:`);
+		validationLogger(`  Passenger ID: ${passenger.id}`);
+		validationLogger(`  Type: ${passenger.type}`);
+		validationLogger(`  Date of Birth: ${passenger.dateOfBirth}`);
+		validationLogger(`  Cards: ${passenger.cards ? passenger.cards.join(', ') : 'None'}`);
+	});
+
+	// Log trip information
+	response.booking.trips.forEach((trip, tripIndex) => {
+		validationLogger(`Trip ${tripIndex + 1} Summary: ${trip.summary}`);
+		validationLogger(`  Trip ID: ${trip.id}`);
+		validationLogger(`  Direction: ${trip.direction}`);
+		validationLogger(`  Start Time: ${trip.startTime}`);
+		validationLogger(`  End Time: ${trip.endTime}`);
+		validationLogger(`  Duration: ${trip.duration}`);
+		validationLogger(`  Distance: ${trip.distance} meters`);
+
+		// Log leg information for each trip
+		trip.legs.forEach((leg, legIndex) => {
+			validationLogger(`    Leg ${legIndex + 1} Details:`);
+			validationLogger(`      Leg ID: ${leg.id}`);
+			validationLogger(`      Start Stop Place Name: ${leg.timedLeg.start.stopPlaceName}`);
+			validationLogger(`      End Stop Place Name: ${leg.timedLeg.end.stopPlaceName}`);
+			validationLogger(`      Start Time: ${leg.timedLeg.start.serviceDeparture.timetabledTime}`);
+			validationLogger(`      End Time: ${leg.timedLeg.end.serviceArrival.timetabledTime}`);
+
+			// Log vehicle numbers and line numbers
+			validationLogger(`      Vehicle Numbers: ${leg.timedLeg.service.vehicleNumbers ? leg.timedLeg.service.vehicleNumbers.join(', ') : 'None'}`);
+			validationLogger(`      Line Numbers: ${leg.timedLeg.service.lineNumbers ? leg.timedLeg.service.lineNumbers.join(', ') : 'None'}`);
+		});
+	});
+
+	// Log booked offers
+	response.booking.bookedOffers.forEach((offer, offerIndex) => {
+		validationLogger(`Offer ${offerIndex + 1} Details:`);
+		validationLogger(`  Offer ID: ${offer.offerId}`);
+		validationLogger(`  Reservations: ${offer.reservations.length} reservation(s)`);
+		
+		offer.reservations.forEach((reservation, reservationIndex) => {
+			validationLogger(`    Reservation ${reservationIndex + 1} Details:`);
+			validationLogger(`      Object Type: ${reservation.objectType}`);
+			validationLogger(`      Status: ${reservation.status}`);
+			validationLogger(`      Valid From: ${reservation.validFrom}`);
+			validationLogger(`      Valid Until: ${reservation.validUntil}`);
+			validationLogger(`      Price: ${reservation.price.amount} ${reservation.price.currency}`);
+			validationLogger(`      Refundable: ${reservation.refundable}`);
+			validationLogger(`      Exchangeable: ${reservation.exchangeable}`);
+		});
+	});
+}
 
 compareOffers = function(bookedOffer, offer, booking, state){
 	validationLogger("Comparing "+bookedOffer.offerId+" to "+offer.offerId);
@@ -855,6 +949,101 @@ checkFulfillment = function(booking, fulfillment, state){
 		pm.expect(fulfillment.status).to.equal(state);
 	});
 };
+
+displayFulFilledBookig = function(response) {
+	// Log booking information
+	validationLogger(`Booking ID: ${response.booking.id}`);
+	validationLogger(`Booking Code: ${response.booking.bookingCode}`);
+	validationLogger(`External Reference: ${response.booking.externalRef}`);
+	validationLogger(`Created On: ${response.booking.createdOn}`);
+	validationLogger(`Provisional Price: ${response.booking.provisionalPrice ? response.booking.provisionalPrice.amount + ' ' + response.booking.provisionalPrice.currency : 'Not available'}`);
+	validationLogger(`Confirmed Price: ${response.booking.confirmedPrice ? response.booking.confirmedPrice.amount + ' ' + response.booking.confirmedPrice.currency : 'Not available'}`);
+	validationLogger(`Number of Passengers: ${response.booking.passengers.length}`);
+
+	// Log passenger information
+	response.booking.passengers.forEach((passenger, passengerIndex) => {
+		validationLogger(`Passenger ${passengerIndex + 1} Details:`);
+		validationLogger(`  Passenger ID: ${passenger.id}`);
+		validationLogger(`  Type: ${passenger.type}`);
+		validationLogger(`  Date of Birth: ${passenger.dateOfBirth}`);
+		validationLogger(`  Cards: ${passenger.cards ? passenger.cards.join(', ') : 'None'}`);
+	});
+
+	// Log trip information
+	response.booking.trips.forEach((trip, tripIndex) => {
+		validationLogger(`Trip ${tripIndex + 1} Summary: ${trip.summary}`);
+		validationLogger(`  Trip ID: ${trip.id}`);
+		validationLogger(`  Direction: ${trip.direction}`);
+		validationLogger(`  Start Time: ${trip.startTime}`);
+		validationLogger(`  End Time: ${trip.endTime}`);
+		validationLogger(`  Duration: ${trip.duration}`);
+		validationLogger(`  Distance: ${trip.distance} meters`);
+
+		// Log leg information for each trip
+		trip.legs.forEach((leg, legIndex) => {
+			validationLogger(`    Leg ${legIndex + 1} Details:`);
+			validationLogger(`      Leg ID: ${leg.id}`);
+			validationLogger(`      Start Stop Place Name: ${leg.timedLeg.start.stopPlaceName}`);
+			validationLogger(`      End Stop Place Name: ${leg.timedLeg.end.stopPlaceName}`);
+			validationLogger(`      Start Time: ${leg.timedLeg.start.serviceDeparture.timetabledTime}`);
+			validationLogger(`      End Time: ${leg.timedLeg.end.serviceArrival.timetabledTime}`);
+
+			// Log vehicle numbers and line numbers
+			validationLogger(`      Vehicle Numbers: ${leg.timedLeg.service.vehicleNumbers ? leg.timedLeg.service.vehicleNumbers.join(', ') : 'None'}`);
+			validationLogger(`      Line Numbers: ${leg.timedLeg.service.lineNumbers ? leg.timedLeg.service.lineNumbers.join(', ') : 'None'}`);
+		});
+	});
+
+	// Log booked offers
+	response.booking.bookedOffers.forEach((offer, offerIndex) => {
+		validationLogger(`Offer ${offerIndex + 1} Details:`);
+		validationLogger(`  Offer ID: ${offer.offerId}`);
+		validationLogger(`  Reservations: ${offer.reservations.length} reservation(s)`);
+		
+		offer.reservations.forEach((reservation, reservationIndex) => {
+			validationLogger(`    Reservation ${reservationIndex + 1} Details:`);
+			validationLogger(`      Object Type: ${reservation.objectType}`);
+			validationLogger(`      Status: ${reservation.status}`);
+			validationLogger(`      Valid From: ${reservation.validFrom}`);
+			validationLogger(`      Valid Until: ${reservation.validUntil}`);
+			validationLogger(`      Price: ${reservation.price.amount} ${reservation.price.currency}`);
+			validationLogger(`      Refundable: ${reservation.refundable}`);
+			validationLogger(`      Exchangeable: ${reservation.exchangeable}`);
+		});
+	});
+
+	// Log fulfillments information
+	if (response.booking.fulfillments && response.booking.fulfillments.length > 0) {
+		validationLogger(`Number of Fulfillments: ${response.booking.fulfillments.length}`);
+		response.booking.fulfillments.forEach((fulfillment, fulfillmentIndex) => {
+			validationLogger(`Fulfillment ${fulfillmentIndex + 1} Details:`);
+			validationLogger(`  Fulfillment ID: ${fulfillment.id}`);
+			validationLogger(`  Status: ${fulfillment.status}`);
+			validationLogger(`  Booking Reference: ${fulfillment.bookingRef}`);
+			validationLogger(`  Created On: ${fulfillment.createdOn}`);
+			validationLogger(`  Control Number: ${fulfillment.controlNumber}`);
+			
+			if (fulfillment.bookingParts) {
+				validationLogger(`  Booking Parts: ${fulfillment.bookingParts.length}`);
+				fulfillment.bookingParts.forEach((part, partIndex) => {
+					validationLogger(`    Booking Part ${partIndex + 1} Details:`);
+					validationLogger(`      Part ID: ${part.id}`);
+					validationLogger(`      Summary: ${part.summary}`);
+				});
+			} else {
+				validationLogger(`  Booking Parts: None`);
+			}
+			
+			if (fulfillment.fulfillmentDocuments && fulfillment.fulfillmentDocuments.length > 0) {
+				validationLogger(`  Fulfillment Documents: ${fulfillment.fulfillmentDocuments.length}`);
+			} else {
+				validationLogger(`  Fulfillment Documents: None`);
+			}
+		});
+	} else {
+		validationLogger(`No fulfillments found.`);
+	}
+}
 
 validateRefundResponse = function(refundResponse) {
     var refundOffers = refundResponse.refundOffers;
