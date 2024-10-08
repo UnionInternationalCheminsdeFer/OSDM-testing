@@ -452,6 +452,7 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 
 displayOfferResponse = function(response) {
 	// Iterate over each offer
+	includedReservations = null;
 	response.offers.forEach((offer, index) => {
 		validationLogger(`Offer ${index + 1} Details:`);
 		validationLogger(`  Minimal Price amount: ${offer.offerSummary.minimalPrice.amount}`);
@@ -460,6 +461,48 @@ displayOfferResponse = function(response) {
 		validationLogger(`  Overall TravelClass: ${offer.offerSummary.overallTravelClass}`);
 		validationLogger(`  Overall AccommodationType: ${offer.offerSummary.overallAccommodationType}`);
 		validationLogger(`  Overall AccommodationSubType: ${offer.offerSummary.overallAccommodationSubType}`);
+ 
+		// Iterate over each admissionOfferPart
+		offer.admissionOfferParts.forEach((admissionPart, partIndex) => {
+			validationLogger(`  Admission Offer Part ${partIndex + 1}:`);
+			validationLogger(`      Summary: ${admissionPart.summary}`);
+			validationLogger(`      Price: ${admissionPart.price.amount} ${admissionPart.price.currency}`);
+
+			// Check and log includedReservations if not null
+			if (admissionPart.includedReservations && admissionPart.includedReservations.length > 0) {
+				includedReservations = admissionPart.includedReservations ? admissionPart.includedReservations : null;
+				admissionPart.includedReservations.forEach((reservation, reservationIndex) => {
+					validationLogger(`    Included Reservation ${reservationIndex + 1}:`);
+					validationLogger(`      ID: ${reservation.id}`);
+					validationLogger(`      Summary: ${reservation.summary}`);
+					validationLogger(`      Created On: ${reservation.createdOn}`);
+					validationLogger(`      Valid From: ${reservation.validFrom}`);
+					validationLogger(`      Valid Until: ${reservation.validUntil}`);
+					validationLogger(`      Price: ${reservation.price.amount} ${reservation.price.currency}`);
+				});
+			} else {
+				validationLogger(`  No included reservations.`);
+			}
+		});
+
+		// Iterate over each product in the offer
+        offer.products.forEach((product, productIndex) => {
+			isTrainBound = product.isTrainBound ? product.isTrainBound : false;
+            validationLogger(`  Product ${productIndex + 1}:`);
+            validationLogger(`      Product Summary: ${product.summary}`);
+            validationLogger(`      Product Type: ${product.type}`);
+            validationLogger(`      Train is bound: ${product.isTrainBound}`);
+        });
+
+		// Check for NRT, TLT or IRT
+		if (isTrainBound === false && includedReservations === null) {
+			validationLogger(`      NRT: Train is not bound, and no included reservations.`);
+		} else if (isTrainBound === true && includedReservations === null) {
+			validationLogger(`      TLT: Train is bound, but no included reservations.`);
+		} else if (isTrainBound  === true && Array.isArray(includedReservations)) {
+			validationLogger(`      IRT: Train is bound, and included reservations present.`);
+		}
+
 		validationLogger(`  Number of passengers: ${response.anonymousPassengerSpecifications.length}`);
 		validationLogger(`      Type: ${response.anonymousPassengerSpecifications.map(spec => spec.type).join(', ')}`);
 		validationLogger(`      Cards: ${response.anonymousPassengerSpecifications.map(spec => spec.cards ? spec.cards.join(', ') : 'None').join(', ')}`);
