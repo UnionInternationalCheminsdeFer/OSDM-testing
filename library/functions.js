@@ -448,11 +448,52 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	    let response = pm.response.json();
 	    pm.expect(response.anonymousPassengerSpecifications).not.to.be.empty;
 	});
+
+	let desiredFlexibility = pm.globals.get("SCENARIO_1_flexibility"); 
+	console.log("Flexibility for current leg:" + desiredFlexibility);
+	switch (desiredFlexibility) {
+		case "FF":
+			desiredFlexibility = "FULL_FLEXIBLE";
+			break;
+		case "SF":
+			desiredFlexibility = "SEMI_FLEXIBLE";
+			break;
+		case "NF":
+			desiredFlexibility = "NON_FLEXIBLE";
+			break;
+		default:
+			console.log("Unrecognized flexibility value");
+			desiredFlexibility = null;
+	}
+
+	let selectedOffer = jsonData.offers.find(offer => 
+		offer.offerSummary.overallFlexibility === desiredFlexibility
+	);
+
+	if (selectedOffer) {
+		pm.globals.set("offer_id", offers.offerId);
+		console.log("Selected offer:", selectedOffer);
+	} else {
+		pm.globals.set("offer_id", offers[0].offerId);
+		// TODO : Catch it differently (default one ?)
+		// STOP THE TEST ?? TO CONFIRM 
+		console.log("Offer doesn't match the entry criteria, displaying warning.");
+		console.log("Warnings :", jsonData.warnings);
+		// Taking the 1st as default 
+	}
+
+	pm.globals.set("offer", offer);
+	pm.globals.set("offers", jsonData.offers);
+
+	var reservationOfferPart = offer.reservationOfferParts[0];
+	pm.globals.set("reservation_id", reservationOfferPart.id);
+	
 };
 
 displayOfferResponse = function(response) {
 	// Iterate over each offer
 	includedReservations = null;
+	console.log("ici")
 	response.offers.forEach((offer, index) => {
 		validationLogger(`Offer ${index + 1} Details:`);
 		validationLogger(`  Minimal Price amount: ${offer.offerSummary.minimalPrice.amount}`);
@@ -970,6 +1011,13 @@ checkFulFilledBooking = function(booking, offer, state){
 		
 		//trips
 	});
+
+	//new sets
+	pm.globals.set("booking_confirmedPrice", jsonData.booking.confirmedPrice);
+	pm.test("Verify fulfillment ID", function () {
+		var fulfillmentsId = pm.globals.get("fulfillments_id");
+		pm.expect(jsonData.booking.fulfillments[0].id).to.eql(fulfillmentsId);
+	});
 };
 
 checkFulfillment = function(booking, fulfillment, state){
@@ -1088,278 +1136,214 @@ displayFulFilledBookig = function(response) {
 	}
 }
 
-validateRefundResponse = function(refundResponse) {
-    var refundOffers = refundResponse.refundOffers;
+function logRefundDetails(refundOffer) {
+    validationLogger("Checking refund offer with Id: " + refundOffer.id);
+    validationLogger("ValidUntil: " + new Date(pm.variables.get("valid_until_refund_offers")));
+    validationLogger("Status: " + refundOffer.status);
+    validationLogger("AppliedOverruleCode: " + refundOffer.appliedOverruleCode);
+}
 
-    pm.test("Refund response contains refundOffers", function () {
+function validateFulfillments(fulfillments) {
+    pm.test("Fulfillments are present and valid", function () {
+        pm.expect(fulfillments).to.be.an('array').that.is.not.empty;
+        fulfillments.forEach(function (fulfillment) {
+            pm.expect(fulfillment.id).to.be.a('string').and.not.be.empty;
+            pm.expect(fulfillment).to.have.property('status').that.equals('FULFILLED');
+
+            const fulfillmentsId = pm.globals.get("fulfillments_id");
+            pm.expect(fulfillment.id).to.eql(fulfillmentsId);
+        });
+    });
+}
+
+function validateRefundFee(refundFee) {
+    pm.test("Refund fee equals to 0", function () {
+        pm.expect(refundFee).to.have.property('amount').that.equals(0);
+    });
+}
+
+function validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice) {
+    pm.test("Refundable amount is valid", function () {
+        if (overruleCode === "CODE_DOES_NOT_EXIST") {
+            pm.expect(refundOffer.appliedOverruleCode).to.equal(overruleCode);
+            pm.expect(refundOffer.refundableAmount.amount).to.be.null;
+        } else {
+            pm.expect(refundOffer.refundableAmount.amount).to.be.a('number').and.to.be.at.least(0);
+            pm.expect(refundOffer.refundableAmount.amount).to.equal(bookingConfirmedPrice - refundOffer.refundFee.amount);
+        }
+    });
+}
+
+function validateAppliedOverruleCode(appliedOverruleCode) {
+    const expectedOverruleCode = pm.globals.get("overruleCode");
+    pm.test("AppliedOverruleCode is valid", function () {
+        if (!expectedOverruleCode) {
+            pm.expect(appliedOverruleCode).to.be.null;
+        } else {
+            pm.expect(appliedOverruleCode).to.equal(expectedOverruleCode);
+        }
+    });
+}
+
+function validateRefundOfferResponse(response, isPatchResponse = false) {
+    const refundOffers = isPatchResponse ? [response.refundOffer] : response.refundOffers;
+
+    pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+    });
+
+    pm.test(isPatchResponse ? "Patch refund response contains refundOffer" : "Refund response contains refundOffers", function () {
         pm.expect(refundOffers).to.be.an('array').that.is.not.empty;
     });
 
-    refundOffers.forEach(function(refundOffer) {
-        var status = refundOffer.status;
-        var appliedOverruleCode = refundOffer.appliedOverruleCode;
-        var fulfillments = refundOffer.fulfillments;
-		var refundFee = refundOffer.refundFee;
-        var refundableAmount = refundOffer.refundableAmount;
+    refundOffers.forEach(function (refundOffer) {
+        logRefundDetails(refundOffer);
 
-        validationLogger("Checking refund offer with Id: " + refundOffer.id);
-        validationLogger("ValidUntil: " + new Date(pm.variables.get("valid_until_refund_offers")));
-        validationLogger("Status: " + status);
-        validationLogger("AppliedOverruleCode: " + appliedOverruleCode);
-
-        // Check the status
-		pm.test("Correct status is returned", function () {
-			pm.expect(status).to.be.a('string').and.to.equal('PROPOSED');
-		});
-
-		// Check the fulfillments
-		pm.test("Fulfillments are present and valid", function () {
-			pm.expect(fulfillments).to.be.an('array').that.is.not.empty;
-			fulfillments.forEach(function(fulfillment) {
-				pm.expect(fulfillment.id).to.be.a('string').and.not.be.empty;
-				pm.expect(fulfillment).to.have.property('status').that.equals('FULFILLED');
-
-				// TODO DONE for fulfillment implementation
-				var fulfillmentsId = pm.globals.get("fulfillments_id");
-				pm.expect(fulfillment.id).to.eql(fulfillmentsId);
-			});
-		});
-
-		// Check refund fee equals to 0
-		pm.test("Refund fee equals to 0", function() {
-			pm.expect(refundOffer).to.have.property('refundFee');
-			pm.expect(refundFee.amount).to.equal(0);
-		});
-
-        // Check the refundableAmount
-        pm.test("Refundable amount matches the confirmed booking price", function () {
-			var overruleCode = pm.globals.get("overruleCode");
-			if (overruleCode === "CODE_DOES_NOT_EXIST") {
-				pm.expect(appliedOverruleCode) //CODE_DOES_NOT_EXIST is reflected
-				pm.expect(refundableAmount.amount).to.be.null;
-			} else {
-				pm.expect(refundableAmount.amount).to.be.a('number').and.to.be.at.least(0);
-
-				var bookingConfirmedPrice = pm.globals.get("booking_confirmedPrice");
-		// Check refundableAmount equal to bookingConfirmedPrice from GET /booking minus the refundFee
-				// TODO : Check once implemented
-				pm.expect(refundableAmount.amount).to.equal(bookingConfirmedPrice - refundOffer.refundFee.amount);
-			}
+        pm.test("Refund offer has a valid ID", function () {
+            pm.expect(refundOffer.id).to.exist;
+            pm.globals.set("refund_id", refundOffer.id);
         });
 
-		pm.test("AppliedOverruleCode is returned", function () {
-			var expectedOverruleCode = pm.globals.get("overruleCode");
-			if (expectedOverruleCode === null || expectedOverruleCode === undefined) {
-				pm.expect(appliedOverruleCode).to.be.null;
-			} else {
-				pm.expect(appliedOverruleCode).to.equal(expectedOverruleCode);
-			}
-		});
+        pm.test("Refund offer has the correct status", function () {
+            const expectedStatus = isPatchResponse ? 'CONFIRMED' : 'PROPOSED';
+            pm.expect(refundOffer.status).to.equal(expectedStatus);
+        });
+
+        if (!isPatchResponse) {
+            pm.test("ValidUntil is set for refundOffer", function () {
+                pm.expect(refundOffer.validUntil).to.exist;
+                pm.globals.set("valid_until_refund_offers", refundOffer.validUntil);
+            });
+        }
+
+        validateFulfillments(refundOffer.fulfillments);
+        validateRefundFee(refundOffer.refundFee);
+
+        if (isPatchResponse) {
+            const refundableAmountRefund = pm.globals.get("refund_refundAmount");
+            pm.test("Refundable amount after patch is valid", function () {
+                pm.expect(refundOffer.refundableAmount.amount).to.equal(refundableAmountRefund - refundOffer.refundFee.amount);
+            });
+        } else {
+            const overruleCode = pm.globals.get("overruleCode");
+            const bookingConfirmedPrice = pm.globals.get("booking_confirmedPrice");
+            validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
+        }
+
+        validateAppliedOverruleCode(refundOffer.appliedOverruleCode);
     });
-};
+}
 
-validateGetBookingResponseBeforeRefund = function(response) {
+function validateBookingResponseRefund(response, afterRefund = false) {
     const booking = response.booking;
-    const refundOffer = booking.refundOffers[0];
 
-	pm.test("Booking is present in the response and Booking ID is a non-empty string", function() {
+	if (afterRefund == false) {
+		pm.globals.set("refund_refundAmount", jsonData.booking.bookedOffers[0].reservations[0].refundAmount);
+	}
+
+    pm.test("Booking is present and Booking ID is valid", function () {
         pm.expect(response).to.have.property('booking');
         pm.expect(booking).to.have.property('id').that.is.a('string').and.not.empty;
     });
 
-    pm.test("Refund offers array exists and is not empty", function() {
+    pm.test("Refund offers are valid", function () {
         pm.expect(booking).to.have.property('refundOffers').that.is.an('array').with.length.above(0);
-    });
+        const refundOffer = booking.refundOffers[0];
 
-    pm.test("Refund offer ID is a non-empty string", function() {
         pm.expect(refundOffer).to.have.property('id').that.is.a('string').and.not.empty;
+        pm.expect(refundOffer.admissions).to.satisfy(admissions => admissions.every(a => a.status === (afterRefund ? 'REFUNDED' : 'PENDING')));
+
+        validateFulfillments(refundOffer.fulfillments);
+        validateRefundFee(refundOffer.refundFee);
+
+        const bookingConfirmedPrice = pm.globals.get("booking_confirmedPrice");
+        validateRefundableAmount(refundOffer, pm.globals.get("overruleCode"), bookingConfirmedPrice);
     });
 
-	pm.test("ValidUntil is at least 10 minutes from now for Booked Offers", function () {
-		var validUntilBookedOffers = new Date(pm.variables.get("valid_until_booked_offers"));
-		var validUntil = new Date(response.booking.bookedOffers[0].reservations[0].validUntil);
-		const validUntilBookedOffersPlus10Min = new Date(validUntilBookedOffers.getTime() + 10 * 60000);
-		pm.expect(validUntil).to.be.below(validUntilBookedOffersPlus10Min);
-	});
-
-	pm.test("ValidUntil is at least 10 minutes from now for Refund Offers", function () {
-		var validUntilRefundOffers = new Date(pm.variables.get("valid_until_refund_offers"));
-		var validUntil = new Date(response.booking.refundOffers[0].validUntil);
-		const validUntilRefundOffersPlus10Min = new Date(validUntilRefundOffers.getTime() + 10 * 60000);
-		pm.expect(validUntil).to.be.below(validUntilRefundOffersPlus10Min);
-	});
-
-    pm.test("Admissions are present and have status REFUNDED", function() {
-        if (refundOffer.admissions) {
-            refundOffer.admissions.forEach(admission => {
-                pm.expect(admission).to.have.property('status').that.equals('REFUNDED');
-            });
-        }
+    pm.test("ValidUntil is at least 10 minutes from now", function () {
+        const validUntilRefundOffers = new Date(pm.variables.get("valid_until_refund_offers"));
+        const validUntil = new Date(booking.refundOffers[0].validUntil);
+        const validUntilPlus10Min = new Date(validUntilRefundOffers.getTime() + 10 * 60000);
+        pm.expect(validUntil).to.be.below(validUntilPlus10Min);
     });
-
-    pm.test("Fulfillments are present and have status FULFILLED", function() {
-        if (refundOffer.fulfillments) {
-            refundOffer.fulfillments.forEach(fulfillment => {
-                pm.expect(fulfillment).to.have.property('status').that.equals('FULFILLED');
-                pm.expect(fulfillment.id).to.be.a('string').and.not.be.empty;
-
-				// TODO DONE for fulfillment implementation
-				var fulfillmentsId = pm.globals.get("fulfillments_id");
-				pm.expect(fulfillment.id).to.eql(fulfillmentsId);
-			});
-		}
-	});
-
-    pm.test("Refund fee equals to 0", function() {
-        pm.expect(refundOffer).to.have.property('refundFee');
-		pm.expect(refundOffer.refundFee.amount).to.equal(0);
-	});
-
-    pm.test("Refundable amount matches the amount from Refund", function() {
-        pm.expect(refundOffer).to.have.property('refundableAmount');
-		pm.expect(refundOffer.refundableAmount).to.have.property('amount').that.is.a('number').and.not.below(0);
-
-		var bookingConfirmedPrice = pm.globals.get("booking_confirmedPrice");
-		// Check refundableAmount equal to bookingConfirmedPrice from GET /booking minus the refundFee
-		// TODO : Check once implemented
-		pm.expect(refundableAmount.amount).to.equal(bookingConfirmedPrice - refundOffer.refundFee.amount);
-	});	
 }
 
-validateGetBookingResponseAfterRefund = function(response) {
-    const booking = response.booking;
-    const refundOffer = booking.refundOffers[0];
+function capturePassengerData(response) {
+	/*
+	const firstName = response.passenger?.detail?.firstName || null;
+	const lastName = response.passenger?.detail?.lastName || null;
+	const dateOfBirth = response.passenger?.dateOfBirth || null;
+	const phoneNumber = response.passenger?.detail?.contact?.phoneNumber || null;
+	const email = response.passenger?.detail?.contact?.email || null;
+	
+	const newDateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+	if (newDateOfBirth) {
+		newDateOfBirth.setDate(newDateOfBirth.getDate() + 1);
+	}
+	const newPhoneNumber = phoneNumber
+		? phoneNumber.slice(0, -1) + ((parseInt(phoneNumber.slice(-1)) + 1) % 10) // Dernier chiffre +1
+		: null;
+	*/
 
-	pm.test("Booking is present in the response and Booking ID is a non-empty string", function() {
-        pm.expect(response).to.have.property('booking');
-        pm.expect(booking).to.have.property('id').that.is.a('string').and.not.empty;
-    });
+	const firstName = "firstName";
+	const lastName = "lastName";
+	const dateOfBirth = response.passenger?.dateOfBirth || null;
+	const phoneNumber = "0612345678";
+	const email = "email@email.com";
+	const newDateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+	if (newDateOfBirth) {
+		newDateOfBirth.setDate(newDateOfBirth.getDate() + 1);
+	}
+	const newPhoneNumber = phoneNumber
+		? phoneNumber.slice(0, -1) + ((parseInt(phoneNumber.slice(-1)) + 1) % 10)
+		: null;
 
-    pm.test("Refund offers array exists and is not empty", function() {
-        pm.expect(booking).to.have.property('refundOffers').that.is.an('array').with.length.above(0);
-    });
+	const newFirstName = firstName ? `new_${firstName}` : null;
+	const newLastName = lastName ? `new_${lastName}` : null;
+	const newEmail = email ? `new_${email}` : null;
 
-    pm.test("Refund offer ID is a non-empty string", function() {
-        pm.expect(refundOffer).to.have.property('id').that.is.a('string').and.not.empty;
-    });
-
-	pm.test("ValidUntil is at least 10 minutes from now for Booked Offers", function () {
-		var validUntilBookedOffers = new Date(pm.variables.get("valid_until_booked_offers"));
-		var validUntil = new Date(response.booking.bookedOffers[0].reservations[0].validUntil);
-		const validUntilBookedOffersPlus10Min = new Date(validUntilBookedOffers.getTime() + 10 * 60000);
-		pm.expect(validUntil).to.be.below(validUntilBookedOffersPlus10Min);
-	});
-
-	pm.test("ValidUntil is at least 10 minutes from now for Refund Offers", function () {
-		var validUntilRefundOffers = new Date(pm.variables.get("valid_until_refund_offers"));
-		var validUntil = new Date(response.booking.refundOffers[0].validUntil);
-		const validUntilRefundOffersPlus10Min = new Date(validUntilRefundOffers.getTime() + 10 * 60000);
-		pm.expect(validUntil).to.be.below(validUntilRefundOffersPlus10Min);
-	});
-
-    pm.test("Admissions are present and have status REFUNDED", function() {
-        if (refundOffer.admissions) {
-            refundOffer.admissions.forEach(admission => {
-                pm.expect(admission).to.have.property('status').that.equals('REFUNDED');
-            });
-        }
-    });
-
-    pm.test("Fulfillments are present and have status REFUNDED", function() {
-        if (refundOffer.fulfillments) {
-            refundOffer.fulfillments.forEach(fulfillment => {
-                pm.expect(fulfillment).to.have.property('status').that.equals('REFUNDED');
-                pm.expect(fulfillment.id).to.be.a('string').and.not.be.empty;
-
-				// TODO DONE for fulfillment implementation
-				var fulfillmentsId = pm.globals.get("fulfillments_id");
-				pm.expect(fulfillment.id).to.eql(fulfillmentsId);
-			});
-		}
-	});
-
-    pm.test("Refund fee equals to 0", function() {
-        pm.expect(refundOffer).to.have.property('refundFee');
-		pm.expect(refundOffer.refundFee.amount).to.equal(0);
-	});
-
-    pm.test("Refundable amount matches the amount from Refund", function() {
-        pm.expect(refundOffer).to.have.property('refundableAmount');
-		pm.expect(refundOffer.refundableAmount).to.have.property('amount').that.is.a('number').and.not.below(0);
-
-		var bookingConfirmedPrice = pm.globals.get("booking_confirmedPrice");
-		// Check refundableAmount equal to bookingConfirmedPrice from GET /booking minus the refundFee
-		// TODO : Check once implemented
-		pm.expect(refundableAmount.amount).to.equal(bookingConfirmedPrice - refundOffer.refundFee.amount);
-	});	
+	// Définition des variables globales
+	pm.globals.set("newFirstName", newFirstName);
+	pm.globals.set("newLastName", newLastName);
+	pm.globals.set("newDateOfBirth", newDateOfBirth ? newDateOfBirth.toISOString().split("T")[0] : null);
+	pm.globals.set("newPhoneNumber", newPhoneNumber);
+	pm.globals.set("newEmail", newEmail);
 }
 
-var validatePatchRefundResponse = function(patchRefundResponse) {
-    var refundOffer = patchRefundResponse.refundOffer;
+function validatePassengerData (response) {
+	const firstName = response.passenger?.detail?.firstName || null;
+	const lastName = response.passenger?.detail?.lastName || null;
+	const dateOfBirth = response.passenger?.dateOfBirth || null;
+	const phoneNumber = response.passenger?.detail?.contact?.phoneNumber || null;
+	const email = response.passenger?.detail?.contact?.email || null;
 
-    pm.test("Refund response contains refundOffer", function () {
-        pm.expect(refundOffer).to.be.an('object').that.is.not.empty;
-    });
-
-    var fulfillments = refundOffer.fulfillments;
-    var refundFee = refundOffer.refundFee;
-    var refundableAmount = refundOffer.refundableAmount;
-    var status = refundOffer.status;
-	var appliedOverruleCode = refundOffer.appliedOverruleCode;
-
-    validationLogger("Checking refund offer with Id: " + refundOffer.id);
-	validationLogger("ValidUntil: " + new Date(pm.variables.get("valid_until_refund_offers")));
-    validationLogger("Status: " + status);
-	validationLogger("AppliedOverruleCode: " + appliedOverruleCode);
-
-    // Check the refundOffer status
-    pm.test("Refund offer status is CONFIRMED", function () {
-        pm.expect(status).to.equal("CONFIRMED");
-    });
-
-	// Check the fulfillments
-	pm.test("Fulfillments are present and valid and return status REFUNDED", function () {
-		pm.expect(fulfillments).to.be.an('array').that.is.not.empty;
-		fulfillments.forEach(function(fulfillment) {
-			pm.expect(fulfillment.id).to.be.a('string').and.not.be.empty;
-			pm.expect(fulfillment).to.have.property('status').that.equals('REFUNDED');
-
-			// TODO DONE for fulfillment implementation
-			var fulfillmentsId = pm.globals.get("fulfillments_id");
-			pm.expect(fulfillment.id).to.eql(fulfillmentsId);
-		});
+	pm.test("Passenger data is valid", function () {
+		pm.expect(firstName).to.equal(pm.globals.get("newFirstName"));
+		pm.expect(lastName).to.equal(pm.globals.get("newLastName"));
+		pm.expect(dateOfBirth).to.equal(pm.globals.get("newDateOfBirth"));
+		pm.expect(phoneNumber).to.equal(pm.globals.get("newPhoneNumber"));
+		pm.expect(email).to.equal(pm.globals.get("newEmail"));
 	});
+}
 
-    pm.test("Refund fee equals to 0", function() {
-        pm.expect(refundOffer).to.have.property('refundFee');
-		pm.expect(refundOffer.refundFee.amount).to.equal(0);
-	});
 
-	// Check the refundableAmount
-    pm.test("Refundable amount after patch matches the refundable amount", function() {
-        pm.expect(refundOffer).to.have.property('refundableAmount');
-        pm.expect(refundOffer.refundableAmount).to.have.property('amount').that.is.a('number').and.not.below(0);
+function requestRefundOffersBody(fulfillmentIds, overruleCode, refundDate) {
+	var fulfillmentIds = pm.globals.get('fulfillments_id');
+	var overruleCode = pm.globals.get('SCENARIO_0_refundOverruleCode');
+	var refundDate = pm.globals.get('refundDate') || null;
+	
+	var requestRefundOffersBody = requestRefundOffersBody(fulfillmentIds, overruleCode, refundDate);
+	
+	pm.globals.set('requestRefundOffersBody', JSON.stringify(requestRefundOffersBody));
 
-		// Check refundableAmount equal to refundableAmountRefund from GET /booking after refund
-		var refundableAmountRefund = pm.globals.get("refund_refundAmount");
-		pm.expect(refundableAmount.amount).to.equal(refundableAmountRefund - refundOffer.refundFee.amount);
-    });	
-
-    // Check that all fulfillments have status REFUNDED
-    pm.test("All fulfillments have status REFUNDED", function () {
-        pm.expect(fulfillments).to.be.an('array').that.is.not.empty;
-        fulfillments.forEach(function (fulfillment) {
-            pm.expect(fulfillment.status).to.equal("REFUNDED");
-        });
-    });
-
-	// Check the appliedOverruleCode
-	pm.test("AppliedOverruleCode is returned", function () {
-		var expectedOverruleCode = pm.globals.get("overruleCode");
-		if (expectedOverruleCode === null || expectedOverruleCode === undefined) {
-			pm.expect(appliedOverruleCode).to.be.null;
-		} else {
-			pm.expect(appliedOverruleCode).to.equal(expectedOverruleCode);
-		}
-	});
-};
+	var body = {
+        fulfillmentIds: [fulfillmentIds]
+    };
+    if (overruleCode !== null) {
+        body.overruleCode = overruleCode;
+    }
+    if (refundDate !== null) {
+        body.refundDate = refundDate;
+    }
+    return body;
+}
