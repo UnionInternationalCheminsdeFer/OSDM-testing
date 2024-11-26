@@ -26,7 +26,7 @@ The library is used as part of the OSDM Testing Tool in the testing scenarios de
               See the License for the specific language governing permissions and
               limitations under the License.</li>
           <li>No reproduction nor distribution shall be allowed without the following notice
-              “This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023 – 2024, ie à modifier tous les ans. OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”</li>
+              “This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023 – 2024. OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”</li>
         </ul>
       </td>
     </tr>
