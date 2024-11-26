@@ -1,17 +1,7 @@
 # OSDM Testing
 
 The library is used as part of the OSDM Testing Tool in the testing scenarios developed on top of the Postman.
-
-<table>
-  <thead>
-    <tr>
-      <td align="left">
-        :information_source: Information
-      </td>
-    </tr>
-  </thead>
-
-  <tbody>
+ <tbody>
     <tr>
       <td>
         <ul>
@@ -31,4 +21,3 @@ The library is used as part of the OSDM Testing Tool in the testing scenarios de
       </td>
     </tr>
   </tbody>
-</table>
