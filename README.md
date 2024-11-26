@@ -15,7 +15,7 @@ The library is used as part of the OSDM Testing Tool in the testing scenarios de
     <tr>
       <td>
         <ul>
-          <li>Copyright UIC, Union Internationale des Chemins de fer
+          <li>Copyright UIC, Union Internationale des Chemins de fer<br/>
               Licensed under the Apache License, Version 2.0 (the "License");
               you may not use this file except in compliance with the License.
               You may obtain a copy of the License at
