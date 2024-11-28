@@ -1544,12 +1544,17 @@ function validateBookingResponseRefund(response, afterRefund = false) {
 		console.log("refundOfferPartReference"+refundOfferPartReference);
 		
 		//check if referenced part is an admission
-		let refundOfferPart = booking.bookedOffers[0].admissions.find(admission => 
-			admission.id === refundOfferPartReference
-		);
+		let refundOfferPart;
+		
+		if(booking.bookedOffers[0].admissions!=null&&booking.bookedOffers[0].admissions!=undefined) {
+			refundOfferPart = booking.bookedOffers[0].admissions.find(admission => 
+			    admission.id === refundOfferPartReference
+		    );
+		} 
 		
 		//check if the referenced part is a reservation
-		if(refundOfferPart==null||refundOfferPart==undefined) {
+		if((refundOfferPart==null||refundOfferPart==undefined)&&
+				(booking.bookedOffers[0].reservations!=null&&booking.bookedOffers[0].reservations!=undefined)) {
 			refundOfferPart = booking.bookedOffers[0].reservations.find(reservation => 
 			    reservation.id === refundOfferPartReference
 		    );
