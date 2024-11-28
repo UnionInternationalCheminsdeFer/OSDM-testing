@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "d4beb46d-f629-429e-bd21-1b9b063e4c4e",
+		"_postman_id": "2e7c4f4c-7a6e-4441-ab70-5f213dcefadc",
 		"name": "_OTST_TS_OB_RFND_1",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "14251770"
+		"_exporter_id": "17867548"
 	},
 	"item": [
 		{
@@ -32,14 +32,19 @@
 							"jsonData.trips, ",
 							"pm.globals.get(\"SCENARIO_TYPE\"));",
 							"",
-							"",
-							"pm.globals.set(\"offer_id\", offer.offerId);",
+							"//data required for all next steps",
+							"pm.globals.set(\"offerId\", offer.offerId);",
 							"pm.globals.set(\"offer\", offer);",
 							"pm.globals.set(\"offers\", jsonData.offers);",
 							"",
-							"var reservationOfferPart = offer.reservationOfferParts[0];",
-							"pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
-							""
+							"//determine the flow",
+							"if(pm.globals.get(\"requiresPlaceSelection\")==true) {",
+							"    var reservationOfferPart = offer.reservationOfferParts[0];",
+							"    pm.globals.set(\"reservationId\", reservationOfferPart.id);",
+							"} else {",
+							"    validationLogger(\"skipping Get Place Maps for Reservation of Offer\");",
+							"    pm.execution.setNextRequest(\"03. Create a Booking\");",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -50,37 +55,7 @@
 					"script": {
 						"exec": [
 							"eval(globals.osdmHelpers);\r",
-							"\r",
-							"osdmTripSearchCriteria([\r",
-							"    new TripLegDefinition(\r",
-							"        pm.globals.get(\"leg_1_start_stop_place_ref\"),\r",
-							"        pm.globals.get(\"leg_1_start_datetime\"),\r",
-							"        pm.globals.get(\"leg_1_end_stop_place_ref\"),\r",
-							"        pm.globals.get(\"leg_1_end_datetime\"),\r",
-							"        pm.globals.get(\"leg_1_product_category_ref\"),\r",
-							"        pm.globals.get(\"leg_1_product_category_name\"),\r",
-							"        pm.globals.get(\"leg_1_product_category_short_name\"),\r",
-							"        pm.globals.get(\"leg_1_vehicle_number\"),\r",
-							"        pm.globals.get(\"leg_1_operator_code\")\r",
-							"    )\r",
-							"]);\r",
-							"\r",
-							"osdmAnonymousPassengerSpecifications(1);\r",
-							"\r",
-							"osdmOfferSearchCriteria(\r",
-							"    pm.globals.get(OFFER.SEARCH_CRITERIA_CURRENCY),\r",
-							"    null,\r",
-							"    [OfferPartType.RESERVATION],\r",
-							"    null,\r",
-							"    [ServiceClassType.STANDARD],\r",
-							"    [TravelClass.SECOND],\r",
-							"    null\r",
-							");\r",
-							"\r",
-							"osdmFulfillmentOptions([\r",
-							"    new FulfillmentOption(FulfillmentOptionType.ETICKET, FulfillmentMediaType.PDF_A4)\r",
-							"]);\r",
-							""
+							"buildOfferCollectionRequest();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -113,7 +88,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"objectType\": \"OfferCollectionRequest\",\n    \"tripSearchCriteria\": {{offer_trip_search_criteria}},\n    \"anonymousPassengerSpecifications\": {{offer_passenger_specifications}},\n    \"offerSearchCriteria\": {{offer_search_criteria}},\n    \"requestedFulfillmentOptions\": {{offer_fulfillment_options}}\n}",
+					"raw": "{{OfferCollectionRequest}}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -142,10 +117,18 @@
 							"var jsonData = JSON.parse(responseBody);\r",
 							"var preSelection = jsonData.vehicleAvailability.preSelections[0];\r",
 							"var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
-							"pm.globals.set(\"preselected_coach\", preSelection.coach);\r",
-							"pm.globals.set(\"preselected_place\", preSelection.place);\r",
-							"pm.globals.set(\"layout_id\", coach.layoutId)"
+							"pm.globals.set(\"preselectedCoach\", preSelection.coach);\r",
+							"pm.globals.set(\"preselectedPlace\", preSelection.place);\r",
+							"pm.globals.set(\"layoutId\", coach.layoutId)"
 						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"packages": {},
 						"type": "text/javascript"
 					}
 				}
@@ -176,7 +159,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/availabilities/place-map?contextId={{offer_id}}&contextType=OFFER&resourceId={{reservation_id}}&resourceType=RESERVATION",
+					"raw": "{{api_base}}/availabilities/place-map?contextId={{offerId}}&contextType=OFFER&resourceId={{reservationId}}&resourceType=RESERVATION",
 					"host": [
 						"{{api_base}}"
 					],
@@ -187,7 +170,7 @@
 					"query": [
 						{
 							"key": "contextId",
-							"value": "{{offer_id}}"
+							"value": "{{offerId}}"
 						},
 						{
 							"key": "contextType",
@@ -195,7 +178,7 @@
 						},
 						{
 							"key": "resourceId",
-							"value": "{{reservation_id}}"
+							"value": "{{reservationId}}"
 						},
 						{
 							"key": "resourceType",
@@ -217,8 +200,8 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"pm.globals.set(\"booking_id\", jsonData.booking.id);\r",
-							"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);\r",
+							"pm.globals.set(\"bookingId\", jsonData.booking.id);\r",
+							"pm.globals.set(\"passengerId\", jsonData.booking.passengers[0].id);\r",
 							"\r",
 							"pm.test('Successfully created booking', function () {\r",
 							"    pm.response.to.have.status(200);\r",
@@ -229,9 +212,9 @@
 							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
 							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
 							"pm.globals.get(\"offers\"),\r",
-							"pm.globals.get(\"offer_id\"),\r",
+							"pm.globals.get(\"offerId\"),\r",
 							"jsonData.booking,  \r",
-							"pm.globals.get(\"SCENARIO_TYPE\"),\r",
+							"pm.globals.get(\"ScenarioType\"),\r",
 							"\"PREBOOKED\");"
 						],
 						"type": "text/javascript",
@@ -242,10 +225,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"var uuid = require('uuid');\r",
-							"\r",
-							"pm.globals.set(\"booking_external_ref\", uuid.v4());\r",
-							""
+							"eval(globals.osdmHelpers);\r",
+							"buildBookingRequest();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -285,7 +266,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"offers\": [\r\n{\r\n            \"offerId\": \"{{offer_id}}\",\r\n            \"placeSelections\": [\r\n                {\r\n                    \"reservationId\": \"{{reservation_id}}\",\r\n                    \"places\": [\r\n                        {\r\n                            \"coachNumber\": \"{{preselected_coach}}\",\r\n                            \"placeNumber\": \"{{preselected_place}}\",\r\n                            \"passengerRef\": \"{{passenger_specification_1_external_ref}}\"\r\n                        }\r\n                    ],\r\n                    \"tripLegCoverage\" : {\r\n                        \"tripId\": \"{{trip_id}}\",\r\n                        \"legId\" : \"{{leg_id}}\"\r\n                    }\r\n                }\r\n            ],\r\n            \"passengerRefs\": [\r\n                \"{{passenger_specification_1_external_ref}}\"\r\n            ]\r\n        }\r\n    ],\r\n    \"purchaser\": {\r\n        \"detail\": {\r\n            \"firstName\": \"Pur\",\r\n            \"lastName\": \"Chaser\",\r\n            \"email\": \"yourusername@example.com\",\r\n            \"phoneNumber\": \"0612345678\"\r\n        }\r\n    },\r\n    \"passengerSpecifications\": [\r\n        {\r\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\r\n            \"dateOfBirth\": \"1996-01-01\",\r\n            \"type\": \"PERSON\",\r\n            \"email\": \"tim@sqills.com\"\r\n        }\r\n    ],\r\n    \"externalRef\": \"{{booking_external_ref}}\"\r\n}",
+					"raw": "{{BookingRequest}}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -318,8 +299,11 @@
 							"    pm.expect(pm.response.code).to.be.oneOf([200, 202]);\r",
 							"});\r",
 							"\r",
-							"pm.globals.set(\"fulfillments_id\", jsonData.fulfillments[0].id);\r",
-							""
+							"if(pm.response.code==200){\r",
+							"    pm.globals.set(\"fulfillmentsId\", jsonData.fulfillments[0].id);\r",
+							"} else {\r",
+							"    pm.globals.unset(\"fulfillmentsId\");\r",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -362,13 +346,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/fulfillments",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/fulfillments",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"fulfillments"
 					]
 				}
@@ -396,14 +380,19 @@
 							"pm.globals.get(\"offer\"),\r",
 							"\"FULFILLED\");\r",
 							"\r",
-							"// New set\r",
-							"pm.globals.set(\"booking_confirmedPrice\", jsonData.booking.confirmedPrice);\r",
-							"\r",
-							"// New test\r",
-							"pm.test(\"Verify fulfillment ID\", function () {\r",
-							"    var fulfillmentsId = pm.globals.get(\"fulfillments_id\");\r",
-							"    pm.expect(jsonData.booking.fulfillments[0].id).to.eql(fulfillmentsId);\r",
-							"});\r",
+							"if(pm.globals.get(\"fulfillmentsId\")==undefined) {\r",
+							"    pm.globals.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
+							"    pm.environment.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
 							""
 						],
 						"type": "text/javascript",
@@ -437,13 +426,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}"
+						"{{bookingId}}"
 					]
 				}
 			},
@@ -458,19 +447,8 @@
 						"exec": [
 							"// Évaluer les helpers globaux",
 							"eval(globals.osdmHelpers);",
-							"",
-							"// Analyser la réponse JSON",
 							"var jsonData = JSON.parse(responseBody);",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Response has a refundOfferId\", function () {",
-							"    pm.expect(pm.response.json().refundOffers).to.not.be.empty;",
-							"    pm.globals.set(\"refund_id\", jsonData.refundOffers[0].id);",
-							"});",
-							"",
-							"validateRefundResponse(jsonData);"
+							"validateRefundOffersResponse(jsonData, isPatchResponse=false);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -519,7 +497,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"fulfillmentIds\": [\n        \"{{fulfillments_id}}\"\n    ]/*,\n    \"overruleCode\": \"{{overruleCode}}\",\n    \"refundDate\": \"{{refundDate}}\"*/\n}",
+					"raw": "{\n    \"fulfillmentIds\": [\n        \"{{fulfillmentsId}}\"\n    ]/*,\n    \"overruleCode\": \"{{overruleCode}}\",\n    \"refundDate\": \"{{refundDate}}\"*/\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -527,13 +505,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"refund-offers"
 					]
 				}
@@ -548,9 +526,9 @@
 					"script": {
 						"exec": [
 							"// Verify whether the correct status code is returned",
-							"pm.test(\"Status code is 505 or 202\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([505, 202]);",
-							"});"
+							"eval(globals.osdmHelpers);",
+							"var jsonData = JSON.parse(responseBody);",
+							"validateRefundOffer(jsonData.refundOffer, \"PROPOSED\");"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -577,15 +555,15 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers/{{refund_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"refund-offers",
-						"{{refund_id}}"
+						"{{refundId}}"
 					]
 				}
 			},
@@ -607,11 +585,7 @@
 							"});",
 							"",
 							"// Test de validation de la réponse",
-							"validateGetBookingResponseBeforeRefund(jsonData);",
-							"",
-							"// New set",
-							"pm.globals.set(\"refund_refundAmount\", jsonData.booking.bookedOffers[0].reservations[0].refundAmount);",
-							""
+							"validateBookingResponseRefund(jsonData, afterRefund = false);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -648,13 +622,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}?embed=ALL",
+					"raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}"
+						"{{bookingId}}"
 					],
 					"query": [
 						{
@@ -682,7 +656,7 @@
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"validatePatchRefundResponse(jsonData);"
+							"validateRefundOffersResponse(jsonData, isPatchResponse=true);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -733,15 +707,15 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers/{{refund_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"refund-offers",
-						"{{refund_id}}"
+						"{{refundId}}"
 					]
 				}
 			},
@@ -763,7 +737,7 @@
 							"});",
 							"",
 							"// Test de validation de la réponse",
-							"validateGetBookingResponseAfterRefund(jsonData);",
+							"validateBookingResponseRefund(jsonData, afterRefund = true);",
 							""
 						],
 						"type": "text/javascript",
@@ -801,13 +775,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}?embed=ALL",
+					"raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}"
+						"{{bookingId}}"
 					],
 					"query": [
 						{
@@ -826,8 +800,8 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"var scenario_type = \"RESERVATION\";",
-					"",
+					"var scenarioType = \"RESERVATION\";",
+					"var scenarioCode = \"OTST_TS_OB_RFND_1\";",
 					"",
 					"function pad(number) {",
 					"    return (number < 10) ? '0' + number : number;",
@@ -842,7 +816,6 @@
 					"",
 					"var lib = \"\";",
 					"var jsLibraries = [\"functions\", \"model\"];",
-					"var dataFiles = [\"trips\"];",
 					"",
 					"pm.test(\"API base is available\", function () {",
 					"    pm.expect(pm.environment.get(\"api_base\")).not.null;",
@@ -871,112 +844,11 @@
 					"            }",
 					"            else {",
 					"                pm.globals.set(\"osdmHelpers\", lib);",
+					"                eval(globals.osdmHelpers);",
+					"                getScenarioData(scenarioType, scenarioCode);",
 					"            }",
 					"        }",
 					"    });",
-					"}",
-					"/*",
-					"const fs = require('fs');",
-					"const path = require('path');",
-					"",
-					"// Définissez le chemin de base où se trouvent vos fichiers",
-					"const libraryBasePath = 'C:\\\\Users\\\\amoreel\\\\amo\\\\repository\\\\OSDM-testing\\\\library\\\\';",
-					"",
-					"function libGetter() {",
-					"    const fs = require('fs');",
-					"    const path = require('path');",
-					"",
-					"    const filePaths = ['C:\\\\Users\\\\amoreel\\\\amo\\\\repository\\\\OSDM-testing\\\\library\\\\functions.js', 'C:\\\\Users\\\\amoreel\\\\amo\\\\repository\\\\OSDM-testing\\\\library\\\\model.js'];",
-					"    let lib = '';",
-					"",
-					"    filePaths.forEach(filePath => {",
-					"        const content = fs.readFileSync(filePath, 'utf8');",
-					"        lib = lib.concat(content, '\\n');",
-					"    });",
-					"",
-					"    console.log('Concatenated Library Content:', lib);",
-					"    pm.globals.set(\"osdmHelpers\", lib);",
-					"}*/",
-					"",
-					"function dataGetter() {",
-					"    if(pm.environment.has('data_file')) {",
-					"        console.log(\"data file was set, expecting running in postman\");",
-					"        var res = pm.environment.get(\"data_file\");",
-					"        var jsonData = JSON.parse(res);",
-					"",
-					"        var nextWeekday = get_next_weekday(new Date());",
-					"        var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());",
-					"",
-					"        var dataFileIndex = 0;",
-					"        var dataFileLength = jsonData.length;",
-					"        var foundCorrectDataSet = false;",
-					"",
-					"        while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {",
-					"            if(jsonData[dataFileIndex].type==scenario_type) {",
-					"                pm.globals.set(\"leg_1_start_stop_place_ref\", jsonData[dataFileIndex].origin);",
-					"                pm.globals.set(\"leg_1_end_stop_place_ref\", jsonData[dataFileIndex].destination);",
-					"                pm.globals.set(\"leg_1_start_datetime\", jsonData[dataFileIndex].start_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                pm.globals.set(\"leg_1_end_datetime\", jsonData[dataFileIndex].end_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                pm.globals.set(\"leg_1_vehicle_number\", jsonData[dataFileIndex].vehicle_number);",
-					"                pm.globals.set(\"leg_1_operator_code\", jsonData[dataFileIndex].operator_code);",
-					"",
-					"                //new",
-					"                pm.globals.set(\"offer_search_criteria_currency\", jsonData[dataFileIndex].currency);",
-					"                pm.globals.set(\"offer_search_criteria_travel_class\", jsonData[dataFileIndex].travel_class);",
-					"                pm.globals.set(\"offer_search_criteria_search_class\", jsonData[dataFileIndex].service_class);",
-					"                pm.globals.set(\"SCENARIO_TYPE\",scenario_type);",
-					"                pm.globals.set(\"LOGGING_TYPE\",\"FULL\");",
-					"",
-					"                foundCorrectDataSet = true;",
-					"                console.log(\"correct data set was found for this scenario type:\"+scenario_type);",
-					"            }",
-					"            dataFileIndex++;",
-					"        }",
-					"    } else {",
-					"        console.log(\"data file was not set, expecting running in runner\");",
-					"        pm.sendRequest({",
-					"            url: pm.environment.get(\"data_base\"),",
-					"            method: 'GET',",
-					"        }, function (err, res) {",
-					"            if (err) {",
-					"                console.log(err);",
-					"            } else {",
-					"                console.log(res);",
-					"                var jsonData = JSON.parse(res.text());",
-					"                console.log(jsonData);",
-					"",
-					"                var nextWeekday = get_next_weekday(new Date());",
-					"                var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());",
-					"",
-					"                var dataFileIndex = 0;",
-					"                var dataFileLength = jsonData.length;",
-					"                var foundCorrectDataSet = false;",
-					"",
-					"                while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {",
-					"                    if(jsonData[dataFileIndex].type==scenario_type) {",
-					"",
-					"                        pm.globals.set(\"leg_1_start_stop_place_ref\", jsonData[dataFileIndex].origin);",
-					"                        pm.globals.set(\"leg_1_end_stop_place_ref\", jsonData[dataFileIndex].destination);",
-					"                        pm.globals.set(\"leg_1_start_datetime\", jsonData[dataFileIndex].start_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                        pm.globals.set(\"leg_1_end_datetime\", jsonData[dataFileIndex].end_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                        pm.globals.set(\"leg_1_vehicle_number\", jsonData[dataFileIndex].vehicle_number);",
-					"                        pm.globals.set(\"leg_1_operator_code\", jsonData[dataFileIndex].operator_code);",
-					"                        //new",
-					"                        pm.globals.set(\"offer_search_criteria_currency\", jsonData[dataFileIndex].currency);",
-					"                        pm.globals.set(\"offer_search_criteria_travel_class\", jsonData[dataFileIndex].travel_class);",
-					"                        pm.globals.set(\"offer_search_criteria_search_class\", jsonData[dataFileIndex].service_class);",
-					"                        pm.globals.set(\"SCENARIO_TYPE\",scenario_type);",
-					"                        pm.globals.set(\"LOGGING_TYPE\",\"NONE\");",
-					"",
-					"                        foundCorrectDataSet = true;",
-					"                        console.log(\"correct data set was found for this scenario type:\"+scenario_type);",
-					"                    }",
-					"                    dataFileIndex++;",
-					"                    ",
-					"                }",
-					"            }",
-					"        });",
-					"    }",
 					"}",
 					"",
 					"// Cannot check exact URL as the endpoint path varies among different API vendors",
@@ -988,9 +860,7 @@
 					"    setTimeout(2000);",
 					"    ",
 					"    if (!pm.globals.get(\"osdmHelpers\")) {",
-					"        //pm.globals.set(\"osdmHelpers\", loadLibraries(jsLibraries));",
 					"        libGetter();",
-					"        dataGetter();",
 					"    }",
 					"}",
 					""

@@ -3,21 +3,21 @@ var GV = {
 }
 
 var TRIP = {
-    EXTERNAL_REF: "trip_external_ref",
-    LEG_SPECIFICATION_REF_PATTERN: "trip_leg_%LEG_COUNT%_external_ref",
+    EXTERNAL_REF: "tripExternalRef",
+    LEG_SPECIFICATION_REF_PATTERN: "tripLeg%LEG_COUNT%ExternalRef",
 };
 
 var OFFER = {
-    PASSENGER_NUMBER : "offer_passenger_number",
-    PASSENGER_SPECIFICATIONS : "offer_passenger_specifications",
-    PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN: "passenger_specification_%PASSENGER_COUNT%_external_ref",
-    TRIP_SPECIFICATIONS : "offer_trip_specifications",
-    TRIP_SEARCH_CRITERIA : "offer_trip_search_criteria",
-    SEARCH_CRITERIA_CURRENCY : "offer_search_criteria_currency",
-    SEARCH_CRITERIA_SERVICE_CLASS : "offer_search_criteria_service_class",
-    SEARCH_CRITERIA_TRAVEL_CLASS : "offer_search_criteria_travel_class",
-    SEARCH_CRITERIA : "offer_search_criteria",
-    FULFILLMENT_OPTIONS : "offer_fulfillment_options",
+    PASSENGER_NUMBER : "offerPassengerNumber",
+    PASSENGER_SPECIFICATIONS : "offerPassengerSpecifications",
+    PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN: "passengerSpecification%PASSENGER_COUNT%ExternalRef",
+    TRIP_SPECIFICATIONS : "offerTripSpecifications",
+    TRIP_SEARCH_CRITERIA : "offerTripSearchCriteria",
+    SEARCH_CRITERIA_CURRENCY : "offerSearchCriteriaCurrency",
+    SEARCH_CRITERIA_SERVICE_CLASS : "offerSearchCriteriaServiceClass",
+    SEARCH_CRITERIA_TRAVEL_CLASS : "offerSearchCriteriaTravelClass",
+    SEARCH_CRITERIA : "offerSearchCriteria",
+    FULFILLMENT_OPTIONS : "offerFulfillmentOptions",
 }
 
 var OfferPartType = {
@@ -28,6 +28,11 @@ var OfferPartType = {
     FARE_RESERVATION: "FARE_RESERVATION",
     FARE_ANCILLARY: "FARE_ANCILLARY",
     ALL: "ALL",
+}
+
+var BOOKING = {
+	PASSENGER_SPECIFICATIONS : "bookingPassengerSpecifications",
+	PASSENGER_REFERENCES : "bookingPassengerReferences"
 }
 
 var PassengerType = {
@@ -89,6 +94,29 @@ var AnonymousPassengerSpec = class {
         this.externalRef = externalRef;
         this.type = type;
         this.dateOfBirth = dateOfBirth;
+    }
+}
+
+var PassengerSpec = class {
+    constructor(externalRef, type, dateOfBirth) {
+        this.externalRef = externalRef;
+        this.type = type;
+        this.dateOfBirth = dateOfBirth;
+    }
+}
+
+var Purchaser = class {
+    constructor(detail) {
+        this.detail = detail;
+    }
+}
+
+var Detail = class {
+	constructor(firstName, lastName, email, phoneNumber) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
     }
 }
 
