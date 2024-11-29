@@ -86,186 +86,210 @@ function placeSelections() {
 }
 
 getScenarioData = function(scenarioType, scenarioCode) {
-	if(pm.environment.has('data_file')) {
+	if(!pm.environment.has('data_file')) {
+		pm.globals.set("LoggingType","FULL");
+		
+		validationLogger("data file was not set, expecting running in runner");
+        pm.sendRequest({
+            url: pm.environment.get("data_base"),
+            method: 'GET',
+        }, function (err, res) {
+            if (err) {
+                validationLogger(err);
+            } else {
+                var jsonData = JSON.parse(res.text());
+                parseScenarioData(jsonData);
+
+            }
+        });
+	}
+	else if(pm.environment.has('data_file')) {
 		//since running in postman, do full logging to the console
 		pm.globals.set("LoggingType","FULL");
 		
         validationLogger("data file was set, expecting running in postman");
         var res = pm.environment.get("data_file");
         var jsonData = JSON.parse(res);
+        parseScenarioData(jsonData);
+        
+    } else {
+    	pm.globals.set("LoggingType","FULL");
+    	validationLogger("Please specify using a data_file or data_base parameter in the environment used.");
+    }
+}
 
-        var nextWeekday = get_next_weekday(new Date());
-        var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth() + 1) + "-" + pad(nextWeekday.getUTCDate());
+parseScenarioData = function(jsonData) {
+	var nextWeekday = get_next_weekday(new Date());
+    var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth() + 1) + "-" + pad(nextWeekday.getUTCDate());
 
-        var dataFileIndex = 0;
-        var dataFileLength = jsonData.scenarios.length;
-        var foundCorrectDataSet = false;
+    var dataFileIndex = 0;
+    var dataFileLength = jsonData.scenarios.length;
+    var foundCorrectDataSet = false;
 
-        while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {
-            validationLogger("checking code:"+jsonData.scenarios[dataFileIndex].code+" against:"+scenarioCode);
+    while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {
+        validationLogger("checking code:"+jsonData.scenarios[dataFileIndex].code+" against:"+scenarioCode);
 
-            if(jsonData.scenarios[dataFileIndex].code==scenarioCode) {
+        if(jsonData.scenarios[dataFileIndex].code==scenarioCode) {
 
-                jsonData.tripRequirements.some(function(tripRequirement){
+            jsonData.tripRequirements.some(function(tripRequirement){
 
-                    validationLogger(tripRequirement);
+                validationLogger(tripRequirement);
 
-                    if(tripRequirement.id==jsonData.scenarios[dataFileIndex].tripRequirementId){
+                if(tripRequirement.id==jsonData.scenarios[dataFileIndex].tripRequirementId){
+                    
+                    pm.globals.set("TripType",tripRequirement.tripType);
+                    
+                    switch(tripRequirement.tripType) {
+				      case "SPECIFICATION":
+				      	validationLogger('processing a specification');
+				        var legIndex = 0;
+				        
+				        var legDefinitions = [];
+				        
+                        tripRequirement.legs.forEach(function(leg){
+                            pm.globals.set("leg"+(legIndex+1)+"StartStopPlaceRef", tripRequirement.legs[legIndex].origin);
+                            pm.globals.set("leg"+(legIndex+1)+"EndStopPlaceRef", tripRequirement.legs[legIndex].destination);
+                            pm.globals.set("leg"+(legIndex+1)+"StartDatetime", tripRequirement.legs[legIndex].start_datetime.replace("%TRIP_DATE%", nextWeekdayString));
+                            pm.globals.set("leg"+(legIndex+1)+"EndDatetime", tripRequirement.legs[legIndex].end_datetime.replace("%TRIP_DATE%", nextWeekdayString));
+                            pm.globals.set("leg"+(legIndex+1)+"VehicleNumber", tripRequirement.legs[legIndex].vehicleNumber);
+                            pm.globals.set("leg"+(legIndex+1)+"OperatorCode", tripRequirement.legs[legIndex].operatorCode);
+                            pm.globals.set("leg"+(legIndex+1)+"ProductCategoryRef", tripRequirement.legs[legIndex].productCategoryRef);
+                            pm.globals.set("leg"+(legIndex+1)+"ProductCategoryName", tripRequirement.legs[legIndex].productCategoryName);
+                            pm.globals.set("leg"+(legIndex+1)+"ProductCategoryShortName", tripRequirement.legs[legIndex].productCategoryShortName);
                         
-                        pm.globals.set("TripType",tripRequirement.tripType);
+                            legDefinitions.push(new TripLegDefinition(
+                            	tripRequirement.legs[legIndex].origin,
+                            	tripRequirement.legs[legIndex].start_datetime.replace("%TRIP_DATE%", nextWeekdayString),
+                            	tripRequirement.legs[legIndex].destination,
+                            	tripRequirement.legs[legIndex].end_datetime.replace("%TRIP_DATE%", nextWeekdayString),
+                            	tripRequirement.legs[legIndex].productCategoryRef,
+                            	tripRequirement.legs[legIndex].productCategoryName,
+                            	tripRequirement.legs[legIndex].productCategoryShortName,
+                            	tripRequirement.legs[legIndex].vehicleNumber,
+                            	tripRequirement.legs[legIndex].operatorCode
+					        ));
+                            
+                            legIndex++;
                         
-                        switch(tripRequirement.tripType) {
-					      case "SPECIFICATION":
-					      	validationLogger('processing a specification');
-					        var legIndex = 0;
-					        
-					        var legDefinitions = [];
-					        
-	                        tripRequirement.legs.forEach(function(leg){
-	                            pm.globals.set("leg"+(legIndex+1)+"StartStopPlaceRef", tripRequirement.legs[legIndex].origin);
-	                            pm.globals.set("leg"+(legIndex+1)+"EndStopPlaceRef", tripRequirement.legs[legIndex].destination);
-	                            pm.globals.set("leg"+(legIndex+1)+"StartDatetime", tripRequirement.legs[legIndex].start_datetime.replace("%TRIP_DATE%", nextWeekdayString));
-	                            pm.globals.set("leg"+(legIndex+1)+"EndDatetime", tripRequirement.legs[legIndex].end_datetime.replace("%TRIP_DATE%", nextWeekdayString));
-	                            pm.globals.set("leg"+(legIndex+1)+"VehicleNumber", tripRequirement.legs[legIndex].vehicleNumber);
-	                            pm.globals.set("leg"+(legIndex+1)+"OperatorCode", tripRequirement.legs[legIndex].operatorCode);
-	                            pm.globals.set("leg"+(legIndex+1)+"ProductCategoryRef", tripRequirement.legs[legIndex].productCategoryRef);
-	                            pm.globals.set("leg"+(legIndex+1)+"ProductCategoryName", tripRequirement.legs[legIndex].productCategoryName);
-	                            pm.globals.set("leg"+(legIndex+1)+"ProductCategoryShortName", tripRequirement.legs[legIndex].productCategoryShortName);
-	                        
-	                            legDefinitions.push(new TripLegDefinition(
-	                            	tripRequirement.legs[legIndex].origin,
-	                            	tripRequirement.legs[legIndex].start_datetime.replace("%TRIP_DATE%", nextWeekdayString),
-	                            	tripRequirement.legs[legIndex].destination,
-	                            	tripRequirement.legs[legIndex].end_datetime.replace("%TRIP_DATE%", nextWeekdayString),
-	                            	tripRequirement.legs[legIndex].productCategoryRef,
-	                            	tripRequirement.legs[legIndex].productCategoryName,
-	                            	tripRequirement.legs[legIndex].productCategoryShortName,
-	                            	tripRequirement.legs[legIndex].vehicleNumber,
-	                            	tripRequirement.legs[legIndex].operatorCode
-    					        ));
-	                            
-	                            legIndex++;
-	                        
-	                        });
-	                        
-	                        osdmTripSpecification(legDefinitions);
-	        
-					        break;
-					      case "SEARCH":
-					      	validationLogger('processing a search');
-					        pm.globals.set("tripStartStopPlaceRef", tripRequirement.trip.origin);
-                            pm.globals.set("tripEndStopPlaceRef", tripRequirement.trip.destination);
-                            pm.globals.set("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-                            pm.globals.set("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-                            pm.globals.set("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
-                            pm.globals.set("tripOperatorCode", tripRequirement.trip.operatorCode);
-                            pm.globals.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef);
-                            pm.globals.set("tripProductCategoryName", tripRequirement.trip.productCategoryName);
-                            pm.globals.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName);
-                            
-                            
-                            osdmTripSearchCriteria([
-                                new TripLegDefinition(
-                                	tripRequirement.trip.origin,
-                                	tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString),
-                                	tripRequirement.trip.destination,
-                                	tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString),
-                                	tripRequirement.trip.productCategoryRef,
-                                	tripRequirement.trip.productCategoryName,
-                            		tripRequirement.trip.productCategoryShortName,
-                					tripRequirement.trip.vehicleNumber,
-                					tripRequirement.trip.operatorCode
-                                )
-                            ]);
-                            validationLogger('processed a search');
-                            
-					        break;
-					      
-					    }
+                        });
                         
-                        return true;
-                    }
-                });
+                        osdmTripSpecification(legDefinitions);
+        
+				        break;
+				      case "SEARCH":
+				      	validationLogger('processing a search');
+				        pm.globals.set("tripStartStopPlaceRef", tripRequirement.trip.origin);
+                        pm.globals.set("tripEndStopPlaceRef", tripRequirement.trip.destination);
+                        pm.globals.set("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+                        pm.globals.set("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+                        pm.globals.set("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
+                        pm.globals.set("tripOperatorCode", tripRequirement.trip.operatorCode);
+                        pm.globals.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef);
+                        pm.globals.set("tripProductCategoryName", tripRequirement.trip.productCategoryName);
+                        pm.globals.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName);
+                        
+                        
+                        osdmTripSearchCriteria([
+                            new TripLegDefinition(
+                            	tripRequirement.trip.origin,
+                            	tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString),
+                            	tripRequirement.trip.destination,
+                            	tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString),
+                            	tripRequirement.trip.productCategoryRef,
+                            	tripRequirement.trip.productCategoryName,
+                        		tripRequirement.trip.productCategoryShortName,
+            					tripRequirement.trip.vehicleNumber,
+            					tripRequirement.trip.operatorCode
+                            )
+                        ]);
+                        validationLogger('processed a search');
+                        
+				        break;
+				      
+				    }
+                    
+                    return true;
+                }
+            });
 
-                pm.globals.set("offerSearchCriteriaCurrency", jsonData.scenarios[dataFileIndex].currency);
-                pm.globals.set("offerSearchCriteriaTravelClass", jsonData.scenarios[dataFileIndex].travelClass);
-                pm.globals.set("offerSearchCriteriaSearchClass", jsonData.scenarios[dataFileIndex].serviceClass);
-                pm.globals.set("refundOverruleCode", jsonData.scenarios[dataFileIndex].overruleCode);
-                pm.globals.set("flexibility", jsonData.scenarios[dataFileIndex].flexibility);
-                
-                pm.globals.set("ScenarioType",scenarioType);
-                pm.globals.set("ScenarioCode",scenarioCode);
-                
-                pm.globals.set("requiresPlaceSelection",jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
-                
+            pm.globals.set("offerSearchCriteriaCurrency", jsonData.scenarios[dataFileIndex].currency);
+            pm.globals.set("offerSearchCriteriaTravelClass", jsonData.scenarios[dataFileIndex].travelClass);
+            pm.globals.set("offerSearchCriteriaSearchClass", jsonData.scenarios[dataFileIndex].serviceClass);
+            pm.globals.set("refundOverruleCode", jsonData.scenarios[dataFileIndex].overruleCode);
+            pm.globals.set("flexibility", jsonData.scenarios[dataFileIndex].flexibility);
+            
+            pm.globals.set("ScenarioType",scenarioType);
+            pm.globals.set("ScenarioCode",scenarioCode);
+            
+            pm.globals.set("requiresPlaceSelection",jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
+            
 
-				jsonData.passengersList.some(function(passengersList){
-				
-					validationLogger('checking passenger_list:'+passengersList.id+' against:'+jsonData.scenarios[dataFileIndex].passengersListId);
-				
-					if(passengersList.id==jsonData.scenarios[dataFileIndex].passengersListId){
-					
-						validationLogger('found number of passengers:'+passengersList.passengers.length);
-					
-						pm.globals.set(OFFER.PASSENGER_NUMBER, passengersList.passengers.length);
+			jsonData.passengersList.some(function(passengersList){
 			
-					    var offerPassengerSpecs = [];
-					    var passengerSpecs = [];
-					    var passengerReferences = [];
-						var passengerIndex = 0;
-						
-					    passengersList.passengers.forEach(function(passenger){
-					    	var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", (passengerIndex+1));
-					    	pm.globals.set(passengerKey, uuid.v4());
-					    	
-					    	offerPassengerSpecs.push(new AnonymousPassengerSpec(
+				validationLogger('checking passenger_list:'+passengersList.id+' against:'+jsonData.scenarios[dataFileIndex].passengersListId);
+			
+				if(passengersList.id==jsonData.scenarios[dataFileIndex].passengersListId){
+				
+					validationLogger('found number of passengers:'+passengersList.passengers.length);
+				
+					pm.globals.set(OFFER.PASSENGER_NUMBER, passengersList.passengers.length);
+		
+				    var offerPassengerSpecs = [];
+				    var passengerSpecs = [];
+				    var passengerReferences = [];
+					var passengerIndex = 0;
+					
+				    passengersList.passengers.forEach(function(passenger){
+				    	var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", (passengerIndex+1));
+				    	pm.globals.set(passengerKey, uuid.v4());
+				    	
+				    	offerPassengerSpecs.push(new AnonymousPassengerSpec(
+				            pm.globals.get(passengerKey),
+				            passenger.type,
+				            passenger.dateOfBirth
+				        ));
+				    	
+				    	passengerSpecs.push(new PassengerSpec(
 					            pm.globals.get(passengerKey),
 					            passenger.type,
 					            passenger.dateOfBirth
 					        ));
-					    	
-					    	passengerSpecs.push(new PassengerSpec(
-						            pm.globals.get(passengerKey),
-						            passenger.type,
-						            passenger.dateOfBirth
-						        ));
-					    	
-					    	
-					    	passengerReferences.push(pm.globals.get(passengerKey));
-					    	
-					    	passengerIndex++;
-					    });
-					    
-					    validationLogger('pushed passengerspec to globals:'+JSON.stringify(passengerSpecs));
-					
-					    pm.globals.set(OFFER.PASSENGER_SPECIFICATIONS, JSON.stringify(offerPassengerSpecs));
-					    pm.globals.set(BOOKING.PASSENGER_SPECIFICATIONS, JSON.stringify(passengerSpecs));
-					    pm.globals.set(BOOKING.PASSENGER_REFERENCES, JSON.stringify(passengerReferences));
-						return true;
-					}
-				});
+				    	
+				    	
+				    	passengerReferences.push(pm.globals.get(passengerKey));
+				    	
+				    	passengerIndex++;
+				    });
+				    
+				    validationLogger('pushed passengerspec to globals:'+JSON.stringify(passengerSpecs));
 				
-				
-				osdmOfferSearchCriteria(
-						jsonData.scenarios[dataFileIndex].currency,
-					    null,
-					    jsonData.scenarios[dataFileIndex].type,
-					    null,
-					    jsonData.scenarios[dataFileIndex].serviceClass,
-					    jsonData.scenarios[dataFileIndex].travelClass,
-					    null
-					);
-				
+				    pm.globals.set(OFFER.PASSENGER_SPECIFICATIONS, JSON.stringify(offerPassengerSpecs));
+				    pm.globals.set(BOOKING.PASSENGER_SPECIFICATIONS, JSON.stringify(passengerSpecs));
+				    pm.globals.set(BOOKING.PASSENGER_REFERENCES, JSON.stringify(passengerReferences));
+					return true;
+				}
+			});
+			
+			
+			osdmOfferSearchCriteria(
+					jsonData.scenarios[dataFileIndex].currency,
+				    null,
+				    jsonData.scenarios[dataFileIndex].type,
+				    null,
+				    jsonData.scenarios[dataFileIndex].serviceClass,
+				    jsonData.scenarios[dataFileIndex].travelClass,
+				    null
+				);
+			
 
-					osdmFulfillmentOptions([
-					    new FulfillmentOption(jsonData.scenarios[dataFileIndex].fulfillmentType, jsonData.scenarios[dataFileIndex].fulfillmentMedia)
-					]);
+				osdmFulfillmentOptions([
+				    new FulfillmentOption(jsonData.scenarios[dataFileIndex].fulfillmentType, jsonData.scenarios[dataFileIndex].fulfillmentMedia)
+				]);
 
-                foundCorrectDataSet = true;
-                validationLogger("correct data set was found for this scenario:"+scenarioCode);
-            }
-            dataFileIndex++;
+            foundCorrectDataSet = true;
+            validationLogger("correct data set was found for this scenario:"+scenarioCode);
         }
+        dataFileIndex++;
     }
 }
 
@@ -1552,7 +1576,7 @@ function validateBookingResponseRefund(response, afterRefund = false) {
 		    );
 		} 
 		
-		//check if the referenced part is a reservation
+		//check if the referenced part is a reservation 
 		if((refundOfferPart==null||refundOfferPart==undefined)&&
 				(booking.bookedOffers[0].reservations!=null&&booking.bookedOffers[0].reservations!=undefined)) {
 			refundOfferPart = booking.bookedOffers[0].reservations.find(reservation => 
