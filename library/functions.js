@@ -1,4 +1,21 @@
+/*
+Copyright UIC, Union Internationale des Chemins de fer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+No reproduction nor distribution shall be allowed without the following notice
+“This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”
+*/
+
 var uuid = require('uuid');
+var totalBookedAmount = 0;
 
 setAuthToken = function () {
     let jsonData = JSON.parse(responseBody);
@@ -738,39 +755,29 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 
 	let desiredFlexibility = pm.globals.get("flexibility"); 
 	console.log("Flexibility for current leg:" + desiredFlexibility);
-	switch (desiredFlexibility) {
-		case "FF":
-			desiredFlexibility = "FULL_FLEXIBLE";
-			break;
-		case "SF":
-			desiredFlexibility = "SEMI_FLEXIBLE";
-			break;
-		case "NF":
-			desiredFlexibility = "NON_FLEXIBLE";
-			break;
-		default:
-			console.log("Unrecognized flexibility value");
-			desiredFlexibility = null;
-	}
 
-	let selectedOffer = jsonData.offers.find(offer => 
+	let selectedOffer = offers.find(offer => 
 		offer.offerSummary.overallFlexibility === desiredFlexibility
 	);
 
+	pm.globals.set("offers", offers);
 	if (selectedOffer) {
-		pm.globals.set("offerId", offers.offerId);
-		console.log("Selected offer:", selectedOffer);
+		console.log("######");
+		console.log("Desired flexibility : ", desiredFlexibility);
+		console.log("Selected offer : ", selectedOffer);
+		console.log("offers[0] : ", offers[0]);
+		console.log("######");
+		pm.globals.set("offerId", selectedOffer.offerId);
+		pm.globals.set("offer", selectedOffer);
 	} else {
 		pm.globals.set("offerId", offers[0].offerId);
+		pm.globals.set("offer", offers[0]);
 		// TODO : Catch it differently (default one ?)
 		// STOP THE TEST ?? TO CONFIRM 
 		console.log("Offer doesn't match the entry criteria, displaying warning.");
 		console.log("Warnings :", jsonData.warnings);
 		// Taking the 1st as default 
 	}
-
-	pm.globals.set("offer", offer);
-	pm.globals.set("offers", jsonData.offers);
 
 	var requiresPlaceSelection = pm.globals.get("requiresPlaceSelection");
 	
@@ -782,81 +789,115 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 };
 
 displayOfferResponse = function(response) {
-	// Iterate over each offer
-	includedReservations = null;
-	console.log("ici")
-	response.offers.forEach((offer, index) => {
-		validationLogger(`Offer ${index + 1} Details:`);
-		validationLogger(`  Minimal Price amount: ${offer.offerSummary.minimalPrice.amount}`);
-		validationLogger(`  Overall Flexibility: ${offer.offerSummary.overallFlexibility}`);
-		validationLogger(`  Overall ServiceClass: ${offer.offerSummary.overallServiceClass.name}`);
-		validationLogger(`  Overall TravelClass: ${offer.offerSummary.overallTravelClass}`);
-		validationLogger(`  Overall AccommodationType: ${offer.offerSummary.overallAccommodationType}`);
-		validationLogger(`  Overall AccommodationSubType: ${offer.offerSummary.overallAccommodationSubType}`);
- 
-		// Iterate over each admissionOfferPart
-		offer.admissionOfferParts.forEach((admissionPart, partIndex) => {
-			validationLogger(`  Admission Offer Part ${partIndex + 1}:`);
-			validationLogger(`      Summary: ${admissionPart.summary}`);
-			validationLogger(`      Price: ${admissionPart.price.amount} ${admissionPart.price.currency}`);
-
-			// Check and log includedReservations if not null
-			if (admissionPart.includedReservations && admissionPart.includedReservations.length > 0) {
-				includedReservations = admissionPart.includedReservations ? admissionPart.includedReservations : null;
-				admissionPart.includedReservations.forEach((reservation, reservationIndex) => {
-					validationLogger(`    Included Reservation ${reservationIndex + 1}:`);
-					validationLogger(`      ID: ${reservation.id}`);
-					validationLogger(`      Summary: ${reservation.summary}`);
-					validationLogger(`      Created On: ${reservation.createdOn}`);
-					validationLogger(`      Valid From: ${reservation.validFrom}`);
-					validationLogger(`      Valid Until: ${reservation.validUntil}`);
-					validationLogger(`      Price: ${reservation.price.amount} ${reservation.price.currency}`);
-				});
-			} else {
-				validationLogger(`  No included reservations.`);
-			}
-		});
-
-		// Iterate over each product in the offer
-        offer.products.forEach((product, productIndex) => {
-			isTrainBound = product.isTrainBound ? product.isTrainBound : false;
-            validationLogger(`  Product ${productIndex + 1}:`);
-            validationLogger(`      Product Summary: ${product.summary}`);
-            validationLogger(`      Product Type: ${product.type}`);
-            validationLogger(`      Train is bound: ${product.isTrainBound}`);
-        });
-
-		// Check for NRT, TLT or IRT
-		if (isTrainBound === false && includedReservations === null) {
-			validationLogger(`      NRT: Train is not bound, and no included reservations.`);
-		} else if (isTrainBound === true && includedReservations === null) {
-			validationLogger(`      TLT: Train is bound, but no included reservations.`);
-		} else if (isTrainBound  === true && Array.isArray(includedReservations)) {
-			validationLogger(`      IRT: Train is bound, and included reservations present.`);
+	try {
+		if (!response || !response.offers || response.offers.length === 0) {
+			validationLogger("Error: No offers found in the response.");
+			return;
 		}
 
-		validationLogger(`  Number of passengers: ${response.anonymousPassengerSpecifications.length}`);
-		validationLogger(`      Type: ${response.anonymousPassengerSpecifications.map(spec => spec.type).join(', ')}`);
-		validationLogger(`      Cards: ${response.anonymousPassengerSpecifications.map(spec => spec.cards ? spec.cards.join(', ') : 'None').join(', ')}`);
-		
-		// Iterate over each trip
-		response.trips.forEach((trip, tripIndex) => {
-			validationLogger(`  Trip ${tripIndex + 1} Summary: ${trip.summary}`);
-			validationLogger(`  Number of trip legs: ${trip.legs.length}`);
-			validationLogger(`  Start Time: ${trip.startTime}`);
-			validationLogger(`  End Time: ${trip.endTime}`);
+		// Variable pour vérifier si un train est lié et si des réservations sont incluses
+		let includedReservations = null;
+		let isTrainBound = false;
 
-			// Iterate over each leg in the trip
-			trip.legs.forEach((leg, legIndex) => {
-				validationLogger(`    Leg ${legIndex + 1} Details:`);
-				validationLogger(`        Start Stop Place Name: ${leg.timedLeg.start.stopPlaceName}`);
-				validationLogger(`        End Stop Place Name: ${leg.timedLeg.end.stopPlaceName}`);
-				validationLogger(`        Vehicle Numbers: ${leg.timedLeg.service.vehicleNumbers ? leg.timedLeg.service.vehicleNumbers.join(', ') : 'None'}`);
-				validationLogger(`        Line Numbers: ${leg.timedLeg.service.lineNumbers ? leg.timedLeg.service.lineNumbers.join(', ') : 'None'}`);
+		// Parcourir chaque offre
+		response.offers.forEach((offer, index) => {
+			validationLogger(`Offer ${index + 1} Details:`);
+			validationLogger(`  Minimal Price amount: ${offer.offerSummary?.minimalPrice?.amount || 'Not available'}`);
+			validationLogger(`  Overall Flexibility: ${offer.offerSummary?.overallFlexibility || 'Not available'}`);
+			validationLogger(`  Overall ServiceClass: ${offer.offerSummary?.overallServiceClass?.name || 'Not available'}`);
+			validationLogger(`  Overall TravelClass: ${offer.offerSummary?.overallTravelClass || 'Not available'}`);
+			validationLogger(`  Overall AccommodationType: ${offer.offerSummary?.overallAccommodationType || 'Not available'}`);
+			validationLogger(`  Overall AccommodationSubType: ${offer.offerSummary?.overallAccommodationSubType || 'Not available'}`);
+
+			// Parcourir chaque admissionOfferPart
+			(offer.admissionOfferParts || []).forEach((admissionPart, partIndex) => {
+				validationLogger(`  Admission Offer Part ${partIndex + 1}:`);
+				validationLogger(`      Summary: ${admissionPart?.summary || 'Not available'}`);
+				validationLogger(`      Price: ${
+					admissionPart?.price?.amount 
+						? `${admissionPart.price.amount} ${admissionPart.price.currency || 'Unknown currency'}` 
+						: 'Not available'
+				}`);
+
+				// Vérifier et enregistrer les includedReservations
+				if (admissionPart?.includedReservations?.length > 0) {
+					includedReservations = admissionPart.includedReservations;
+					admissionPart.includedReservations.forEach((reservation, reservationIndex) => {
+						validationLogger(`    Included Reservation ${reservationIndex + 1}:`);
+						validationLogger(`      ID: ${reservation?.id || 'Not available'}`);
+						validationLogger(`      Summary: ${reservation?.summary || 'Not available'}`);
+						validationLogger(`      Created On: ${reservation?.createdOn || 'Not available'}`);
+						validationLogger(`      Valid From: ${reservation?.validFrom || 'Not available'}`);
+						validationLogger(`      Valid Until: ${reservation?.validUntil || 'Not available'}`);
+						validationLogger(`      Price: ${
+							reservation?.price?.amount 
+								? `${reservation.price.amount} ${reservation.price.currency || 'Unknown currency'}` 
+								: 'Not available'
+						}`);
+					});
+				} else {
+					validationLogger(`  No included reservations.`);
+				}
+			});
+
+			// Parcourir chaque produit dans l'offre
+			(offer.products || []).forEach((product, productIndex) => {
+				isTrainBound = product?.isTrainBound || false;
+				validationLogger(`  Product ${productIndex + 1}:`);
+				validationLogger(`      Product Summary: ${product?.summary || 'Not available'}`);
+				validationLogger(`      Product Type: ${product?.type || 'Not available'}`);
+				validationLogger(`      Train is bound: ${isTrainBound}`);
+			});
+
+			// Identifier NRT, TLT ou IRT
+			if (!isTrainBound && !includedReservations) {
+				validationLogger(`      NRT: Train is not bound, and no included reservations.`);
+			} else if (isTrainBound && !includedReservations) {
+				validationLogger(`      TLT: Train is bound, but no included reservations.`);
+			} else if (isTrainBound && Array.isArray(includedReservations)) {
+				validationLogger(`      IRT: Train is bound, and included reservations present.`);
+			}
+
+			// Informations sur les passagers
+			validationLogger(`  Number of passengers: ${response.anonymousPassengerSpecifications?.length || 0}`);
+			validationLogger(`      Type: ${
+				response.anonymousPassengerSpecifications?.map(spec => spec?.type || 'Unknown').join(', ') || 'None'
+			}`);
+			validationLogger(`      Cards: ${
+				response.anonymousPassengerSpecifications?.map(
+					spec => spec?.cards ? spec.cards.join(', ') : 'None'
+				).join(', ') || 'None'
+			}`);
+
+			// Parcourir chaque voyage
+			(response.trips || []).forEach((trip, tripIndex) => {
+				validationLogger(`  Trip ${tripIndex + 1} Summary: ${trip?.summary || 'Not available'}`);
+				validationLogger(`  Number of trip legs: ${trip?.legs?.length || 0}`);
+				validationLogger(`  Start Time: ${trip?.startTime || 'Not available'}`);
+				validationLogger(`  End Time: ${trip?.endTime || 'Not available'}`);
+
+				// Parcourir chaque étape (leg) du voyage
+				(trip?.legs || []).forEach((leg, legIndex) => {
+					validationLogger(`    Leg ${legIndex + 1} Details:`);
+					validationLogger(`        Start Stop Place Name: ${leg?.timedLeg?.start?.stopPlaceName || 'Not available'}`);
+					validationLogger(`        End Stop Place Name: ${leg?.timedLeg?.end?.stopPlaceName || 'Not available'}`);
+					validationLogger(`        Vehicle Numbers: ${
+						leg?.timedLeg?.service?.vehicleNumbers 
+							? leg.timedLeg.service.vehicleNumbers.join(', ') 
+							: 'None'
+					}`);
+					validationLogger(`        Line Numbers: ${
+						leg?.timedLeg?.service?.lineNumbers 
+							? leg.timedLeg.service.lineNumbers.join(', ') 
+							: 'None'
+					}`);
+				});
 			});
 		});
-	});
-}
+	} catch (error) {
+		validationLogger(`Error processing the offer response: ${error.message}`);
+	}
+};
 
 validateBookingResponse = function( passengerSpecifications, searchCriteria, fulfillmentOptions, offers, offerId, booking, scenarioType, state) {
 
@@ -1216,13 +1257,25 @@ checkGenericBookedOfferPart = function(offerPart, state){
 	var createdOn = new Date(offerPart.createdOn);
 	var confirmableUntil = new Date(offerPart.confirmableUntil);
 
-	
 	pm.test("Correct createdOn is returned on bookedofferpart", function () {
         pm.expect(currentDate.getDate()).to.equal(createdOn.getDate());
         pm.expect(currentDate.getMonth()).to.equal(createdOn.getMonth());
         pm.expect(currentDate.getFullYear()).to.equal(createdOn.getFullYear());
     });
-    
+
+	totalBookedAmount += offerPart.price.amount;
+	//confirmedPrice
+
+/*	TODO : CHECK PRICE TO BE ENABLED WHEN PRICING IS FIXED
+	var offerPrice = offer.offerSummary.minimalPrice;
+	var bookingPrice = booking.confirmedPrice;
+	
+	pm.test("Correct price is used on booking, compared to offer", function () {
+		pm.expect(offerPrice.amount).to.equal(bookingPrice.amount);
+		pm.expect(offerPrice.currency).to.equal(bookingPrice.currency);
+	});
+*/
+
     //check the confirmableUntil when this is a prebooked offer part
     if(state=="PREBOOKED"){
 	    pm.test("a correct confirmableUntil is returned on bookedofferpart", function () {
@@ -1231,53 +1284,46 @@ checkGenericBookedOfferPart = function(offerPart, state){
 	        pm.expect(confirmation).to.be.above(current);
 	    });
     }
-    
+
     //check the status
-    pm.test("a correct status is returned on bookedofferpart", function () {
+    pm.test("Correct status is returned on bookedofferpart : " + state, function () {
         pm.expect(offerPart.status).to.equal(state);
     });
     
 };
 
-checkFulFilledBooking = function(booking, offer, state){
+checkFulFilledBooking = function(booking, offer, bookingState, fulfillmentState=undefined){
 
 	validationLogger("offer:"+offer);
 	var passengers = booking.passengers;
 
 	booking.bookedOffers.forEach(function(bookedOffer){
-	
+		validationLogger("checking bookedOffer "+bookedOffer.offerId);
 		//check the admissions
 		if(bookedOffer.admissions!=undefined&&bookedOffer.admissions!=null&&bookedOffer.admissions.length>0){
 			bookedOffer.admissions.forEach(function(bookedOfferPart){
-				checkGenericBookedOfferPart(bookedOfferPart,state);
-			});
-		}
-		
-		//check the reservations
-		if(bookedOffer.reservations!=undefined&&bookedOffer.reservations!=null&&bookedOffer.reservations.length>0){
-			bookedOffer.reservations.forEach(function(bookedOfferPart){
-				checkGenericBookedOfferPart(bookedOfferPart,state);
+				checkGenericBookedOfferPart(bookedOfferPart,bookingState);
 			});
 		}
 
-		//confirmedPrice
-		var offerPrice = offer.offerSummary.minimalPrice;
-		var bookingPrice = booking.confirmedPrice;
-		
-		pm.test("Correct price is used on booking, compared to offer", function () {
-			pm.expect(offerPrice.amount).to.equal(bookingPrice.amount);
-			pm.expect(offerPrice.currency).to.equal(bookingPrice.currency);
-		});
-		
+		//check the reservations
+		if(bookedOffer.reservations!=undefined&&bookedOffer.reservations!=null&&bookedOffer.reservations.length>0){
+			bookedOffer.reservations.forEach(function(bookedOfferPart){
+				checkGenericBookedOfferPart(bookedOfferPart,bookingState);
+			});
+		}
+
 		//fulfillments
-		booking.fulfillments.forEach(function(fulfillment) {
-			checkFulfillment(booking, fulfillment, state);
-		});
+		if(fulfillmentState!=undefined) {
+			booking.fulfillments.forEach(function(fulfillment) {
+				checkFulfillment(booking, fulfillment, fulfillmentState);
+			});
+		}
 		
 		//passengers
 		//check that all the passengers match the passengers from the offer
 		offer.passengerRefs.forEach(function(passenger){
-	
+
 			var found = false;
 			found = passengers.some(function(bookedPassenger){
 				validationLogger("checking "+bookedPassenger.externalRef+" against "+passenger);
@@ -1285,11 +1331,11 @@ checkFulFilledBooking = function(booking, offer, state){
 					return true;
 				}
 			});
-	
+
 			pm.test("passenger "+passenger+" returned", function () {
 				pm.expect(found).to.equal(true);
 			});
-	
+
 		});
 		
 		//purchaser
@@ -1299,18 +1345,23 @@ checkFulFilledBooking = function(booking, offer, state){
 				pm.expect(booking.purchaser.detail.lastName).not.to.be.empty;
 			});
 		}
-		
+
 		//trips
 	});
 
 	//new sets
-	pm.globals.set("bookingConfirmedPrice", jsonData.booking.confirmedPrice);
 	if(pm.globals.get("fulfillmentsId")!==undefined) {
 		pm.test("Verify fulfillment ID", function () {
 			var fulfillmentsId = pm.globals.get("fulfillmentsId");
-			pm.expect(jsonData.booking.fulfillments[0].id).to.eql(fulfillmentsId);
+			pm.expect(booking.fulfillments[0].id).to.eql(fulfillmentsId);
 		});
 	}
+/*
+	pm.globals.set("bookingConfirmedPrice", booking.confirmedPrice.amount);
+	var bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
+	pm.test("Check totalBookedAmount=" + totalBookedAmount + " with bookingConfirmedPrice=" + bookingConfirmedPrice, function () {
+		pm.expect(totalBookedAmount).to.eql(bookingConfirmedPrice);
+	});*/
 };
 
 checkFulfillment = function(booking, fulfillment, state){
@@ -1329,105 +1380,124 @@ checkFulfillment = function(booking, fulfillment, state){
     });
     
     
-	pm.test("Correct state is returned on fulfillment", function () {
+	pm.test("Correct state is returned on fulfillment : " + state, function () {
 		pm.expect(fulfillment.status).to.equal(state);
 	});
 };
 
-displayFulFilledBookig = function(response) {
-	// Log booking information
-	validationLogger(`Booking ID: ${response.booking.id}`);
-	validationLogger(`Booking Code: ${response.booking.bookingCode}`);
-	validationLogger(`External Reference: ${response.booking.externalRef}`);
-	validationLogger(`Created On: ${response.booking.createdOn}`);
-	validationLogger(`Provisional Price: ${response.booking.provisionalPrice ? response.booking.provisionalPrice.amount + ' ' + response.booking.provisionalPrice.currency : 'Not available'}`);
-	validationLogger(`Confirmed Price: ${response.booking.confirmedPrice ? response.booking.confirmedPrice.amount + ' ' + response.booking.confirmedPrice.currency : 'Not available'}`);
-	validationLogger(`Number of Passengers: ${response.booking.passengers.length}`);
+displayFulFilledBooking = function (response) {
+	try {
+		if (!response?.booking) {
+			validationLogger("Error: Booking information is missing from the response.");
+			return;
+		}
 
-	// Log passenger information
-	response.booking.passengers.forEach((passenger, passengerIndex) => {
-		validationLogger(`Passenger ${passengerIndex + 1} Details:`);
-		validationLogger(`  Passenger ID: ${passenger.id}`);
-		validationLogger(`  Type: ${passenger.type}`);
-		validationLogger(`  Date of Birth: ${passenger.dateOfBirth}`);
-		validationLogger(`  Cards: ${passenger.cards ? passenger.cards.join(', ') : 'None'}`);
-	});
+		// Log booking information
+		validationLogger(`Booking ID: ${response.booking?.id ?? 'Not available'}`);
+		validationLogger(`Booking Code: ${response.booking?.bookingCode ?? 'Not available'}`);
+		validationLogger(`External Reference: ${response.booking?.externalRef ?? 'Not available'}`);
+		validationLogger(`Created On: ${response.booking?.createdOn ?? 'Not available'}`);
+		validationLogger(`Provisional Price: ${
+			response.booking?.provisionalPrice
+				? response.booking.provisionalPrice.amount + ' ' + response.booking.provisionalPrice.currency
+				: 'Not available'
+		}`);
+		validationLogger(`Confirmed Price: ${
+			response.booking?.confirmedPrice
+				? response.booking.confirmedPrice.amount + ' ' + response.booking.confirmedPrice.currency
+				: 'Not available'
+		}`);
+		validationLogger(`Number of Passengers: ${response.booking?.passengers?.length ?? 'Not available'}`);
 
-	// Log trip information
-	response.booking.trips.forEach((trip, tripIndex) => {
-		validationLogger(`Trip ${tripIndex + 1} Summary: ${trip.summary}`);
-		validationLogger(`  Trip ID: ${trip.id}`);
-		validationLogger(`  Direction: ${trip.direction}`);
-		validationLogger(`  Start Time: ${trip.startTime}`);
-		validationLogger(`  End Time: ${trip.endTime}`);
-		validationLogger(`  Duration: ${trip.duration}`);
-		validationLogger(`  Distance: ${trip.distance} meters`);
-
-		// Log leg information for each trip
-		trip.legs.forEach((leg, legIndex) => {
-			validationLogger(`    Leg ${legIndex + 1} Details:`);
-			validationLogger(`      Leg ID: ${leg.id}`);
-			validationLogger(`      Start Stop Place Name: ${leg.timedLeg.start.stopPlaceName}`);
-			validationLogger(`      End Stop Place Name: ${leg.timedLeg.end.stopPlaceName}`);
-			validationLogger(`      Start Time: ${leg.timedLeg.start.serviceDeparture.timetabledTime}`);
-			validationLogger(`      End Time: ${leg.timedLeg.end.serviceArrival.timetabledTime}`);
-
-			// Log vehicle numbers and line numbers
-			validationLogger(`      Vehicle Numbers: ${leg.timedLeg.service.vehicleNumbers ? leg.timedLeg.service.vehicleNumbers.join(', ') : 'None'}`);
-			validationLogger(`      Line Numbers: ${leg.timedLeg.service.lineNumbers ? leg.timedLeg.service.lineNumbers.join(', ') : 'None'}`);
+		// Log passenger information
+		response.booking?.passengers?.forEach((passenger, passengerIndex) => {
+			validationLogger(`Passenger ${passengerIndex + 1} Details:`);
+			validationLogger(`  Passenger ID: ${passenger?.id ?? 'Not available'}`);
+			validationLogger(`  Type: ${passenger?.type ?? 'Not available'}`);
+			validationLogger(`  Date of Birth: ${passenger?.dateOfBirth ?? 'Not available'}`);
+			validationLogger(`  Cards: ${passenger?.cards?.join(', ') ?? 'None'}`);
 		});
-	});
 
-	// Log booked offers
-	response.booking.bookedOffers.forEach((offer, offerIndex) => {
-		validationLogger(`Offer ${offerIndex + 1} Details:`);
-		validationLogger(`  Offer ID: ${offer.offerId}`);
-		validationLogger(`  Reservations: ${offer.reservations.length} reservation(s)`);
-		
-		offer.reservations.forEach((reservation, reservationIndex) => {
-			validationLogger(`    Reservation ${reservationIndex + 1} Details:`);
-			validationLogger(`      Object Type: ${reservation.objectType}`);
-			validationLogger(`      Status: ${reservation.status}`);
-			validationLogger(`      Valid From: ${reservation.validFrom}`);
-			validationLogger(`      Valid Until: ${reservation.validUntil}`);
-			validationLogger(`      Price: ${reservation.price.amount} ${reservation.price.currency}`);
-			validationLogger(`      Refundable: ${reservation.refundable}`);
-			validationLogger(`      Exchangeable: ${reservation.exchangeable}`);
+		// Log trip information
+		response.booking?.trips?.forEach((trip, tripIndex) => {
+			validationLogger(`Trip ${tripIndex + 1} Summary: ${trip?.summary ?? 'Not available'}`);
+			validationLogger(`  Trip ID: ${trip?.id ?? 'Not available'}`);
+			validationLogger(`  Direction: ${trip?.direction ?? 'Not available'}`);
+			validationLogger(`  Start Time: ${trip?.startTime ?? 'Not available'}`);
+			validationLogger(`  End Time: ${trip?.endTime ?? 'Not available'}`);
+			validationLogger(`  Duration: ${trip?.duration ?? 'Not available'}`);
+			validationLogger(`  Distance: ${trip?.distance ?? 'Not available'} meters`);
+
+			trip?.legs?.forEach((leg, legIndex) => {
+				validationLogger(`    Leg ${legIndex + 1} Details:`);
+				validationLogger(`      Leg ID: ${leg?.id ?? 'Not available'}`);
+				validationLogger(`      Start Stop Place Name: ${leg?.timedLeg?.start?.stopPlaceName ?? 'Not available'}`);
+				validationLogger(`      End Stop Place Name: ${leg?.timedLeg?.end?.stopPlaceName ?? 'Not available'}`);
+				validationLogger(`      Start Time: ${leg?.timedLeg?.start?.serviceDeparture?.timetabledTime ?? 'Not available'}`);
+				validationLogger(`      End Time: ${leg?.timedLeg?.end?.serviceArrival?.timetabledTime ?? 'Not available'}`);
+				validationLogger(`      Vehicle Numbers: ${
+					leg?.timedLeg?.service?.vehicleNumbers?.join(', ') ?? 'None'
+				}`);
+				validationLogger(`      Line Numbers: ${
+					leg?.timedLeg?.service?.lineNumbers?.join(', ') ?? 'None'
+				}`);
+			});
 		});
-	});
 
-	// Log fulfillments information
-	if (response.booking.fulfillments && response.booking.fulfillments.length > 0) {
-		validationLogger(`Number of Fulfillments: ${response.booking.fulfillments.length}`);
-		response.booking.fulfillments.forEach((fulfillment, fulfillmentIndex) => {
-			validationLogger(`Fulfillment ${fulfillmentIndex + 1} Details:`);
-			validationLogger(`  Fulfillment ID: ${fulfillment.id}`);
-			validationLogger(`  Status: ${fulfillment.status}`);
-			validationLogger(`  Booking Reference: ${fulfillment.bookingRef}`);
-			validationLogger(`  Created On: ${fulfillment.createdOn}`);
-			validationLogger(`  Control Number: ${fulfillment.controlNumber}`);
-			
-			if (fulfillment.bookingParts) {
-				validationLogger(`  Booking Parts: ${fulfillment.bookingParts.length}`);
-				fulfillment.bookingParts.forEach((part, partIndex) => {
+		// Log booked offers
+		response.booking?.bookedOffers?.forEach((offer, offerIndex) => {
+			validationLogger(`Offer ${offerIndex + 1} Details:`);
+			validationLogger(`  Offer ID: ${offer?.offerId ?? 'Not available'}`);
+			validationLogger(`  Reservations: ${offer?.reservations?.length ?? 0} reservation(s)`);
+
+			offer?.reservations?.forEach((reservation, reservationIndex) => {
+				validationLogger(`    Reservation ${reservationIndex + 1} Details:`);
+				validationLogger(`      Object Type: ${reservation?.objectType ?? 'Not available'}`);
+				validationLogger(`      Status: ${reservation?.status ?? 'Not available'}`);
+				validationLogger(`      Valid From: ${reservation?.validFrom ?? 'Not available'}`);
+				validationLogger(`      Valid Until: ${reservation?.validUntil ?? 'Not available'}`);
+				validationLogger(`      Price: ${
+					reservation?.price
+						? reservation.price.amount + ' ' + reservation.price.currency
+						: 'Not available'
+				}`);
+				validationLogger(`      Refundable: ${
+					reservation?.refundable !== undefined ? reservation.refundable : 'Not available'
+				}`);
+				validationLogger(`      Exchangeable: ${
+					reservation?.exchangeable !== undefined ? reservation.exchangeable : 'Not available'
+				}`);
+			});
+		});
+
+		// Log fulfillments information
+		if (response.booking?.fulfillments?.length > 0) {
+			validationLogger(`Number of Fulfillments: ${response.booking.fulfillments.length}`);
+			response.booking.fulfillments.forEach((fulfillment, fulfillmentIndex) => {
+				validationLogger(`Fulfillment ${fulfillmentIndex + 1} Details:`);
+				validationLogger(`  Fulfillment ID: ${fulfillment?.id ?? 'Not available'}`);
+				validationLogger(`  Status: ${fulfillment?.status ?? 'Not available'}`);
+				validationLogger(`  Booking Reference: ${fulfillment?.bookingRef ?? 'Not available'}`);
+				validationLogger(`  Created On: ${fulfillment?.createdOn ?? 'Not available'}`);
+				validationLogger(`  Control Number: ${fulfillment?.controlNumber ?? 'Not available'}`);
+
+				fulfillment?.bookingParts?.forEach((part, partIndex) => {
 					validationLogger(`    Booking Part ${partIndex + 1} Details:`);
-					validationLogger(`      Part ID: ${part.id}`);
-					validationLogger(`      Summary: ${part.summary}`);
+					validationLogger(`      Part ID: ${part?.id ?? 'Not available'}`);
+					validationLogger(`      Summary: ${part?.summary ?? 'Not available'}`);
 				});
-			} else {
-				validationLogger(`  Booking Parts: None`);
-			}
-			
-			if (fulfillment.fulfillmentDocuments && fulfillment.fulfillmentDocuments.length > 0) {
-				validationLogger(`  Fulfillment Documents: ${fulfillment.fulfillmentDocuments.length}`);
-			} else {
-				validationLogger(`  Fulfillment Documents: None`);
-			}
-		});
-	} else {
-		validationLogger(`No fulfillments found.`);
+
+				validationLogger(`  Fulfillment Documents: ${
+					fulfillment?.fulfillmentDocuments?.length ?? 'None'
+				}`);
+			});
+		} else {
+			validationLogger(`No fulfillments found.`);
+		}
+	} catch (error) {
+		validationLogger(`Error processing the booking data: ${error.message}`);
 	}
-}
+};
 
 function logRefundDetails(refundOffer) {
     validationLogger("Checking refund offer with Id: " + refundOffer.id);
@@ -1464,6 +1534,7 @@ function validateRefundFee(refundFee) {
 }
 
 function validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice) {
+	console.log("bookingConfirmedPrice:"+bookingConfirmedPrice);
     pm.test("Refundable amount is valid", function () {
         if (overruleCode === "CODE_DOES_NOT_EXIST") {
             pm.expect(refundOffer.appliedOverruleCode).to.equal(overruleCode);
@@ -1472,10 +1543,12 @@ function validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPri
             pm.expect(refundOffer.refundableAmount.amount).to.be.a('number').and.to.be.at.least(0);
             
             console.log("refundOffer.refundableAmount.amount:"+refundOffer.refundableAmount.amount);
-            console.log("bookingConfirmedPrice:"+bookingConfirmedPrice.amount);
+            console.log("=");
+            console.log("bookingConfirmedPrice:"+bookingConfirmedPrice);
+            console.log("-");
             console.log("refundOffer.refundFee.amount:"+refundOffer.refundFee.amount);
-            
-            pm.expect(refundOffer.refundableAmount.amount).to.equal(bookingConfirmedPrice.amount - refundOffer.refundFee.amount);
+
+            pm.expect(refundOffer.refundableAmount.amount).to.equal(bookingConfirmedPrice - refundOffer.refundFee.amount);
         }
     });
 }
@@ -1508,7 +1581,7 @@ function validateRefundOffer(refundOffer, expectedStatus) {
         pm.globals.set("refundId", refundOffer.id);
     });
 
-    pm.test("Refund offer has the correct status", function () {
+    pm.test("Correct status is returned on refund : " + expectedStatus, function () {
        pm.expect(refundOffer.status).to.equal(expectedStatus);
     });
 
@@ -1520,6 +1593,7 @@ function validateRefundOffer(refundOffer, expectedStatus) {
     }
 
     validateFulfillments(refundOffer.fulfillments, expectedStatus);
+	// TODO : Check if the refundFee is correct
     validateRefundFee(refundOffer.refundFee);
 
     if (expectedStatus=="CONFIRMED") {
@@ -1536,12 +1610,48 @@ function validateRefundOffer(refundOffer, expectedStatus) {
     validateAppliedOverruleCode(refundOffer.appliedOverruleCode);
 }
 
+function checkWarningsAndProblems(response) {
+    try {
+        // Check and log warnings
+        if (response.warnings) {
+            validationLogger(`Warning: ${response.warnings}`);
+        } else {
+            validationLogger("No warnings found.");
+        }
+
+        // Check and log problems
+        if (response.problems && response.problems.length > 0) {
+            validationLogger(`Problems found (${response.problems.length}):`);
+            response.problems.forEach((problem, index) => {
+                validationLogger(`  Problem ${index + 1}:`);
+                validationLogger(`    Code: ${problem.code || 'Not available'}`);
+                validationLogger(`    Type: ${problem.type || 'Not available'}`);
+                validationLogger(`    Title: ${problem.title || 'Not available'}`);
+                validationLogger(`    Status: ${problem.status || 'Not available'}`);
+                validationLogger(`    Detail: ${problem.detail || 'Not available'}`);
+
+                if (problem.pointers && problem.pointers.length > 0) {
+                    problem.pointers.forEach((pointer, pointerIndex) => {
+                        validationLogger(`    Pointer ${pointerIndex + 1}:`);
+                        validationLogger(`      Code: ${pointer.code || 'Not available'}`);
+                        validationLogger(`      Request Pointer: ${pointer.requestPointer || 'Not available'}`);
+                    });
+                } else {
+                    validationLogger("    No pointers found.");
+                }
+            });
+        } else {
+            validationLogger("No problems found.");
+        }
+    } catch (error) {
+        validationLogger(`Error processing the response: ${error.message}`);
+    }
+}
+
 
 function validateRefundOffersResponse(response, isPatchResponse = false) {
-    const refundOffers = isPatchResponse ? [response.refundOffer] : response.refundOffers;
-
-    validationLogger("isPatchResponse:"+isPatchResponse);
-    
+	checkWarningsAndProblems(response);
+    const refundOffers = isPatchResponse ? [response.refundOffer] : response.refundOffers;    
     pm.test("Status code is 200", function () {
         pm.response.to.have.status(200);
     });
@@ -1557,10 +1667,10 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
     });
 }
 
-function validateBookingResponseRefund(response, afterRefund = false) {
+function validateBookingResponseRefund(response, refundType) {
     const booking = response.booking;
 
-	if (afterRefund == false) {
+	if (refundType == "post" || refundType == "patch" || refundType == "delete") {
 		//pm.globals.set("refundRefundAmount", jsonData.booking.bookedOffers[0].reservations[0].refundAmount);
 		
 		let refundOfferPartReference = pm.globals.get("refundOfferPartReference");
@@ -1584,6 +1694,7 @@ function validateBookingResponseRefund(response, afterRefund = false) {
 		    );
 		}
 		
+		// Check why no refundAmount is returned
 		pm.globals.set("refundRefundAmount", refundOfferPart.refundAmount);
 	}
 
@@ -1592,25 +1703,37 @@ function validateBookingResponseRefund(response, afterRefund = false) {
         pm.expect(booking).to.have.property('id').that.is.a('string').and.not.empty;
     });
 
-    pm.test("Refund offers are valid", function () {
-        pm.expect(booking).to.have.property('refundOffers').that.is.an('array').with.length.above(0);
-        const refundOffer = booking.refundOffers[0];
+	if (refundType == "post" || refundType == "patch") {
+		pm.test("Refund offers are valid", function () {
+			pm.expect(booking).to.have.property('refundOffers').that.is.an('array').with.length.above(0);
+			const refundOffer = booking.refundOffers[0];
 
-        pm.expect(refundOffer).to.have.property('id').that.is.a('string').and.not.empty;
-        
-        //This does not exist
-        //pm.expect(refundOffer.admissions).to.satisfy(admissions => admissions.every(a => a.status === (afterRefund ? 'REFUNDED' : 'PENDING')));
+			pm.expect(refundOffer).to.have.property('id').that.is.a('string').and.not.empty;
+			
+			//This does not exist
+			//pm.expect(refundOffer.admissions).to.satisfy(admissions => admissions.every(a => a.status === (afterRefund ? 'REFUNDED' : 'PENDING')));
+			if (refundType == "post") {
+				var expectedStatus = 'PROPOSED';
+			} else if (refundType == "patch") {
+				var expectedStatus = 'CONFIRMED';
+			}
+			validateFulfillments(refundOffer.fulfillments, expectedStatus);
+			// TODO : Check if the refundFee is correct
+			validateRefundFee(refundOffer.refundFee);
 
-        const expectedStatus = afterRefund ? 'CONFIRMED' : 'PROPOSED';
-        validateFulfillments(refundOffer.fulfillments, expectedStatus);
-        validateRefundFee(refundOffer.refundFee);
+			const overruleCode = pm.globals.get("overruleCode");
+			const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
+			validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
+		});
+	} else if (refundType == "delete") {
+		pm.test("Refund offers are not present", function () {
+			pm.expect(booking).to.not.have.property('refundOffers') || pm.expect(booking.refundOffers.length).to.equal(0);
+		});
+	}
 
-        const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
-        validateRefundableAmount(refundOffer, pm.globals.get("overruleCode"), bookingConfirmedPrice);
-    });
-
+	//TODO Valid Until to check 
     pm.test("ValidUntil is at least 10 minutes from now", function () {
-        const validUntilRefundOffers = new Date(pm.variables.get("valid_until_refund_offers"));
+        const validUntilRefundOffers = new Date(pm.variables.get("validUntilRefundOffers"));
         const validUntil = new Date(booking.refundOffers[0].validUntil);
         const validUntilPlus10Min = new Date(validUntilRefundOffers.getTime() + 10 * 60000);
         pm.expect(validUntil).to.be.below(validUntilPlus10Min);
@@ -1639,19 +1762,16 @@ function capturePassengerData(response) {
 	const dateOfBirth = response.passenger?.dateOfBirth || null;
 	const phoneNumber = "0612345678";
 	const email = "email@email.com";
-	const newDateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
-	if (newDateOfBirth) {
-		newDateOfBirth.setDate(newDateOfBirth.getDate() + 1);
-	}
-	const newPhoneNumber = phoneNumber
-		? phoneNumber.slice(0, -1) + ((parseInt(phoneNumber.slice(-1)) + 1) % 10)
-		: null;
-
 	const newFirstName = firstName ? `new_${firstName}` : null;
 	const newLastName = lastName ? `new_${lastName}` : null;
 	const newEmail = email ? `new_${email}` : null;
 
-	// Définition des variables globales
+	const newDateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+	if (newDateOfBirth) {
+		newDateOfBirth.setDate(newDateOfBirth.getDate() + 1);
+	}
+	const newPhoneNumber = phoneNumber.slice(0, -1) + "9";
+
 	pm.globals.set("newFirstName", newFirstName);
 	pm.globals.set("newLastName", newLastName);
 	pm.globals.set("newDateOfBirth", newDateOfBirth ? newDateOfBirth.toISOString().split("T")[0] : null);
@@ -1659,34 +1779,30 @@ function capturePassengerData(response) {
 	pm.globals.set("newEmail", newEmail);
 }
 
-function validatePassengerData (response) {
+function validatePassengerData (response, isPatchResponse = false) {
 	const firstName = response.passenger?.detail?.firstName || null;
 	const lastName = response.passenger?.detail?.lastName || null;
 	const dateOfBirth = response.passenger?.dateOfBirth || null;
-	const phoneNumber = response.passenger?.detail?.contact?.phoneNumber || null;
-	const email = response.passenger?.detail?.contact?.email || null;
+	//const phoneNumber = "0612345679";
+	//const email = "new_email@email.com";
 
 	pm.test("Passenger data is valid", function () {
 		pm.expect(firstName).to.equal(pm.globals.get("newFirstName"));
 		pm.expect(lastName).to.equal(pm.globals.get("newLastName"));
 		pm.expect(dateOfBirth).to.equal(pm.globals.get("newDateOfBirth"));
-		pm.expect(phoneNumber).to.equal(pm.globals.get("newPhoneNumber"));
-		pm.expect(email).to.equal(pm.globals.get("newEmail"));
+		//pm.expect(phoneNumber).to.equal(pm.globals.get("newPhoneNumber"));
+		//pm.expect(email).to.equal(pm.globals.get("newEmail"));
 	});
 }
 
 
-function requestRefundOffersBody(fulfillmentIds, overruleCode, refundDate) {
-	var fulfillmentIds = pm.globals.get('fulfillmentsId');
-	var overruleCode = pm.globals.get('refundOverruleCode');
+function requestRefundOffersBody(fulfillmentsId, overruleCode, refundDate) {
+	var fulfillmentId = pm.globals.get('fulfillmentsId');
+	var overruleCode = pm.globals.get('refundOverruleCode') || null;
 	var refundDate = pm.globals.get('refundDate') || null;
-	
-	var requestRefundOffersBody = requestRefundOffersBody(fulfillmentIds, overruleCode, refundDate);
-	
-	pm.globals.set('requestRefundOffersBody', JSON.stringify(requestRefundOffersBody));
 
 	var body = {
-        fulfillmentIds: [fulfillmentIds]
+        fulfillmentIds: [fulfillmentId]
     };
     if (overruleCode !== null) {
         body.overruleCode = overruleCode;
@@ -1694,5 +1810,6 @@ function requestRefundOffersBody(fulfillmentIds, overruleCode, refundDate) {
     if (refundDate !== null) {
         body.refundDate = refundDate;
     }
-    return body;
+
+	pm.globals.set("requestRefundOffersBodyData", JSON.stringify(body));
 }

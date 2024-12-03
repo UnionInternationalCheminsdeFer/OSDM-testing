@@ -1,164 +1,14 @@
 {
 	"info": {
-		"_postman_id": "cf90b57b-63fa-4658-857e-0f55029a433e",
-		"name": "_OTST_TS_OB_RFND_5_ReasonCode",
+		"_postman_id": "ff4d3c50-8243-4860-b071-0961e50db629",
+		"name": "OTST_TS_OB_RFND_5_ReasonCode",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
 	"item": [
 		{
-			"name": "01. Offer (offerSearchCriteria)",
+			"name": "01. Get Offer (offerSearchCriteria)",
 			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"eval(globals.osdmHelpers);\r",
-							"console.log(\"------------------------------------------------------\");\r",
-							"console.log(\"|   Executing test : _OTST_TS_OB_RFND_5_ReasonCode   |\");\r",
-							"console.log(\"------------------------------------------------------\");\r",
-							"\r",
-							"console.log(\"Executing request : \" + pm.info.requestName);\r",
-							"\r",
-							"osdmAnonymousPassengerSpecifications(1);\r",
-							"\r",
-							"osdmOfferSearchCriteria(\r",
-							"    pm.globals.get(OFFER.SEARCH_CRITERIA_CURRENCY),\r",
-							"    null,\r",
-							"    [OfferPartType.RESERVATION],\r",
-							"    null,\r",
-							"    [ServiceClassType.STANDARD],\r",
-							"    [TravelClass.SECOND],\r",
-							"    null\r",
-							");\r",
-							"\r",
-							"osdmFulfillmentOptions([\r",
-							"    new FulfillmentOption(FulfillmentOptionType.ETICKET, FulfillmentMediaType.PDF_A4)\r",
-							"]);\r",
-							"\r",
-							"// Variabilize the get get(\"SCENARIO_1_env\"); - Not scenario 1 but the selested as it can be dynamic - concatc SCENARIO + scenarioIndex that will be set as a global variable\r",
-							"\r",
-							"//var env = \"BILETO\";\r",
-							"var env = \"BILETO\";\r",
-							"//var env = pm.globals.get(\"TRIP_REQUIREMENT_0_tripType\");\r",
-							"var tripType = \"CRITERIA\";\r",
-							"//var env = \"SPECIFICATION\";\r",
-							"var index = pm.globals.get(\"SCENARIO_index\");\r",
-							"\r",
-							"console.log(\"Environment chosen:\", env);\r",
-							"\r",
-							"// To delete ?\r",
-							"function getScenarioVariable(index, variableName) {\r",
-							"    return pm.globals.get(`SCENARIO_${index}_${variableName}`);\r",
-							"}\r",
-							"\r",
-							"function getTripRequirementLegVariable(tripIndex, legIndex, variableName) {\r",
-							"        return pm.globals.get(`TRIP_REQUIREMENT_${tripIndex}_LEG_${legIndex}_${variableName}`);\r",
-							"}\r",
-							"\r",
-							"// Use the LEG DATA variable for multiple\r",
-							"var legsData = [];\r",
-							"if (index === \"all\") {\r",
-							"    var scenarios = JSON.parse(pm.environment.get(\"master_data_file\")).scenarios;\r",
-							"\r",
-							"    scenarios.forEach(function(scenario, i) {\r",
-							"        var legIndex = 0;\r",
-							"\r",
-							"        while (pm.globals.get(\"TRIP_REQUIREMENT_${i}_LEG_${legIndex}_origin\")) {\r",
-							"            var legData = {\r",
-							"                origin: getTripRequirementLegVariable(i, legIndex, \"origin\"),\r",
-							"                start_datetime: getTripRequirementLegVariable(i, legIndex, \"start_datetime\"),\r",
-							"                destination: getTripRequirementLegVariable(i, legIndex, \"destination\"),\r",
-							"                end_datetime: getTripRequirementLegVariable(i, legIndex, \"end_datetime\"),\r",
-							"                vehicle_number: getTripRequirementLegVariable(i, legIndex, \"vehicle_number\"),\r",
-							"                operator_code: getTripRequirementLegVariable(i, legIndex, \"operator_code\")\r",
-							"            };\r",
-							"\r",
-							"            legsData.push(legData);\r",
-							"            legIndex++;\r",
-							"        }\r",
-							"    });\r",
-							"} else {\r",
-							"    let legsData = [];\r",
-							"    let legIndices = [];\r",
-							"    let legIndex = 0;\r",
-							"    while (pm.globals.get(`TRIP_REQUIREMENT_0_LEG_${legIndex}_origin`)) {\r",
-							"        legIndices.push(legIndex);\r",
-							"        legIndex++;\r",
-							"    }\r",
-							"\r",
-							"    legIndices.forEach((legIdx) => {\r",
-							"        let legData = {\r",
-							"            origin: getTripRequirementLegVariable(index, legIdx, \"origin\"),\r",
-							"            start_datetime: getTripRequirementLegVariable(index, legIdx, \"start_datetime\"),\r",
-							"            destination: getTripRequirementLegVariable(index, legIdx, \"destination\"),\r",
-							"            end_datetime: getTripRequirementLegVariable(index, legIdx, \"end_datetime\"),\r",
-							"            vehicle_number: getTripRequirementLegVariable(index, legIdx, \"vehicle_number\"),\r",
-							"            operator_code: getTripRequirementLegVariable(index, legIdx, \"operator_code\")\r",
-							"        };\r",
-							"        \r",
-							"        legsData.push(legData);\r",
-							"    });\r",
-							"}\r",
-							"\r",
-							"// Hardcoded but dynamic with LegData variable\r",
-							"function buildOfferCollectionRequest() {\r",
-							"// Change this part to be if tripSearchCritera ou tripSpecification\r",
-							"    if (tripType === \"CRITERIA\") {\r",
-							"        osdmTripSearchCriteria([\r",
-							"            new TripLegDefinition(\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_origin\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_start_datetime\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_destination\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_end_datetime\"),\r",
-							"                pm.globals.get(\"leg_1_product_category_ref\"),\r",
-							"                pm.globals.get(\"leg_1_product_category_name\"),\r",
-							"                pm.globals.get(\"leg_1_product_category_short_name\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_vehicle_number\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_operator_code\")\r",
-							"            )\r",
-							"        ]);\r",
-							"        return {\r",
-							"            \"objectType\": \"OfferCollectionRequest\",\r",
-							"            \"tripSearchCriteria\": \"{{offer_trip_search_criteria}}\",\r",
-							"            \"anonymousPassengerSpecifications\": \"{{offer_passenger_specifications}}\",\r",
-							"            \"offerSearchCriteria\": \"{{offer_search_criteria}}\",\r",
-							"            \"requestedFulfillmentOptions\": \"{{offer_fulfillment_options}}\"\r",
-							"        };\r",
-							"    } else if (tripType === \"SPECIFICATION\") {\r",
-							"// Change this part to be if tripSearchCritera ou tripSpecification\r",
-							"        osdmTripSpecification([\r",
-							"            new TripLegDefinition(\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_origin\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_start_datetime\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_destination\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_end_datetime\"),\r",
-							"                pm.globals.get(\"leg_1_product_category_ref\"),\r",
-							"                pm.globals.get(\"leg_1_product_category_name\"),\r",
-							"                pm.globals.get(\"leg_1_product_category_short_name\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_vehicle_number\"),\r",
-							"                pm.globals.get(\"TRIP_REQUIREMENT_0_LEG_0_operator_code\")\r",
-							"            )\r",
-							"        ]);\r",
-							"        return {\r",
-							"            \"objectType\": \"OfferCollectionRequest\",\r",
-							"            \"tripSpecifications\": \"{{offer_trip_specifications}}\",\r",
-							"            \"anonymousPassengerSpecifications\": \"{{offer_passenger_specifications}}\",\r",
-							"            \"offerSearchCriteria\": \"{{offer_search_criteria}}\",\r",
-							"            \"requestedFulfillmentOptions\": \"{{offer_fulfillment_options}}\"\r",
-							"        };\r",
-							"    } else {\r",
-							"        console.log(\"Please provide env value in data file: BILETO or SQILLS\");\r",
-							"    }\r",
-							"}\r",
-							"\r",
-							"var offerCollectionRequest = buildOfferCollectionRequest();\r",
-							"pm.globals.set('offerCollectionRequest', JSON.stringify(offerCollectionRequest).replace(/\"{{/g, '{{').replace(/}}\"/g, '}}'));"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
 				{
 					"listen": "test",
 					"script": {
@@ -182,7 +32,28 @@
 							"jsonData.trips, ",
 							"pm.globals.get(\"SCENARIO_TYPE\"));",
 							"",
-							"displayOfferResponse(jsonData);"
+							"displayOfferResponse(jsonData);",
+							"",
+							"//determine the flow",
+							"if(pm.globals.get(\"requiresPlaceSelection\")==true) {",
+							"    var reservationOfferPart = offer.reservationOfferParts[0];",
+							"    pm.globals.set(\"reservationId\", reservationOfferPart.id);",
+							"} else {",
+							"    validationLogger(\"skipping Get Place Maps for Reservation of Offer\");",
+							"    pm.execution.setNextRequest(\"03. Create a Booking\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"eval(globals.osdmHelpers);\r",
+							"console.log(\"Executing request : \" + pm.info.requestName);\r",
+							"buildOfferCollectionRequest();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -215,7 +86,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{offerCollectionRequest}}\r\n\r\n/*{\r\n    \"objectType\": \"OfferCollectionRequest\",\r\n    \"tripSearchCriteria\": {{offer_trip_search_criteria}},\r\n    \"anonymousPassengerSpecifications\": {{offer_passenger_specifications}},\r\n    \"offerSearchCriteria\": {{offer_search_criteria}},\r\n    \"requestedFulfillmentOptions\": {{offer_fulfillment_options}}\r\n}*/\r\n\r\n/*\r\n{\r\n    \"objectType\": \"OfferCollectionRequest\",\r\n    \"tripSearchCriteria\": {\"departureTime\":\"2024-11-21T07:05:00\",\"origin\":{\"objectType\":\"PlaceRef\",\"stopPlaceRef\":\"8821006\"},\"destination\":{\"objectType\":\"PlaceRef\",\"stopPlaceRef\":\"8400131\"}},\r\n    \"anonymousPassengerSpecifications\": {{offer_passenger_specifications}},\r\n    \"offerSearchCriteria\": {{offer_search_criteria}},\r\n    \"requestedFulfillmentOptions\": {{offer_fulfillment_options}}\r\n}*/\r\n\r\n\r\n\r\n/*{\r\n    \"objectType\": \"OfferCollectionRequest\",\r\n    \"tripSpecifications\": {{offer_trip_specifications}},\r\n    \"anonymousPassengerSpecifications\": {{offer_passenger_specifications}},\r\n    \"offerSearchCriteria\": {{offer_search_criteria}},\r\n    \"requestedFulfillmentOptions\": {{offer_fulfillment_options}}\r\n}*/",
+					"raw": "{{OfferCollectionRequest}}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -235,39 +106,18 @@
 			"response": []
 		},
 		{
-			"name": "[TO DEL] 01. Offer (offerSearchSpecifications) SQILLS",
+			"name": "02. Get Place Maps for Reservation of Offer (Bileto env))",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);",
-							"",
-							"pm.test('Successfully received offers', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"var jsonData = JSON.parse(responseBody);",
-							"",
-							"var offer = jsonData.offers[0];",
-							"validateOfferConformsToOfferSearchCriteria(offer);",
-							"",
-							"validateOfferResponse(",
-							"JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS)), ",
-							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), ",
-							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), ",
-							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), ",
-							"jsonData.offers, ",
-							"jsonData.trips, ",
-							"pm.globals.get(\"SCENARIO_TYPE\"));",
-							"",
-							"",
-							"pm.globals.set(\"offer_id\", offer.offerId);",
-							"pm.globals.set(\"offers\", jsonData.offers);",
-							"",
-							"//var reservationOfferPart = offer.reservationOfferParts[0];",
-							"// pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
-							""
+							"var jsonData = JSON.parse(responseBody);\r",
+							"var preSelection = jsonData.vehicleAvailability.preSelections[0];\r",
+							"var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
+							"pm.globals.set(\"preselectedCoach\", preSelection.coach);\r",
+							"pm.globals.set(\"preselectedPlace\", preSelection.place);\r",
+							"pm.globals.set(\"layoutId\", coach.layoutId)"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -277,43 +127,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
-							"console.log(\"------------------------------------------------------\");\r",
-							"console.log(\"|   Executing test : _OTST_TS_OB_RFND_5_ReasonCode   |\");\r",
-							"console.log(\"------------------------------------------------------\");\r",
-							"\r",
-							"console.log(\"Executing request : \" + pm.info.requestName);\r",
-							"\r",
-							"osdmTripSpecification([\r",
-							"    new TripLegDefinition(\r",
-							"        pm.globals.get(\"TRIP_REQUIREMENT_1_TRIP_origin\"),\r",
-							"        pm.globals.get(\"TRIP_REQUIREMENT_1_TRIP_start_datetime\"),\r",
-							"        pm.globals.get(\"TRIP_REQUIREMENT_1_TRIP_destination\"),\r",
-							"        pm.globals.get(\"TRIP_REQUIREMENT_1_TRIP_end_datetime\"),\r",
-							"        pm.globals.get(\"leg_1_product_category_ref\"),\r",
-							"        pm.globals.get(\"leg_1_product_category_name\"),\r",
-							"        pm.globals.get(\"leg_1_product_category_short_name\"),\r",
-							"        pm.globals.get(\"TRIP_REQUIREMENT_1_TRIP_vehicle_number\"),\r",
-							"        pm.globals.get(\"TRIP_REQUIREMENT_1_TRIP_operator_code\")\r",
-							"    )\r",
-							"]);\r",
-							"\r",
-							"osdmAnonymousPassengerSpecifications(1);\r",
-							"\r",
-							"osdmOfferSearchCriteria(\r",
-							"    pm.globals.get(\"offer_search_criteria_currency\"),\r",
-							"    null,\r",
-							"    [OfferPartType.RESERVATION],\r",
-							"    null,\r",
-							"    [pm.globals.get(\"offer_search_criteria_service_class\")],\r",
-							"    [pm.globals.get(\"offer_search_criteria_travel_class\")],\r",
-							"    null\r",
-							");\r",
-							"\r",
-							"osdmFulfillmentOptions([\r",
-							"    new FulfillmentOption(FulfillmentOptionType.ETICKET, FulfillmentMediaType.PDF_A4)\r",
-							"]);\r",
-							""
+							"console.log(\"Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -321,11 +135,11 @@
 				}
 			],
 			"request": {
-				"method": "POST",
+				"method": "GET",
 				"header": [
 					{
-						"key": "Content-Type",
-						"value": "application/json",
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
 						"type": "text"
 					},
 					{
@@ -334,8 +148,9 @@
 						"type": "text"
 					},
 					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
+						"key": "Access-Token",
+						"value": "{{access_token}}",
+						"description": "Legacy Authorization Header; remove for 2.0",
 						"type": "text"
 					},
 					{
@@ -344,57 +159,64 @@
 						"type": "text"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"objectType\": \"OfferCollectionRequest\",\n    \"tripSpecifications\": {{offer_trip_specifications}},\n    \"anonymousPassengerSpecifications\": {{offer_passenger_specifications}},\n    \"offerSearchCriteria\": {{offer_search_criteria}},\n    \"requestedFulfillmentOptions\": {{offer_fulfillment_options}}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{api_base}}/offers",
+					"raw": "{{api_base}}/availabilities/place-map?contextId={{offerId}}&contextType=OFFER&resourceId={{reservationId}}&resourceType=RESERVATION",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
-						"offers"
+						"availabilities",
+						"place-map"
+					],
+					"query": [
+						{
+							"key": "contextId",
+							"value": "{{offerId}}"
+						},
+						{
+							"key": "contextType",
+							"value": "OFFER"
+						},
+						{
+							"key": "resourceId",
+							"value": "{{reservationId}}"
+						},
+						{
+							"key": "resourceType",
+							"value": "RESERVATION"
+						}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "02. Booking",
+			"name": "03. Create a Booking",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
 							"eval(globals.osdmHelpers);\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.globals.set(\"bookingId\", jsonData.booking.id);\r",
+							"pm.globals.set(\"passengerId\", jsonData.booking.passengers[0].id);\r",
 							"\r",
 							"pm.test('Successfully created booking', function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
-							"\r",
-							"var jsonData = JSON.parse(responseBody);\r",
-							"\r",
-							"pm.globals.set(\"booking_id\", jsonData.booking.id);\r",
-							"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);\r",
-							"pm.globals.set(\"valid_until_booked_offers\", jsonData.booking.bookedOffers[0].reservations[0].validUntil)\r",
 							"\r",
 							"validateBookingResponse(\r",
 							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), \r",
 							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
 							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
 							"pm.globals.get(\"offers\"),\r",
-							"pm.globals.get(\"offer_id\"),\r",
+							"pm.globals.get(\"offerId\"),\r",
 							"jsonData.booking,  \r",
-							"pm.globals.get(\"SCENARIO_TYPE\"),\r",
-							"\"PREBOOKED\");\r",
-							"\r",
-							"displayBookingResponse(jsonData);"
+							"pm.globals.get(\"ScenarioType\"),\r",
+							"\"PREBOOKED\");"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -404,10 +226,9 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"var uuid = require('uuid');\r",
+							"eval(globals.osdmHelpers);\r",
 							"console.log(\"Executing request : \" + pm.info.requestName);\r",
-							"\r",
-							"pm.globals.set(\"booking_external_ref\", uuid.v4());"
+							"buildBookingRequest();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -447,7 +268,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"offers\": [\r\n{\r\n            \"offerId\": \"{{offer_id}}\",\r\n/*\r\n            \"placeSelections\": [\r\n                {\r\n                    \"reservationId\": \"{{reservation_id}}\",\r\n                    \"places\": [\r\n                        {\r\n                            \"coachNumber\": \"{{preselected_coach}}\",\r\n                            \"placeNumber\": \"{{preselected_place}}\",\r\n                            \"passengerRef\": \"{{passenger_specification_1_external_ref}}\"\r\n                        }\r\n                    ],\r\n                    \"tripLegCoverage\" : {\r\n                        \"tripId\": \"{{trip_id}}\",\r\n                        \"legId\" : \"{{leg_id}}\"\r\n                    }\r\n                }\r\n            ],\r\n*/\r\n            \"passengerRefs\": [\r\n                \"{{passenger_specification_1_external_ref}}\"\r\n            ]\r\n        }\r\n    ],\r\n    \"purchaser\": {\r\n        \"detail\": {\r\n            \"firstName\": \"Pur\",\r\n            \"lastName\": \"Chaser\",\r\n            \"email\": \"yourusername@example.com\",\r\n            \"phoneNumber\": \"0612345678\"\r\n        }\r\n    },\r\n    \"passengerSpecifications\": [\r\n        {\r\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\r\n            \"dateOfBirth\": \"1996-01-01\",\r\n            \"type\": \"PERSON\",\r\n            \"email\": \"tim@sqills.com\"\r\n        }\r\n    ],\r\n    \"externalRef\": \"{{booking_external_ref}}\"\r\n}",
+					"raw": "{{BookingRequest}}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -467,7 +288,7 @@
 			"response": []
 		},
 		{
-			"name": "03. Passenger",
+			"name": "04. Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -536,22 +357,22 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/passengers/{{passenger_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"passengers",
-						"{{passenger_id}}"
+						"{{passengerId}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "04. Passenger",
+			"name": "05. Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -561,12 +382,11 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"// Verify whether the correct status code is returned\r",
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
-							"//validatePassengerData(jsonData);"
+							"validatePassengerData(jsonData, isPatchResponse = true);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -610,7 +430,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"{{passenger_id}}\",\r\n  \"summary\": \"string\",\r\n  \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\r\n  \"dateOfBirth\": {{newDateOfBirth}},\r\n  \"age\": {{PASSENGERS_LIST_1_PASSENGER_1_age}},\r\n  \"type\": \"{{PASSENGERS_LIST_1_PASSENGER_1_type}}\",\r\n  \"cards\": [\r\n    {\r\n      \"code\": \"string\",\r\n      \"number\": \"string\",\r\n      \"issuer\": \"string\",\r\n      \"type\": \"LOYALTY_CARD\"\r\n    }\r\n  ],\r\n  \"gender\": \"MALE\",\r\n  \"detail\": {\r\n    \"summary\": \"string\",\r\n    \"firstName\": {{newFirstName}},\r\n    \"lastName\": {{newLastName}},\r\n    \"firstFamilyName\": \"Diaz\",\r\n    \"secondFamilyName\": \"Lopez\",\r\n    \"contact\": {\r\n      \"summary\": \"string\",\r\n      \"preferredLanguage\": \"string\",\r\n      \"email\": {{newEmail}},\r\n      \"phoneNumber\": {{newPhoneNumber}},\r\n      \"address\": \"string\"\r\n    }\r\n  }\r\n}",
+					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"summary\": \"string\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{newDateOfBirth}}\",\r\n  \"type\": \"PERSON\",\r\n  \"cards\": [\r\n    {\r\n      \"code\": \"string\",\r\n      \"number\": \"string\",\r\n      \"issuer\": \"string\",\r\n      \"type\": \"LOYALTY_CARD\"\r\n    }\r\n  ],\r\n  \"gender\": \"MALE\",\r\n  \"detail\": {\r\n    \"summary\": \"string\",\r\n    \"firstName\": \"{{newFirstName}}\",\r\n    \"lastName\": \"{{newLastName}}\",\r\n    \"firstFamilyName\": \"Diaz\",\r\n    \"secondFamilyName\": \"Lopez\",\r\n    \"contact\": {\r\n      \"summary\": \"string\",\r\n      \"preferredLanguage\": \"string\",\r\n      \"email\": \"{{newEmail}}\",\r\n      \"phoneNumber\": \"{{newPhoneNumber}}\",\r\n      \"address\": \"string\"\r\n    }\r\n  }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -618,22 +438,22 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/passengers/{{passenger_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"passengers",
-						"{{passenger_id}}"
+						"{{passengerId}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "05. Passenger after Patch Passenger",
+			"name": "06. Passenger after Patch Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -643,13 +463,11 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"// Verify whether the correct status code is returned\r",
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
-							"validatePassengerData(jsonData);\r",
-							""
+							"validatePassengerData(jsonData, isPatchResponse = false);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -692,36 +510,41 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/passengers/{{passenger_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"passengers",
-						"{{passenger_id}}"
+						"{{passengerId}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "06. Fulfillments",
+			"name": "07. Get Booking before Fulfillments",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
+							"eval(globals.osdmHelpers);\r",
+							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"// Verify whether the correct status code is returned\r",
-							"pm.test(\"Status code is 200 or 202\", function () {\r",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 202]);\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
-							"pm.globals.set(\"fulfillments_id\", jsonData.fulfillments[0].id);\r",
-							""
+							"checkFulFilledBooking(\r",
+							"jsonData.booking,\r",
+							"pm.globals.get(\"offer\"),\r",
+							"\"PREBOOKED\");\r",
+							"\r",
+							"displayFulFilledBooking(jsonData);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -731,8 +554,79 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);\r",
-							""
+							"console.log(\"Executing request : \" + pm.info.requestName);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Access-Token",
+						"value": "{{access_token}}",
+						"description": "Legacy Authorization Header; remove for 2.0",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "08. Obtaining Fulfillments from Booking",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.test(\"Status code is 200 or 202\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 202]);\r",
+							"});\r",
+							"\r",
+							"if(pm.response.code==200){\r",
+							"    pm.globals.set(\"fulfillmentsId\", jsonData.fulfillments[0].id);\r",
+							"} else {\r",
+							"    pm.globals.unset(\"fulfillmentsId\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -762,11 +656,6 @@
 						"key": "Requestor",
 						"value": "",
 						"type": "text"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
 					}
 				],
 				"body": {
@@ -779,13 +668,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/fulfillments",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/fulfillments",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"fulfillments"
 					]
 				}
@@ -793,7 +682,7 @@
 			"response": []
 		},
 		{
-			"name": "07. Booking",
+			"name": "09. Get Booking after Fulfillments",
 			"event": [
 				{
 					"listen": "test",
@@ -803,7 +692,6 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"// Verify whether the correct status code is returned\r",
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
@@ -811,10 +699,15 @@
 							"checkFulFilledBooking(\r",
 							"jsonData.booking,\r",
 							"pm.globals.get(\"offer\"),\r",
+							"\"CONFIRMED\",\r",
 							"\"FULFILLED\");\r",
 							"\r",
-							"displayFulFilledBookig(jsonData);\r",
-							""
+							"if(pm.globals.get(\"fulfillmentsId\")==undefined) {\r",
+							"    pm.globals.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
+							"    pm.environment.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
+							"}\r",
+							"\r",
+							"displayFulFilledBooking(jsonData);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -857,43 +750,30 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}"
+						"{{bookingId}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "08. Refund Offers",
+			"name": "10. Refund Offers",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"/*DANS LE FUNCTION.JS",
-							"// Évaluer les helpers globaux",
-							"eval(globals.osdmHelpers);",
-							"",
-							"// Analyser la réponse JSON",
-							"var jsonData = JSON.parse(responseBody);",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"pm.globals.set(\"valid_until_refund_offers\", jsonData.refundOffers[0].validUntil)",
-							"",
-							"pm.test(\"Response has a refundOfferId\", function () {",
-							"    pm.expect(pm.response.json().refundOffers).to.not.be.empty;",
-							"    pm.globals.set(\"refund_id\", jsonData.refundOffers[0].id);",
-							"});",
-							"*/",
-							"",
-							"validateRefundResponse(jsonData);"
+							"eval(globals.osdmHelpers);\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"validateRefundOffersResponse(jsonData, isPatchResponse=false);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -903,9 +783,11 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"eval(globals.osdmHelpers);\r",
+							"\r",
 							"console.log(\"Executing request : \" + pm.info.requestName);\r",
 							"\r",
-							"var requestRefundOffersBodyData = requestRefundOffersBody(fulfillmentIds, overruleCode, refundDate);"
+							"requestRefundOffersBody();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -952,146 +834,14 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"refund-offers"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "09. Refund Offers",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Verify whether the correct status code is returned",
-							"pm.test(\"Status code is 501 or 200\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([501, 200]);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Requestor",
-						"value": "",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers/{{refund_id}}",
-					"host": [
-						"{{api_base}}"
-					],
-					"path": [
-						"bookings",
-						"{{booking_id}}",
-						"refund-offers",
-						"{{refund_id}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "10. Booking before Patch Refund",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"eval(globals.osdmHelpers);",
-							"",
-							"var jsonData = JSON.parse(responseBody);",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"validateBookingResponseRefund(jsonData, afterRefund=false);",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Requestor",
-						"value": "",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}?embed=ALL",
-					"host": [
-						"{{api_base}}"
-					],
-					"path": [
-						"bookings",
-						"{{booking_id}}"
-					],
-					"query": [
-						{
-							"key": "embed",
-							"value": "ALL"
-						}
 					]
 				}
 			},
@@ -1105,13 +855,143 @@
 					"script": {
 						"exec": [
 							"eval(globals.osdmHelpers);",
+							"var jsonData = JSON.parse(responseBody);",
+							"validateRefundOffer(jsonData.refundOffer, \"PROPOSED\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"Executing request : \" + pm.info.requestName);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundId}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}",
+						"refund-offers",
+						"{{refundId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12. Get Booking before Patch Refund",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(globals.osdmHelpers);",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.test(\"Status code is 202\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"validateBookingResponseRefund(jsonData, refundType = \"post\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"Executing request : \" + pm.info.requestName);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}"
+					],
+					"query": [
+						{
+							"key": "embed",
+							"value": "ALL"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13. Patch Refund Offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(globals.osdmHelpers);",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"validatePatchRefundResponse(jsonData);"
+							"validateRefundOffersResponse(jsonData, isPatchResponse=true);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1162,22 +1042,22 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers/{{refund_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"refund-offers",
-						"{{refund_id}}"
+						"{{refundId}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "12. Booking after Patch Refund",
+			"name": "14. Get Booking after Patch Refund",
 			"event": [
 				{
 					"listen": "test",
@@ -1191,7 +1071,7 @@
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"validateBookingResponseRefund(jsonData, afterRefund=true);",
+							"validateBookingResponseRefund(jsonData, refundType = \"patch\");",
 							""
 						],
 						"type": "text/javascript",
@@ -1229,13 +1109,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}?embed=ALL",
+					"raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}"
+						"{{bookingId}}"
 					],
 					"query": [
 						{
@@ -1248,12 +1128,17 @@
 			"response": []
 		},
 		{
-			"name": "13. Refund Offers",
+			"name": "15. Refund Offers",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
 							""
 						],
 						"type": "text/javascript",
@@ -1305,22 +1190,22 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers/{{refund_id}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundId}}",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}",
+						"{{bookingId}}",
 						"refund-offers",
-						"{{refund_id}}"
+						"{{refundId}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "14. Booking after Delete Refund",
+			"name": "16. Booking after Delete Refund",
 			"event": [
 				{
 					"listen": "test",
@@ -1334,7 +1219,7 @@
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"validateBookingResponseRefund(jsonData, afterRefund=true);",
+							"validateBookingResponseRefund(jsonData, refundType=\"delete\");",
 							"//validateBookingResponseRefundDelete(jsonData, afterRefund=true);",
 							"//Maybe 3rd argument ? (before after delete)"
 						],
@@ -1373,13 +1258,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{booking_id}}?embed=ALL",
+					"raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
 					"host": [
 						"{{api_base}}"
 					],
 					"path": [
 						"bookings",
-						"{{booking_id}}"
+						"{{bookingId}}"
 					],
 					"query": [
 						{
@@ -1398,11 +1283,24 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"var scenarioIndex = 0; // Select scenario number in data file, starts from 0",
-					"// add this line in data_file and the user select 1 or multiple scenarios",
-					"//var scenarioIndex = \"all\";",
-					"var env = \"BILETO\";",
-					"//var env = \"SQILLS\";",
+					"/*",
+					"Copyright UIC, Union Internationale des Chemins de fer",
+					"Licensed under the Apache License, Version 2.0 (the \"License\");",
+					"you may not use this file except in compliance with the License.",
+					"You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0",
+					"",
+					"Unless required by applicable law or agreed to in writing, software",
+					"distributed under the License is distributed on an \"AS IS\" BASIS,",
+					"WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.",
+					"See the License for the specific language governing permissions and",
+					"limitations under the License.",
+					"",
+					"No reproduction nor distribution shall be allowed without the following notice",
+					"“This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”",
+					"*/",
+					"",
+					"var scenarioType = \"RESERVATION\";",
+					"var scenarioCode = \"OTST_TS_OB_RFND_5_ReasonCode\";",
 					"",
 					"function pad(number) {",
 					"    return (number < 10) ? '0' + number : number;",
@@ -1417,7 +1315,6 @@
 					"",
 					"var lib = \"\";",
 					"var jsLibraries = [\"functions\", \"model\"];",
-					"var dataFiles = [\"trips\"];",
 					"",
 					"pm.test(\"API base is available\", function () {",
 					"    pm.expect(pm.environment.get(\"api_base\")).not.null;",
@@ -1446,128 +1343,11 @@
 					"            }",
 					"            else {",
 					"                pm.globals.set(\"osdmHelpers\", lib);",
+					"                eval(globals.osdmHelpers);",
+					"                getScenarioData(scenarioType, scenarioCode);",
 					"            }",
 					"        }",
 					"    });",
-					"}",
-					"",
-					"function dataGetter() {",
-					"    if (pm.environment.has('data_file')) {",
-					"        console.log(\"Data file was set, expecting running in Postman\");",
-					"        var res = pm.environment.get(\"data_file\");",
-					"        var jsonData = JSON.parse(res);",
-					"",
-					"        var nextWeekday = get_next_weekday(new Date());",
-					"        var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());",
-					"",
-					"        var dataFileIndex = 0;",
-					"        var scenarios = jsonData.scenarios;",
-					"        var tripRequirements = jsonData.tripRequirements;",
-					"        var passengersList = jsonData.passengers_list;",
-					"",
-					"        pm.globals.set(\"SCENARIO_index\", scenarioIndex);",
-					"",
-					"        if (scenarioIndex === \"all\") {",
-					"            scenarios.forEach(function (scenario, index) {",
-					"                setScenarioVariables(scenario, index);",
-					"            });",
-					"        } else {",
-					"            var scenario = scenarios[scenarioIndex];",
-					"            setScenarioVariables(scenario, scenarioIndex);",
-					"        }",
-					"",
-					"        function setScenarioVariables(scenario, index) {",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_code\", scenario.code);",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_currency\", scenario.currency);",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_service_class\", scenario.service_class);",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_travel_class\", scenario.travel_class);",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_refundOverruleCode\", scenario.refundOverruleCode);",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_tripRequirementId\", scenario.tripRequirementId);",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_passengersListId\", scenario.passengersListId);",
-					"            pm.globals.set(\"SCENARIO_\" + index + \"_flexibility\", scenario.flexibility);",
-					"            pm.globals.set(\"LOGGING_TYPE\",\"FULL\");",
-					"",
-					"            var tripRequirement = tripRequirements.find(tr => tr.id === scenario.tripRequirementId);",
-					"            if (tripRequirement) {",
-					"                var tripReqIndex = tripRequirements.indexOf(tripRequirement);",
-					"                pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_id\", tripRequirement.id);",
-					"                pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_tripType\", tripRequirement.tripType);",
-					"",
-					"                if (tripRequirement.legs) {",
-					"                    tripRequirement.legs.forEach(function (leg, legIndex) {",
-					"                        pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_LEG_\" + legIndex + \"_origin\", leg.origin);",
-					"                        pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_LEG_\" + legIndex + \"_destination\", leg.destination);",
-					"                        pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_LEG_\" + legIndex + \"_start_datetime\", leg.start_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                        pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_LEG_\" + legIndex + \"_end_datetime\", leg.end_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                        pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_LEG_\" + legIndex + \"_vehicle_number\", leg.vehicle_number);",
-					"                        pm.globals.set(\"TRIP_REQUIREMENT_\" + tripReqIndex + \"_LEG_\" + legIndex + \"_operator_code\", leg.operator_code);",
-					"                    });",
-					"                }",
-					"            }",
-					"",
-					"            var passengers = passengersList.find(pl => pl.id === scenario.passengersListId);",
-					"            if (passengers) {",
-					"                var passengersListIndex = passengersList.indexOf(passengers);",
-					"                pm.globals.set(\"PASSENGERS_LIST_\" + passengersListIndex + \"_id\", passengers.id);",
-					"                passengers.passengers.forEach(function (passenger, passengerIndex) {",
-					"                    pm.globals.set(\"PASSENGERS_LIST_\" + passengersListIndex + \"_PASSENGER_\" + passengerIndex + \"_reference\", passenger.reference);",
-					"                    pm.globals.set(\"PASSENGERS_LIST_\" + passengersListIndex + \"_PASSENGER_\" + passengerIndex + \"_age\", passenger.age);",
-					"                    if (passenger.date_of_birth) {",
-					"                        pm.globals.set(\"PASSENGERS_LIST_\" + passengersListIndex + \"_PASSENGER_\" + passengerIndex + \"_date_of_birth\", passenger.date_of_birth);",
-					"                    }",
-					"                    pm.globals.set(\"PASSENGERS_LIST_\" + passengersListIndex + \"_PASSENGER_\" + passengerIndex + \"_type\", passenger.type);",
-					"                });",
-					"            }",
-					"        }",
-					"",
-					"        // Optional: Set global variables for scenario_type and logging",
-					"        console.log(\"Finished setting global variables.\");",
-					"",
-					"    } else { // Commit data_file content in data_base, if no data_file in env postman collection, data_base is used",
-					"        console.log(\"data file was not set, expecting running in runner\");",
-					"        pm.sendRequest({",
-					"            url: pm.environment.get(\"data_base\"),",
-					"            method: 'GET',",
-					"        }, function (err, res) {",
-					"            if (err) {",
-					"                console.log(err);",
-					"            } else {",
-					"                console.log(res);",
-					"                var jsonData = JSON.parse(res.text());",
-					"                console.log(jsonData);",
-					"",
-					"                var nextWeekday = get_next_weekday(new Date());",
-					"                var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());",
-					"",
-					"                var dataFileIndex = 0;",
-					"                var dataFileLength = jsonData.length;",
-					"                var foundCorrectDataSet = false;",
-					"",
-					"                while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {",
-					"                    if(jsonData[dataFileIndex].type==scenario_type) {",
-					"",
-					"                        pm.globals.set(\"leg_1_start_stop_place_ref\", jsonData[dataFileIndex].origin);",
-					"                        pm.globals.set(\"leg_1_end_stop_place_ref\", jsonData[dataFileIndex].destination);",
-					"                        pm.globals.set(\"leg_1_start_datetime\", jsonData[dataFileIndex].start_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                        pm.globals.set(\"leg_1_end_datetime\", jsonData[dataFileIndex].end_datetime.replace(\"%TRIP_DATE%\", nextWeekdayString));",
-					"                        pm.globals.set(\"leg_1_vehicle_number\", jsonData[dataFileIndex].vehicle_number);",
-					"                        pm.globals.set(\"leg_1_operator_code\", jsonData[dataFileIndex].operator_code);",
-					"                        //new",
-					"                        pm.globals.set(\"offer_search_criteria_currency\", jsonData[dataFileIndex].currency);",
-					"                        pm.globals.set(\"offer_search_criteria_travel_class\", jsonData[dataFileIndex].travel_class);",
-					"                        pm.globals.set(\"offer_search_criteria_search_class\", jsonData[dataFileIndex].service_class);",
-					"                        pm.globals.set(\"SCENARIO_TYPE\",scenario_type);",
-					"                        pm.globals.set(\"LOGGING_TYPE\",\"FULL\");",
-					"",
-					"                        foundCorrectDataSet = true;",
-					"                        console.log(\"correct data set was found for this scenario type:\"+scenario_type);",
-					"                    }",
-					"                    dataFileIndex++;",
-					"                    ",
-					"                }",
-					"            }",
-					"        });",
-					"    }",
 					"}",
 					"",
 					"// Cannot check exact URL as the endpoint path varies among different API vendors",
@@ -1579,9 +1359,7 @@
 					"    setTimeout(2000);",
 					"    ",
 					"    if (!pm.globals.get(\"osdmHelpers\")) {",
-					"        //pm.globals.set(\"osdmHelpers\", loadLibraries(jsLibraries));",
 					"        libGetter();",
-					"        dataGetter();",
 					"    }",
 					"}",
 					""
