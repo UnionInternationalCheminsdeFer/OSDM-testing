@@ -1,33 +1,37 @@
 {
-	"id": "11e9c346-587c-4f13-977f-d6840eabbb0c",
-	"name": "Bileto Demo environment",
+	"id": "1b8ab37b-8f1d-4c4b-9004-62d3395c2508",
+	"name": "Bileto",
 	"values": [
 		{
 			"key": "access_token",
-			"value": "Provide your own value here",
+			"value": "<own value here>",
 			"type": "secret",
-			"enabled": true
-		},
-		{
-			"key": "data_base",
-			"value": "https://testing.osdm.io/data/",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "library_base",
-			"value": "https://dddi5qilhq5vk.cloudfront.net/otst/library/",
-			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "api_base",
 			"value": "https://osdm-5.platform.bileto.zone/api",
+			"enabled": true
+		},
+		{
+			"key": "library_base",
+			"value": "<own value here>",
+			"enabled": true
+		},
+		{
+			"key": "data_file",
+			"value": "{\n    \"scenarios\": [\n        {\n            \"code\": \"OTST_TS_OB_RFND_5_ReasonCode\",\n            \"type\": \"RESERVATION\",\n            \"currency\": \"EUR\",\n            \"serviceClass\": \"STANDARD\",\n            \"travelClass\": \"SECOND\",\n            \"refundOverruleCode\": \"PAYMENT_FAILURE\",\n            \"tripRequirementId\": 1,\n            \"passengersListId\": 1,\n            \"fulfillmentMedia\": \"PDF_A4\",\n            \"fulfillmentType\": \"ETICKET\",\n            \"requiresPlaceSelection\": true,\n            \"flexibility\": \"NON_FLEXIBLE\"\n        }\n    ],\n    \"tripRequirements\": [\n        {\n            \"id\": 1,\n            \"tripType\": \"SEARCH\",\n            \"trip\": \n                {\n                    \"origin\": \"urn:uic:stn:5457076\",\n                    \"destination\": \"urn:uic:stn:5454300\",\n                    \"startDatetime\": \"%TRIP_DATE%T07:00:00+02:00\",\n                    \"endDatetime\": \"%TRIP_DATE%T10:20:00+02:00\",\n                    \"productCategoryRef\": \"\",\n                    \"productCategoryName\": \"\",\n                    \"productCategoryShortName\": \"\",\n                    \"vehicleNumber\": \"1140\",\n                    \"operatorCode\": \"urn:uic:rics:3189\"\n                }\n        }\n    ],\n    \"passengersList\": [\n        {\n            \"id\": 1,\n            \"passengers\": [\n                {\n                    \"reference\": \"12345\",\n                    \"dateOfBirth\": \"1999-01-01\",\n                    \"type\": \"PERSON\"\n                }\n            ]\n        }\n    ]\n}\n",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "data_base",
+			"value": "<own value here>",
 			"type": "default",
 			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2023-02-22T16:57:33.435Z",
-	"_postman_exported_using": "Postman/10.10.7"
+	"_postman_exported_at": "2024-12-03T10:10:02.452Z",
+	"_postman_exported_using": "Postman/11.21.0"
 }
