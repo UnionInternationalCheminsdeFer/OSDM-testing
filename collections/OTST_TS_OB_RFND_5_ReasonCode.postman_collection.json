@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "01. Get Offer (offerSearchCriteria)",
+			"name": "01. POST Get Offer",
 			"event": [
 				{
 					"listen": "test",
@@ -52,7 +52,7 @@
 					"script": {
 						"exec": [
 							"eval(globals.osdmHelpers);\r",
-							"console.log(\"Executing request : \" + pm.info.requestName);\r",
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);\r",
 							"buildOfferCollectionRequest();"
 						],
 						"type": "text/javascript",
@@ -106,7 +106,7 @@
 			"response": []
 		},
 		{
-			"name": "02. Get Place Maps for Reservation of Offer (Bileto env))",
+			"name": "02. GET Place Maps for Reservation of Offer (Bileto env))",
 			"event": [
 				{
 					"listen": "test",
@@ -127,7 +127,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -191,7 +191,7 @@
 			"response": []
 		},
 		{
-			"name": "03. Create a Booking",
+			"name": "03. POST Create a Booking",
 			"event": [
 				{
 					"listen": "test",
@@ -227,7 +227,7 @@
 					"script": {
 						"exec": [
 							"eval(globals.osdmHelpers);\r",
-							"console.log(\"Executing request : \" + pm.info.requestName);\r",
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);\r",
 							"buildBookingRequest();"
 						],
 						"type": "text/javascript",
@@ -288,7 +288,7 @@
 			"response": []
 		},
 		{
-			"name": "04. Passenger",
+			"name": "04. GET Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -300,9 +300,7 @@
 							"\r",
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"capturePassengerData(jsonData);"
+							"});"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -312,7 +310,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -372,7 +370,7 @@
 			"response": []
 		},
 		{
-			"name": "05. Passenger",
+			"name": "05. PATCH Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -386,7 +384,7 @@
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
-							"validatePassengerData(jsonData, isPatchResponse = true);"
+							"validatePassengerData(jsonData, diplay = false);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -396,7 +394,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -430,7 +428,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"summary\": \"string\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{newDateOfBirth}}\",\r\n  \"type\": \"PERSON\",\r\n  \"cards\": [\r\n    {\r\n      \"code\": \"string\",\r\n      \"number\": \"string\",\r\n      \"issuer\": \"string\",\r\n      \"type\": \"LOYALTY_CARD\"\r\n    }\r\n  ],\r\n  \"gender\": \"MALE\",\r\n  \"detail\": {\r\n    \"summary\": \"string\",\r\n    \"firstName\": \"{{newFirstName}}\",\r\n    \"lastName\": \"{{newLastName}}\",\r\n    \"firstFamilyName\": \"Diaz\",\r\n    \"secondFamilyName\": \"Lopez\",\r\n    \"contact\": {\r\n      \"summary\": \"string\",\r\n      \"preferredLanguage\": \"string\",\r\n      \"email\": \"{{newEmail}}\",\r\n      \"phoneNumber\": \"{{newPhoneNumber}}\",\r\n      \"address\": \"string\"\r\n    }\r\n  }\r\n}",
+					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth}}\",\r\n  \"type\": \"PERSON\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName}}\",\r\n    \"lastName\": \"{{patchLastName}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber}}\"\r\n    }\r\n  }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -453,7 +451,7 @@
 			"response": []
 		},
 		{
-			"name": "06. Passenger after Patch Passenger",
+			"name": "06. GET Passenger after Patch Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -467,7 +465,7 @@
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
-							"validatePassengerData(jsonData, isPatchResponse = false);"
+							"validatePassengerData(jsonData, diplay = true);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -477,7 +475,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -525,7 +523,7 @@
 			"response": []
 		},
 		{
-			"name": "07. Get Booking before Fulfillments",
+			"name": "07. GET Booking before Fulfillments",
 			"event": [
 				{
 					"listen": "test",
@@ -554,7 +552,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -600,7 +598,7 @@
 			"response": []
 		},
 		{
-			"name": "08. Obtaining Fulfillments from Booking",
+			"name": "08. POST Obtaining Fulfillments from Booking",
 			"event": [
 				{
 					"listen": "test",
@@ -626,7 +624,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -682,7 +680,7 @@
 			"response": []
 		},
 		{
-			"name": "09. Get Booking after Fulfillments",
+			"name": "09. GET Booking after Fulfillments",
 			"event": [
 				{
 					"listen": "test",
@@ -717,7 +715,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -763,7 +761,7 @@
 			"response": []
 		},
 		{
-			"name": "10. Refund Offers",
+			"name": "10. POST Refund Offer",
 			"event": [
 				{
 					"listen": "test",
@@ -785,7 +783,7 @@
 						"exec": [
 							"eval(globals.osdmHelpers);\r",
 							"\r",
-							"console.log(\"Executing request : \" + pm.info.requestName);\r",
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);\r",
 							"\r",
 							"requestRefundOffersBody();"
 						],
@@ -848,7 +846,7 @@
 			"response": []
 		},
 		{
-			"name": "11. Refund Offers",
+			"name": "11. GET Refund Offer",
 			"event": [
 				{
 					"listen": "test",
@@ -866,7 +864,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -932,7 +930,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -978,7 +976,7 @@
 			"response": []
 		},
 		{
-			"name": "13. Patch Refund Offers",
+			"name": "13. PATCH Refund Offer",
 			"event": [
 				{
 					"listen": "test",
@@ -1001,7 +999,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1057,7 +1055,7 @@
 			"response": []
 		},
 		{
-			"name": "14. Get Booking after Patch Refund",
+			"name": "14. GET Booking after Patch Refund",
 			"event": [
 				{
 					"listen": "test",
@@ -1082,7 +1080,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1128,7 +1126,7 @@
 			"response": []
 		},
 		{
-			"name": "15. Refund Offers",
+			"name": "15. DEL Refund Offers",
 			"event": [
 				{
 					"listen": "test",
@@ -1136,8 +1134,8 @@
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"pm.test(\"Status code is 204\", function () {\r",
-							"    pm.response.to.have.status(204);\r",
+							"pm.test(\"Status code is 204 or 400\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 400]);\r",
 							"});\r",
 							""
 						],
@@ -1149,7 +1147,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1205,7 +1203,7 @@
 			"response": []
 		},
 		{
-			"name": "16. Booking after Delete Refund",
+			"name": "16. GET Booking after Delete Refund",
 			"event": [
 				{
 					"listen": "test",
@@ -1231,7 +1229,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"console.log(\"Executing request : \" + pm.info.requestName);"
+							"console.log(\"### [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}

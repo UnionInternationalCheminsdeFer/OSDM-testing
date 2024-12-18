@@ -1,6 +1,7 @@
 {
     "scenarios": [
         {
+			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
             "type": "RESERVATION",
             "currency": "EUR",
@@ -40,6 +41,11 @@
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
+					"patchFirstName": "John",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "1999-01-02",
+					"patchPhoneNumber": "0612345678",
+					"patchEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
