@@ -3,17 +3,18 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
-            "type": "RESERVATION",
+            "type": ["ADMISSION"],
             "currency": "EUR",
             "serviceClass": "STANDARD",
             "travelClass": "SECOND",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "refundOverruleCode": "null",
+			"refundDate": null,
             "tripRequirementId": 1,
             "passengersListId": 1,
             "fulfillmentMedia": "PDF_A4",
             "fulfillmentType": "ETICKET",
-            "requiresPlaceSelection": true,
-            "flexibility": "NON_FLEXIBLE"
+            "requiresPlaceSelection": false,
+            "flexibilities": ["NON_FLEXIBLE"]
         }
     ],
     "tripRequirements": [
@@ -22,15 +23,15 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:5457076",
-                    "destination": "urn:uic:stn:5454300",
+                    "origin": "urn:uic:stn:8400058",
+                    "destination": "urn:uic:stn:8727100",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "vehicleNumber": "OSDM_101",
+                    "operatorCode": "urn:uic:rics:1"
                 }
         }
     ],
