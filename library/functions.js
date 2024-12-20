@@ -25,7 +25,6 @@ setAuthToken = function () {
 
 function buildOfferCollectionRequest() {
 	var tripType = pm.globals.get("TripType");
-
 	switch(tripType) {
     	case "SPECIFICATION":
     		pm.globals.set("OfferCollectionRequest", "{\"objectType\": \"OfferCollectionRequest\","
@@ -219,16 +218,21 @@ parseScenarioData = function(jsonData) {
                 }
             });
 
+			//scenarios element
             pm.globals.set("loggingType", jsonData.scenarios[dataFileIndex].loggingType);
-            pm.globals.set("offerSearchCriteriaCurrency", jsonData.scenarios[dataFileIndex].currency);
-            pm.globals.set("offerSearchCriteriaTravelClass", jsonData.scenarios[dataFileIndex].travelClass);
-            pm.globals.set("offerSearchCriteriaSearchClass", jsonData.scenarios[dataFileIndex].serviceClass);
             pm.globals.set("refundOverruleCode", jsonData.scenarios[dataFileIndex].refundOverruleCode);
             pm.globals.set("refundDate", jsonData.scenarios[dataFileIndex].refundDate);
-            pm.globals.set("flexibilities", jsonData.scenarios[dataFileIndex].flexibilities);
-            pm.globals.set("ScenarioType", jsonData.scenarios[dataFileIndex].type);
+            pm.globals.set("desiredFlexibility", jsonData.scenarios[dataFileIndex].desiredFlexibility);
+            pm.globals.set("desiredType", jsonData.scenarios[dataFileIndex].desiredType);
             pm.globals.set("ScenarioCode", jsonData.scenarios[dataFileIndex].code);
-            pm.globals.set("requiresPlaceSelection",jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
+
+			//OfferSearchCriteria element
+			pm.globals.set("requestedOfferParts",jsonData.offerSearchCriteria[dataFileIndex].requestedOfferParts);
+            pm.globals.set("offerSearchCriteriaCurrency", jsonData.offerSearchCriteria[dataFileIndex].currency);
+            pm.globals.set("offerSearchCriteriaTravelClass", jsonData.offerSearchCriteria[dataFileIndex].travelClass);
+            pm.globals.set("offerSearchCriteriaSearchClass", jsonData.offerSearchCriteria[dataFileIndex].serviceClass);
+            pm.globals.set("requiresPlaceSelection",jsonData.offerSearchCriteria[dataFileIndex].requiresPlaceSelection);
+            pm.globals.set("flexibilities",jsonData.offerSearchCriteria[dataFileIndex].flexibilities);
 
 			jsonData.passengersList.some(function(passengersList){
 				validationLogger('[INFO] checking passenger_list:'+passengersList.id+' against:'+jsonData.scenarios[dataFileIndex].passengersListId);
@@ -283,17 +287,17 @@ parseScenarioData = function(jsonData) {
 			
 			
 			osdmOfferSearchCriteria(
-				jsonData.scenarios[dataFileIndex].currency,
+				jsonData.offerSearchCriteria[dataFileIndex].currency,
 				null,
-				jsonData.scenarios[dataFileIndex].type,
-				jsonData.scenarios[dataFileIndex].flexibilities,
-				jsonData.scenarios[dataFileIndex].serviceClass,
-				jsonData.scenarios[dataFileIndex].travelClass,
+				jsonData.offerSearchCriteria[dataFileIndex].requestedOfferParts,
+				jsonData.offerSearchCriteria[dataFileIndex].flexibilities,
+				jsonData.offerSearchCriteria[dataFileIndex].serviceClass,
+				jsonData.offerSearchCriteria[dataFileIndex].travelClass,
 				null
 			);
 
 			osdmFulfillmentOptions([
-				new FulfillmentOption(jsonData.scenarios[dataFileIndex].fulfillmentType, jsonData.scenarios[dataFileIndex].fulfillmentMedia)
+				new FulfillmentOption(jsonData.requestedFulfillmentOptions[dataFileIndex].fulfillmentType, jsonData.requestedFulfillmentOptions[dataFileIndex].fulfillmentMedia)
 			]);
 
             foundCorrectDataSet = true;
@@ -460,31 +464,23 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	
 	pm.test("offers are returned", function () {
 	    pm.expect(offers).not.to.be.empty;
-
-        validationLogger("[INFO] OFFER.FULFILLMENT_OPTIONS : " + pm.globals.get(OFFER.FULFILLMENT_OPTIONS));
-        console.log("[INFO] type : "+scenarioType);
-
+        console.log("[INFO] desiredType : "+scenarioType);
 	    var requireAdmission = false;
 	    var requireAncillary = false;
 	    var requireReservation = false;
 
-	    let serializedScenarioType = JSON.stringify(scenarioType);
-	    switch(serializedScenarioType) {
-			case JSON.stringify(["BOTH"]):
-				requireAdmission = true;
-				requireReservation = true;
-				break;
-			case JSON.stringify(["RESERVATION"]):
-				requireReservation = true;
-				break;
-			case JSON.stringify(["RESERVATION", "ADMISSION"]):
-				requireReservation = true;
-				requireAdmission = true;
-				break;
-	      	default:
-	        	requireAdmission = true;
-	    }
-	
+	    switch(scenarioType) {
+			case "BOTH":
+			  requireAdmission = true;
+			  requireReservation = true;
+			  break;
+			case "RESERVATION":
+			  requireReservation = true;
+			  break;
+			default:
+			  requireAdmission = true;
+		}
+
 	    if(offers!=undefined && offers.length>0){
 	    
 	        var offerIndex = 0;
@@ -641,9 +637,9 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
                 validationLogger("[INFO] reservations : "+foundReservations);
 
                 var amounts = passengerSpecifications.length;
-				console.log("[INFO] scenarioType : ", scenarioType);
-				switch(serializedScenarioType) {
-					case JSON.stringify(["BOTH"]):
+                switch(scenarioType) {
+					case "BOTH":
+						
 						pm.test("Correct admissions are returned", function () {
 							pm.expect(foundAdmissions).to.equal(amounts);
 						});
@@ -653,9 +649,9 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 						if(amounts==foundAdmissions&&amounts==foundReservations) {
 							found = true;
 						}
+						
 						break;
-
-					case JSON.stringify(["RESERVATION"]):
+					case "RESERVATION":
 						pm.test("Correct reservations are returned", function () {
 							pm.expect(foundReservations).to.equal(amounts);
 						});
@@ -663,27 +659,13 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 							found = true;
 						}
 						break;
-
-					case JSON.stringify(["RESERVATION", "ADMISSION"]) || JSON.stringify(["ADMISSION", "RESERVATION"]):
-						pm.test("Correct admissions are returned", function () {
-							pm.expect(foundAdmissions).to.equal(amounts);
-						});
-						pm.test("Correct reservations are returned", function () {
-							pm.expect(foundReservations).to.equal(amounts);
-						});
-						if(amounts==foundAdmissions&&amounts==foundReservations) {
-							found = true;
-						}
-						break;
-
 					default:
 						pm.test("Correct admissions are returned", function () {
 							pm.expect(foundAdmissions).to.equal(amounts);
 						});
-
-					if(amounts==foundAdmissions) {
-						found = true;
-					}
+						if(amounts==foundAdmissions) {
+							found = true;
+						}
                 }
 	            offerIndex++;
 	        }
@@ -750,14 +732,27 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	    pm.expect(response.anonymousPassengerSpecifications).not.to.be.empty;
 	});
 
+	let desiredFlexibility = pm.globals.get("desiredFlexibility"); 
+	validationLogger("[INFO] desiredFlexibility for current scenario : " + desiredFlexibility);
+	let selectedOffer = offers.find(offer => 
+		offer.offerSummary.overallFlexibility === desiredFlexibility
+	);
 	pm.globals.set("offers", offers);
-	pm.globals.set("offerId", offers[0].offerId);
-	pm.globals.set("offer", offers[0]);
-	//validationLogger("[INFO] Offer doesn't match the entry flexibilities criteria, taking the 1st offer in the list and displaying warning.");
-	console.log("[INFO] Selected offer : ", offers[0]);
-	//TODO Warning message to keep or remove, now flexibilities is available
-	validationLogger("[INFO] Warnings  : ", jsonData.warnings);
-	// Taking the 1st as default 
+	if (selectedOffer) {
+		validationLogger("[INFO] Desired flexibility : ", desiredFlexibility);
+		console.log("[INFO] Selected offer : ", selectedOffer);
+		pm.globals.set("offerId", selectedOffer.offerId);
+		pm.globals.set("offer", selectedOffer);
+	} else {
+		pm.globals.set("offerId", offers[0].offerId);
+		pm.globals.set("offer", offers[0]);
+		// TODO : Catch it differently (default one ?)
+		// STOP THE TEST ?? TO CONFIRM 
+		validationLogger("[INFO] Offer doesn't match the entry FLEXIBILITY criteria, taking the 1st offer in the list and displaying warning.");
+		console.log("[INFO] Selected offer : ", offers[0]);
+		validationLogger("[INFO] Warnings  : ", jsonData.warnings);
+		// Taking the 1st as default 
+	}
 
 	var requiresPlaceSelection = pm.globals.get("requiresPlaceSelection");
 	
@@ -1775,7 +1770,8 @@ function validateBookingResponseRefund(response, refundType) {
 }
 
 function validatePassengerData(response, display = false) {
-    const { firstName, lastName, dateOfBirth } = response.passenger?.detail || {};
+    const { firstName, lastName} = response.passenger?.detail || {};
+	const dateOfBirth = response.passenger?.dateOfBirth;
     const { phoneNumber, email } = response.passenger?.detail?.contact || {};
 
     const passengerData = pm.globals.get("passengerAdditionalData")[0];

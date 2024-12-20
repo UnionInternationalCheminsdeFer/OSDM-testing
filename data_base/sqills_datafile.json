@@ -3,20 +3,31 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
-            "type": ["ADMISSION"],
+            "desiredType": "ADMISSION",
             "currency": "EUR",
-            "serviceClass": "STANDARD",
-            "travelClass": "SECOND",
-            "refundOverruleCode": "null",
+            "refundOverruleCode": null,
 			"refundDate": null,
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "fulfillmentMedia": "PDF_A4",
-            "fulfillmentType": "ETICKET",
-            "requiresPlaceSelection": false,
-            "flexibilities": ["NON_FLEXIBLE"]
+            "desiredFlexibility": "NON_FLEXIBLE"
         }
     ],
+	"offerSearchCriteria": [
+        {
+			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
+            "currency": "EUR",
+            "serviceClass": "STANDARD",
+            "travelClass": "SECOND",
+            "requiresPlaceSelection": false,
+            "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+        }
+    ],
+	"requestedFulfillmentOptions": [
+        {
+            "fulfillmentMedia": "PDF_A4",
+            "fulfillmentType": "ETICKET"
+        }
+    ],	
     "tripRequirements": [
         {
             "id": 1,
