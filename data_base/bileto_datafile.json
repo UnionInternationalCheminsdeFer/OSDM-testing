@@ -3,18 +3,29 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
-            "type": ["RESERVATION"],
+            "desiredType": "ADMISSION",
             "currency": "CZK",
-            "serviceClass": "STANDARD",
-            "travelClass": "SECOND",
             "refundOverruleCode": null,
 			"refundDate": null,
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "fulfillmentMedia": "PDF_A4",
-            "fulfillmentType": "ETICKET",
+            "desiredFlexibility": "NON_FLEXIBLE"
+        }
+    ],
+	"offerSearchCriteria": [
+        {
+			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
+            "currency": "EUR",
+            "serviceClass": "STANDARD",
+            "travelClass": "SECOND",
             "requiresPlaceSelection": true,
-            "flexibilities": ["FULL_FLEXIBLE"]
+            "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+        }
+    ],
+	"requestedFulfillmentOptions": [
+        {
+            "fulfillmentMedia": "PDF_A4",
+            "fulfillmentType": "ETICKET"
         }
     ],
     "tripRequirements": [

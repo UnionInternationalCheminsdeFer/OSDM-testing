@@ -30,7 +30,7 @@
 							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), ",
 							"jsonData.offers, ",
 							"jsonData.trips, ",
-							"pm.globals.get(\"ScenarioType\"));",
+							"pm.globals.get(\"desiredType\"));",
 							"",
 							"displayOfferResponse(jsonData);",
 							"",
@@ -86,7 +86,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{OfferCollectionRequest}}\r\n/*{\r\n    \"objectType\": \"OfferCollectionRequest\",\r\n    \"tripSearchCriteria\": {\r\n        \"departureTime\": \"2024-12-22T07:00:00\",\r\n        \"origin\": {\r\n            \"objectType\": \"StopPlaceRef\",\r\n            \"stopPlaceRef\": \"urn:uic:stn:5457076\"\r\n        },\r\n        \"destination\": {\r\n            \"objectType\": \"StopPlaceRef\",\r\n            \"stopPlaceRef\": \"urn:uic:stn:5454300\"\r\n        },\r\n        \"parameters\": {\r\n            \"dataFilter\": {\r\n                \"carrierFilter\": {\r\n                    \"carriers\": [\"urn:uic:rics:3189\"],\r\n                    \"exclude\": false\r\n                },\r\n                \"vehicleFilter\": {\r\n                    \"vehicleNumbers\": [\"1140\"],\r\n                    \"lineNumbers\": null,\r\n                    \"exclude\": false\r\n                }\r\n            }\r\n        }\r\n    },\r\n    \"anonymousPassengerSpecifications\": [{\r\n            \"externalRef\": \"75dea723-c5dd-4c71-af56-682566f7f5b7\",\r\n            \"type\": \"PERSON\",\r\n            \"dateOfBirth\": \"1999-01-01\"\r\n        }\r\n    ],\r\n    \"offerSearchCriteria\": {\r\n        \"currency\": \"CZK\",\r\n        \"requestedOfferParts\": [\r\n            \"ADMISSION\"\r\n        ]\r\n    },\r\n    \"requestedFulfillmentOptions\": [{\r\n            \"type\": \"ETICKET\",\r\n            \"media\": \"PDF_A4\"\r\n        }\r\n    ]\r\n}*/\r\n",
+					"raw": "{{OfferCollectionRequest}}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
