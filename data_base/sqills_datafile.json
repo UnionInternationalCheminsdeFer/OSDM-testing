@@ -5,7 +5,7 @@
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
             "desiredType": "ADMISSION",
             "currency": "EUR",
-            "refundOverruleCode": null,
+            "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": null,
             "tripRequirementId": 1,
             "passengersListId": 1,
