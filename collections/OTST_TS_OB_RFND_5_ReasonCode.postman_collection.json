@@ -15,11 +15,17 @@
 						"exec": [
 							"eval(globals.osdmHelpers);",
 							"",
-							"pm.test('Successfully received offers', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
 							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"if (pm.response.code && pm.response.code !== 200) {",
+							"    console.warn(`Warning: Received unexpected status code ${jsonData.status}`);",
+							"    pm.execution.setNextRequest(null);",
+							"    throw new Error(`Exiting script due to response status: ${jsonData.status}`);",
+							"}",
+							"",
+							"pm.test('Successfully received offers', function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"});",
 							"",
 							"var offer = jsonData.offers[0];",
 							"validateOfferConformsToOfferSearchCriteria(offer);",
@@ -86,7 +92,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{OfferCollectionRequest}}\r\n",
+					"raw": "{{OfferCollectionRequest}}\r\n/*{\r\n    \"anonymousPassengerSpecifications\": [\r\n        {\r\n            \"externalRef\": \"passenger_1\",\r\n            \"dateOfBirth\": \"1970-01-01\",\r\n            \"type\": \"PERSON\",\r\n            \"detail\": {\r\n                \"firstName\": \"Jean\",\r\n                \"lastName\": \"Dupont\",\r\n                \"phoneNumber\": \"+31475000001\",\r\n                \"email\": \"jean.dupont@benerail.com\"\r\n            }\r\n        },\r\n        {\r\n            \"externalRef\": \"passenger_2\",\r\n            \"dateOfBirth\": \"1970-01-01\",\r\n            \"type\": \"PERSON\",\r\n            \"detail\": {\r\n                \"firstName\": \"Maria\",\r\n                \"lastName\": \"Janssens\",\r\n                \"phoneNumber\": \"+32475000000\",\r\n                \"email\": \"maria.janssens@benerail.com\"\r\n            }\r\n        }\r\n    ],\r\n    \"tripSearchCriteria\": {\r\n        \"departureTime\": \"2024-09-16T06:00\",\r\n        \"origin\": {\r\n            \"stopPlaceRef\": \"urn:uic:stn:8400131\",\r\n            \"objectType\": \"StopPlaceRef\"\r\n        },\r\n        \"destination\": {\r\n            \"stopPlaceRef\": \"urn:uic:stn:8821006\",\r\n            \"objectType\": \"StopPlaceRef\"\r\n        }\r\n    },\r\n    \"objectType\": \"OfferCollectionRequest\"\r\n}*/",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -185,103 +191,6 @@
 							"key": "resourceType",
 							"value": "RESERVATION"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "03. POST Create a Booking",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"eval(globals.osdmHelpers);\r",
-							"\r",
-							"var jsonData = JSON.parse(responseBody);\r",
-							"\r",
-							"pm.globals.set(\"bookingId\", jsonData.booking.id);\r",
-							"pm.globals.set(\"passengerId\", jsonData.booking.passengers[0].id);\r",
-							"\r",
-							"pm.test('Successfully created booking', function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"validateBookingResponse(\r",
-							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), \r",
-							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
-							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
-							"pm.globals.get(\"offers\"),\r",
-							"pm.globals.get(\"offerId\"),\r",
-							"jsonData.booking,  \r",
-							"pm.globals.get(\"ScenarioType\"),\r",
-							"\"PREBOOKED\");"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"eval(globals.osdmHelpers);\r",
-							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-							"buildBookingRequest();"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Access-Token",
-						"value": "{{access_token}}",
-						"description": "Legacy Authorization Header; remove for 2.0",
-						"type": "text",
-						"disabled": true
-					},
-					{
-						"key": "Requestor",
-						"value": "",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{{BookingRequest}}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{api_base}}/bookings",
-					"host": [
-						"{{api_base}}"
-					],
-					"path": [
-						"bookings"
 					]
 				}
 			},
@@ -1132,8 +1041,8 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 204 or 400\", function () {\r",
-							"    pm.expect(pm.response.code).to.be.oneOf([204, 400]);\r",
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
 							"});\r",
 							""
 						],
@@ -1273,6 +1182,9 @@
 			"response": []
 		}
 	],
+	"auth": {
+		"type": "inherit"
+	},
 	"event": [
 		{
 			"listen": "prerequest",

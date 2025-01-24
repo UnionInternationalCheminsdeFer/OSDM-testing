@@ -103,8 +103,7 @@ function placeSelections() {
 
 getScenarioData = function() {
 	if(!pm.environment.has('data_file')) {
-		
-		validationLogger("[INFO] data file was not set, expecting running in runner");
+		validationLogger("[INFO] data file was not set, grabbing data base url from environment : " + pm.environment.get("data_base")); 
         pm.sendRequest({
             url: pm.environment.get("data_base"),
             method: 'GET',
@@ -113,14 +112,18 @@ getScenarioData = function() {
                 validationLogger(err);
             } else {
                 var jsonData = JSON.parse(res.text());
+				console.log("[INFO]jsonData####### : " + jsonData);
+				console.log("[INFO]jsonData####### : " + JSON.stringify(jsonData));
+				pm.globals.set("data_base_tmp", JSON.stringify(jsonData));
+				//pm.globals.set("data_base_tmp",jsonData);
+				validateJsonAgainstSchema(JSON.parse(pm.globals.get("data_base_tmp")));
                 parseScenarioData(jsonData);
 
             }
         });
 	}
 	else if(pm.environment.has('data_file')) {
-		//since running in postman, do full logging to the console
-
+		validateJsonAgainstSchema(JSON.parse(pm.environment.get("data_file")));
         validationLogger("[INFO] data file was set, expecting running in postman");
         var res = pm.environment.get("data_file");
         var jsonData = JSON.parse(res);
@@ -130,6 +133,28 @@ getScenarioData = function() {
     	validationLogger("[INFO] Please specify using a data_file or data_base parameter in the environment used.");
     }
 }
+
+function validateJsonAgainstSchema(dataType) {
+        // Récupérer le JSON schema stocké en variable globale
+        const schema = JSON.parse(pm.environment.get("json_schema"));
+		//console.log("[INFO]dataType####### : " + JSON.parse(dataType));
+		//console.log("[INFO]dataType0000000 : " + dataType);
+
+        // Valider le JSON contre le schéma
+        const validationResult = tv4.validateMultiple(dataType, schema);
+
+        // Vérifier le résultat de la validation
+        if (!validationResult.valid) {
+            console.error("JSON validation failed:", validationResult.errors);
+            pm.test("JSON Schema Validation", function () {
+                pm.expect(validationResult.valid).to.be.true;
+            });
+			throw new Error("Arrêt forcé de l'exécution");
+        } else {
+            console.log("JSON validation passed");
+        }
+}
+
 
 parseScenarioData = function(jsonData) {
 	var nextWeekday = get_next_weekday(new Date());
@@ -219,10 +244,10 @@ parseScenarioData = function(jsonData) {
             });
 
 			//scenarios element
-            pm.globals.set("loggingType", jsonData.scenarios[dataFileIndex].loggingType);
-            pm.globals.set("refundOverruleCode", jsonData.scenarios[dataFileIndex].refundOverruleCode);
-            pm.globals.set("refundDate", jsonData.scenarios[dataFileIndex].refundDate);
-            pm.globals.set("desiredFlexibility", jsonData.scenarios[dataFileIndex].desiredFlexibility);
+            pm.globals.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
+			pm.globals.set("refundOverruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundOverruleCode) ? null : jsonData.scenarios[dataFileIndex].refundOverruleCode);
+			pm.globals.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
+            pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
             pm.globals.set("desiredType", jsonData.scenarios[dataFileIndex].desiredType);
             pm.globals.set("ScenarioCode", jsonData.scenarios[dataFileIndex].code);
 
@@ -512,10 +537,10 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 		                var admissionOfferPart = offer.admissionOfferParts[admissionOfferPartsIndex];
 
                          var passengerIndex = 0;
-                         var passengerLenght = passengerSpecifications.length;
+                         var passengerLength = passengerSpecifications.length;
 
                          admissionOfferPart.passengerRefs.forEach(function(passengerRef){
-                            while(passengerIndex<passengerLenght){
+                            while(passengerIndex<passengerLength){
                                 
                                 if(passengerSpecifications[passengerIndex].externalRef==passengerRef){
 
@@ -561,9 +586,9 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 		                var ancillaryOfferPart = offer.ancillaryOfferParts[ancillaryOfferPartsIndex];
 	
                         var passengerIndex = 0;
-                        var passengerLenght = passengerSpecifications.length;
+                        var passengerLength = passengerSpecifications.length;
                         ancillaryOfferPart.passengerRefs.forEach(function(passengerRef){
-                            while(passengerIndex<passengerLenght){
+                            while(passengerIndex<passengerLength){
                                 
                                 if(passengerSpecifications[passengerIndex].externalRef==passengerRef){
                                     foundAncillaries++;
@@ -587,9 +612,9 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 		                var reservationOfferPart = offer.reservationOfferParts[reservationOfferPartsIndex];
 
                         var passengerIndex = 0;
-                        var passengerLenght = passengerSpecifications.length;
+                        var passengerLength = passengerSpecifications.length;
                         reservationOfferPart.passengerRefs.forEach(function(passengerRef){
-                            while(passengerIndex<passengerLenght){
+                            while(passengerIndex<passengerLength){
                                 
                                 if(passengerSpecifications[passengerIndex].externalRef==passengerRef){
 									//TODO compare externalRef and passRef
@@ -1567,7 +1592,6 @@ function validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPri
 function validateAppliedOverruleCode(appliedOverruleCode, expectedOverruleCode) {   
     validationLogger("[INFO] expectedOverruleCode : "+expectedOverruleCode);
     validationLogger("[INFO] appliedOverruleCode : "+appliedOverruleCode);
-    
 	if (expectedOverruleCode == null) {
 		pm.test("AppliedOverruleCode is null as expected", function () {
 			pm.expect(appliedOverruleCode).to.be.null;
@@ -1679,9 +1703,9 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
     const expectedStatus = isPatchResponse ? 'CONFIRMED' : 'PROPOSED';
     refundOffers.forEach(function (refundOffer) {
 		if (expectedStatus=="PROPOSED") {
-			pm.globals.set("validUntilRefundOffers", refundOffers.validUntil);
+			pm.globals.set("validUntilRefundOffers", refundOffer.validUntil);
 			pm.test("ValidUntil is set for refundOffer", function () {
-				pm.expect(refundOffers.validUntil).to.exist;
+				pm.expect(refundOffer.validUntil).to.exist;
 				//TODO Compare validUtil refundOffer from step 10 with current date in step 13 PATCH Refund Offer
 			});
 		}

@@ -4,27 +4,27 @@
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "currency": "EUR",
+            "refundOverruleCode": "DISRUPTION",
 			"refundDate": null,
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "desiredFlexibility": "FULL_FLEXIBLE"
         }
     ],
 	"offerSearchCriteria": [
         {
-			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
+			"requestedOfferParts": ["ADMISSION"],
             "currency": "EUR",
             "serviceClass": "STANDARD",
             "travelClass": "SECOND",
-            "requiresPlaceSelection": true,
+            "requiresPlaceSelection": false,
             "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
         }
     ],
 	"requestedFulfillmentOptions": [
         {
-            "fulfillmentMedia": "PDF_A4",
+            "fulfillmentMedia": "UIC_PDF",
             "fulfillmentType": "ETICKET"
         }
     ],
@@ -34,15 +34,10 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:5457076",
-                    "destination": "urn:uic:stn:5454300",
+                    "origin": "urn:uic:stn:8814001",
+                    "destination": "urn:uic:stn:8892007",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00"
                 }
         }
     ],
