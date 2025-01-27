@@ -13,7 +13,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);",
+							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -57,7 +57,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 							"buildOfferCollectionRequest();"
 						],
@@ -67,6 +67,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -92,7 +95,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{OfferCollectionRequest}}\r\n/*{\r\n    \"anonymousPassengerSpecifications\": [\r\n        {\r\n            \"externalRef\": \"passenger_1\",\r\n            \"dateOfBirth\": \"1970-01-01\",\r\n            \"type\": \"PERSON\",\r\n            \"detail\": {\r\n                \"firstName\": \"Jean\",\r\n                \"lastName\": \"Dupont\",\r\n                \"phoneNumber\": \"+31475000001\",\r\n                \"email\": \"jean.dupont@benerail.com\"\r\n            }\r\n        },\r\n        {\r\n            \"externalRef\": \"passenger_2\",\r\n            \"dateOfBirth\": \"1970-01-01\",\r\n            \"type\": \"PERSON\",\r\n            \"detail\": {\r\n                \"firstName\": \"Maria\",\r\n                \"lastName\": \"Janssens\",\r\n                \"phoneNumber\": \"+32475000000\",\r\n                \"email\": \"maria.janssens@benerail.com\"\r\n            }\r\n        }\r\n    ],\r\n    \"tripSearchCriteria\": {\r\n        \"departureTime\": \"2024-09-16T06:00\",\r\n        \"origin\": {\r\n            \"stopPlaceRef\": \"urn:uic:stn:8400131\",\r\n            \"objectType\": \"StopPlaceRef\"\r\n        },\r\n        \"destination\": {\r\n            \"stopPlaceRef\": \"urn:uic:stn:8821006\",\r\n            \"objectType\": \"StopPlaceRef\"\r\n        }\r\n    },\r\n    \"objectType\": \"OfferCollectionRequest\"\r\n}*/",
+					"raw": "{{OfferCollectionRequest}}\r\n/*{\"objectType\": \"OfferCollectionRequest\",\"tripSearchCriteria\" : {\"departureTime\":\"2025-02-08T10:07:00\",\"origin\":{\"objectType\":\"StopPlaceRef\",\"stopPlaceRef\":\"urn:uic:stn:8814001\"},\"destination\":{\"objectType\":\"StopPlaceRef\",\"stopPlaceRef\":\"urn:uic:stn:8892007\"},\"parameters\":{\"dataFilter\":{\"carrierFilter\":null,\"vehicleFilter\":{\"vehicleNumbers\":[null],\"lineNumbers\":null,\"exclude\":false}}}},\"anonymousPassengerSpecifications\" : [{\"externalRef\":\"bbe81fba-d94f-4cad-8e7f-a4ed27ad04d4\",\"type\":\"PERSON\",\"dateOfBirth\":\"1999-01-01\"}],\"offerSearchCriteria\" : {\"currency\":\"EUR\",\"requestedOfferParts\":[\"RESERVATION\",\"ADMISSION\"],\"flexibilities\":[\"FULL_FLEXIBLE\",\"NON_FLEXIBLE\"]},\"requestedFulfillmentOptions\" : [{\"type\":\"ETICKET\",\"media\":\"UIC_A4\"}]}*/",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -141,6 +144,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -197,14 +203,105 @@
 			"response": []
 		},
 		{
+			"name": "03. POST Create a Booking",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.globals.set(\"bookingId\", jsonData.booking.id);\r",
+							"pm.globals.set(\"passengerId\", jsonData.booking.passengers[0].id);\r",
+							"\r",
+							"pm.test('Successfully created booking', function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"validateBookingResponse(\r",
+							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), \r",
+							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
+							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
+							"pm.globals.get(\"offers\"),\r",
+							"pm.globals.get(\"offerId\"),\r",
+							"jsonData.booking,  \r",
+							"pm.globals.get(\"ScenarioType\"),\r",
+							"\"PREBOOKED\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+							"buildBookingRequest();"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{BookingRequest}}\r\n/*{\r\n    \"offers\": [{\r\n            \"offerId\": \"0e0ce824ef4b043d7190a6055ca753539305b1a3b869c3074e65e7bd36714233\",\r\n            \"passengerRefs\": [\"33e047dd-0f18-41ec-b483-e4d98a33e0ed\"]\r\n        }\r\n    ],\r\n    \"purchaser\": {\r\n        \"detail\": {\r\n            \"firstName\": \"Pur\",\r\n            \"lastName\": \"Chaser\",\r\n            \"contact\": {\r\n                \"email\": \"yourusername@example.com\",\r\n                \"phoneNumber\": \"0612345678\"\r\n            }\r\n        }\r\n    },\r\n    \"passengerSpecifications\": [{\r\n            \"externalRef\": \"33e047dd-0f18-41ec-b483-e4d98a33e0ed\",\r\n            \"type\": \"PERSON\",\r\n            \"dateOfBirth\": \"1999-01-01\"\r\n        }\r\n    ],\r\n    \"externalRef\": \"33e047dd-0f18-41ec-b483-e4d98a33e0ed\"\r\n}*/",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_base}}/bookings",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "04. GET Passenger",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
-							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
 							"pm.test(\"Status code is 200\", function () {\r",
@@ -230,6 +327,9 @@
 				"disableBodyPruning": true
 			},
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -285,7 +385,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -311,6 +411,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "PATCH",
 				"header": [
 					{
@@ -366,7 +469,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -374,7 +477,7 @@
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
-							"validatePassengerData(jsonData, diplay = true);"
+							"validatePassengerData(jsonData, display = true);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -392,6 +495,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -438,7 +544,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -469,6 +575,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -541,6 +650,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -595,7 +707,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -632,6 +744,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -676,7 +791,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -690,7 +805,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);\r",
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"\r",
 							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 							"\r",
@@ -707,6 +822,9 @@
 				}
 			},
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -761,7 +879,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);",
+							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"var jsonData = JSON.parse(responseBody);",
 							"validateRefundOffer(jsonData.refundOffer, \"PROPOSED\");"
 						],
@@ -781,6 +899,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -821,7 +942,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);",
+							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -847,6 +968,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -891,7 +1015,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);",
+							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"pm.test(\"Status code is 200\", function () {",
@@ -921,6 +1045,9 @@
 				}
 			},
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "PATCH",
 				"header": [
 					{
@@ -970,7 +1097,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);",
+							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -997,6 +1124,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -1067,6 +1197,9 @@
 				}
 			},
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "DELETE",
 				"header": [
 					{
@@ -1116,7 +1249,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(globals.osdmHelpers);",
+							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -1124,9 +1257,7 @@
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"validateBookingResponseRefund(jsonData, refundType=\"delete\");",
-							"//validateBookingResponseRefundDelete(jsonData, afterRefund=true);",
-							"//Maybe 3rd argument ? (before after delete)"
+							"validateBookingResponseRefund(jsonData, refundType=\"delete\");"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1144,6 +1275,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -1259,7 +1393,7 @@
 					"}",
 					"",
 					"// Cannot check exact URL as the endpoint path varies among different API vendors",
-					"if (request.url.includes(\"/offers\")) {",
+					"if (pm.request.url.toString().includes(\"/offers\")) {",
 					"    console.log(\"Clearing the globals\")",
 					"    ",
 					"    pm.globals.clear();",

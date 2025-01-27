@@ -1,0 +1,137 @@
+{
+	"type": "object",
+	"properties": {
+	  "scenarios": {
+		"type": "array",
+		"items": {
+		  "type": "object",
+		  "properties": {
+			"loggingType": { "type": "string", "enum": ["FULL", "INFO", "DEBUG", "ERROR"] },
+			"code": { "type": "string" },
+			"desiredType": { "type": "string", "enum": ["ADMISSION", "RESERVATION"] },
+			"currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+			"refundOverruleCode": { "type": "string" },
+			"refundDate": { "type": ["string", "null"], "format": "date-time" },
+			"tripRequirementId": { "type": "integer" },
+			"passengersListId": { "type": "integer" },
+			"desiredFlexibility": { "type": "string", "enum": ["NON_FLEXIBLE", "FULL_FLEXIBLE"] }
+		  },
+		  "required": [
+			"loggingType", "code", "desiredType", "currency",
+			"refundOverruleCode", "tripRequirementId", "passengersListId", "desiredFlexibility"
+		  ]
+		}
+	  },
+	  "offerSearchCriteria": {
+		"type": "array",
+		"items": {
+		  "type": "object",
+		  "properties": {
+			"requestedOfferParts": {
+			  "type": "array",
+			  "items": { "type": "string", "enum": ["RESERVATION", "ADMISSION"] }
+			},
+			"currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+			"serviceClass": { "type": "string", "enum": ["STANDARD", "PREMIUM"] },
+			"travelClass": { "type": "string", "enum": ["FIRST", "SECOND"] },
+			"requiresPlaceSelection": { "type": "boolean" },
+			"flexibilities": {
+			  "type": "array",
+			  "items": { "type": "string", "enum": ["FULL_FLEXIBLE", "NON_FLEXIBLE"] }
+			}
+		  },
+		  "required": ["requestedOfferParts", "currency", "serviceClass", "travelClass", "requiresPlaceSelection"]
+		}
+	  },
+	  "requestedFulfillmentOptions": {
+		"type": "array",
+		"items": {
+		  "type": "object",
+		  "properties": {
+			"fulfillmentMedia": { "type": "string", "enum": ["PDF_A4", "UIC_PDF"] },
+			"fulfillmentType": { "type": "string", "enum": ["ETICKET"] }
+		  },
+		  "required": ["fulfillmentMedia", "fulfillmentType"]
+		}
+	  },
+	  "tripRequirements": {
+		"type": "array",
+		"items": {
+		  "type": "object",
+		  "properties": {
+			"id": { "type": "integer" },
+			"tripType": { "type": "string", "enum": ["SEARCH", "SPECIFICATION"] }
+		  },
+		  "required": ["id", "tripType"],
+		  "if": {
+			"properties": { "tripType": { "const": "SEARCH" } }
+		  },
+		  "then": {
+			"properties": {
+			  "trip": {
+				"type": "object",
+				"properties": {
+				  "origin": { "type": "string" },
+				  "destination": { "type": "string" },
+				  "startDatetime": { "type": "string" },
+				  "endDatetime": { "type": "string" },
+				  "vehicleNumber": { "type": "string" },
+				  "operatorCode": { "type": "string" }
+				},
+				"required": ["origin", "destination", "startDatetime", "endDatetime", "vehicleNumber", "operatorCode"]
+			  }
+			},
+			"required": ["trip"]
+		  },
+		  "else": {
+			"properties": {
+			  "legs": {
+				"type": "object",
+				"properties": {
+				  "origin": { "type": "string" },
+				  "destination": { "type": "string" },
+				  "startDatetime": { "type": "string" },
+				  "endDatetime": { "type": "string" },
+				  "vehicleNumber": { "type": "string" },
+				  "operatorCode": { "type": "string" }
+				},
+				"required": ["origin", "destination", "startDatetime", "endDatetime", "vehicleNumber", "operatorCode"]
+			  }
+			},
+			"required": ["legs"]
+		  }
+		}
+	  },
+	  "passengersList": {
+		"type": "array",
+		"items": {
+		  "type": "object",
+		  "properties": {
+			"id": { "type": "integer" },
+			"passengers": {
+			  "type": "array",
+			  "items": {
+				"type": "object",
+				"properties": {
+				  "reference": { "type": "string" },
+				  "dateOfBirth": { "type": "string", "format": "date" },
+				  "patchFirstName": { "type": "string" },
+				  "patchLastName": { "type": "string" },
+				  "patchDateOfBirth": { "type": "string", "format": "date" },
+				  "patchPhoneNumber": { "type": "string" },
+				  "patchEmail": { "type": "string", "format": "email" },
+				  "type": { "type": "string", "enum": ["PERSON", "GROUP"] }
+				},
+				"required": [
+				  "reference", "dateOfBirth", "patchFirstName",
+				  "patchLastName", "patchDateOfBirth", "patchPhoneNumber", "patchEmail", "type"
+				]
+			  }
+			}
+		  },
+		  "required": ["id", "passengers"]
+		}
+	  }
+	},
+	"required": ["scenarios", "offerSearchCriteria", "requestedFulfillmentOptions", "tripRequirements", "passengersList"]
+  }
