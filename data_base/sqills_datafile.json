@@ -27,7 +27,7 @@
             "fulfillmentMedia": "PDF_A4",
             "fulfillmentType": "ETICKET"
         }
-    ],	
+    ],
     "tripRequirements": [
         {
             "id": 1,

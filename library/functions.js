@@ -102,6 +102,7 @@ function placeSelections() {
 }
 
 getScenarioData = function() {
+	console.log("⏳ [INFO] Getting scenario data");
 	if(!pm.environment.has('data_file')) {
 		validationLogger("[INFO] data file was not set, grabbing data base url from environment : " + pm.environment.get("data_base")); 
         pm.sendRequest({
@@ -112,11 +113,8 @@ getScenarioData = function() {
                 validationLogger(err);
             } else {
                 var jsonData = JSON.parse(res.text());
-				console.log("[INFO]jsonData####### : " + jsonData);
-				console.log("[INFO]jsonData####### : " + JSON.stringify(jsonData));
-				pm.globals.set("data_base_tmp", JSON.stringify(jsonData));
-				//pm.globals.set("data_base_tmp",jsonData);
-				validateJsonAgainstSchema(JSON.parse(pm.globals.get("data_base_tmp")));
+				pm.globals.set("data_base_tmp", jsonData);
+				validateJsonAgainstSchema(pm.globals.get("data_base_tmp"));
                 parseScenarioData(jsonData);
 
             }
@@ -135,24 +133,31 @@ getScenarioData = function() {
 }
 
 function validateJsonAgainstSchema(dataType) {
-        // Récupérer le JSON schema stocké en variable globale
-        const schema = JSON.parse(pm.environment.get("json_schema"));
-		//console.log("[INFO]dataType####### : " + JSON.parse(dataType));
-		//console.log("[INFO]dataType0000000 : " + dataType);
+	var data = null;
+	pm.sendRequest({
+		url: pm.environment.get("json_schema"),
+		method: 'GET',
+	}, function (err, res) {
+		if (err) {
+			validationLogger(err);
+		} else {
+			data = JSON.parse(res.text());
+		}
+	});
 
-        // Valider le JSON contre le schéma
-        const validationResult = tv4.validateMultiple(dataType, schema);
+	const Ajv = require("ajv");
+	const ajv = new Ajv({ allErrors: true });
+	const schema = dataType
+	const validate = ajv.compile(schema);
+	const valid = validate(data);
+	
+	if (!valid) {
+		console.error("❌ JSON validation failed:", validate.errors);
+		process.exit(1);
+	} else {
+		console.log("✅ JSON validation passed");
+	}
 
-        // Vérifier le résultat de la validation
-        if (!validationResult.valid) {
-            console.error("JSON validation failed:", validationResult.errors);
-            pm.test("JSON Schema Validation", function () {
-                pm.expect(validationResult.valid).to.be.true;
-            });
-			throw new Error("Arrêt forcé de l'exécution");
-        } else {
-            console.log("JSON validation passed");
-        }
 }
 
 
@@ -177,7 +182,7 @@ parseScenarioData = function(jsonData) {
 
                     switch(tripRequirement.tripType) {
 				      case "SPECIFICATION":
-				      	validationLogger('[INFO] processing a specification');
+				      	validationLogger('⏳ [INFO] processing a specification');
 				        var legIndex = 0;
 
 				        var legDefinitions = [];
@@ -213,7 +218,7 @@ parseScenarioData = function(jsonData) {
 
 				        break;
 				      case "SEARCH":
-				      	validationLogger('[INFO] processing a search');
+				      	validationLogger('⏳ [INFO] processing a search');
 				        pm.globals.set("tripStartStopPlaceRef", tripRequirement.trip.origin);
                         pm.globals.set("tripEndStopPlaceRef", tripRequirement.trip.destination);
                         pm.globals.set("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
@@ -516,7 +521,7 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	        var items_found = 0;
 	        var passengerRef = "";
 	        
-	        validationLogger("[INFO] There are "+offerLength+" offers available");
+	        validationLogger("🔍 [INFO] There are "+offerLength+" offers available");
 	
 	        while(found==false && offerIndex < offerLength) {
 	            validationLogger("[INFO] checking offer index : "+offerIndex);
@@ -695,7 +700,7 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	            offerIndex++;
 	        }
 	    } else {
-	        validationLogger("[INFO] No offers available");
+	        validationLogger("[INFO] No offer(s) available");
 	    }
 	});
 
@@ -764,18 +769,15 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	);
 	pm.globals.set("offers", offers);
 	if (selectedOffer) {
-		validationLogger("[INFO] Desired flexibility : ", desiredFlexibility);
-		console.log("[INFO] Selected offer : ", selectedOffer);
+		console.log("🔍 [INFO] Selected offer : ", selectedOffer);
 		pm.globals.set("offerId", selectedOffer.offerId);
 		pm.globals.set("offer", selectedOffer);
 	} else {
 		pm.globals.set("offerId", offers[0].offerId);
 		pm.globals.set("offer", offers[0]);
-		// TODO : Catch it differently (default one ?)
-		// STOP THE TEST ?? TO CONFIRM 
 		validationLogger("[INFO] Offer doesn't match the entry FLEXIBILITY criteria, taking the 1st offer in the list and displaying warning.");
-		console.log("[INFO] Selected offer : ", offers[0]);
-		validationLogger("[INFO] Warnings  : ", jsonData.warnings);
+		console.log("🔍 [INFO] Selected offer : ", offers[0]);
+		validationLogger("⚠️ [INFO] Warnings  : ", jsonData.warnings);
 		// Taking the 1st as default 
 	}
 
@@ -906,7 +908,7 @@ validateBookingResponse = function( passengerSpecifications, searchCriteria, ful
 
 	//check the creation date
 	var currentDate = new Date();
-	validationLogger("[INFO] createdOn specific date format is valid : " + currentDate);
+	validationLogger("[INFO] CreatedOn specific date format is valid : " + currentDate);
 	pm.test("Correct createdOn is returned", function () {
         pm.expect(currentDate.getDate()).to.equal(createdOn.getDate());
         pm.expect(currentDate.getMonth()).to.equal(createdOn.getMonth());
@@ -924,14 +926,12 @@ validateBookingResponse = function( passengerSpecifications, searchCriteria, ful
     }
 
     var offer = null;
-	console.log("TOTO");
     offers.some(function(internalOffer){
     	if(internalOffer.offerId==offerId){
     		offer = internalOffer;
     		return true;
     	}
     });
-	console.log("TOTO");
 
     if(offer==undefined||offer==null) {
     	validationLogger("[INFO] No correct offer can be found, skipping rest of validation");
@@ -1284,7 +1284,7 @@ checkGenericBookedOfferPart = function(offerPart, state){
 
 function calculateTotalAmount(offerPart) {
     if (!offerPart || typeof offerPart !== 'object') {
-        validationLogger("[ERROR] L'objet offerPart n'est pas valide ou est vide.");
+        validationLogger("[ERROR] offerPart not found.");
         return 0;
     }
 
@@ -1798,7 +1798,9 @@ function validatePassengerData(response, display = false) {
 	const dateOfBirth = response.passenger?.dateOfBirth;
     const { phoneNumber, email } = response.passenger?.detail?.contact || {};
 
-    const passengerData = pm.globals.get("passengerAdditionalData")[0];
+	const passengerDataString = pm.globals.get("passengerAdditionalData");
+	const passengerDataArray = JSON.parse(passengerDataString);
+	const passengerData = passengerDataArray.length > 0 ? passengerDataArray[0] : {};
 
     if (display) {
         logPassengerComparison(passengerData, firstName, lastName, dateOfBirth, phoneNumber, email);
