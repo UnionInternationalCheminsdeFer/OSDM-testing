@@ -7,6 +7,7 @@
 		  "type": "object",
 		  "properties": {
 			"loggingType": { "type": "string", "enum": ["FULL", "INFO", "DEBUG", "ERROR"] },
+			"osdmVersion": { "type": "string" },
 			"code": { "type": "string" },
 			"desiredType": { "type": "string", "enum": ["ADMISSION", "RESERVATION"] },
 			"currency": { "type": "string", "minLength": 3, "maxLength": 3 },
@@ -17,7 +18,7 @@
 			"desiredFlexibility": { "type": "string", "enum": ["NON_FLEXIBLE", "FULL_FLEXIBLE"] }
 		  },
 		  "required": [
-			"loggingType", "code", "desiredType", "currency",
+			"loggingType", "osdmVersion", "code", "desiredType", "currency",
 			"refundOverruleCode", "tripRequirementId", "passengersListId", "desiredFlexibility"
 		  ]
 		}

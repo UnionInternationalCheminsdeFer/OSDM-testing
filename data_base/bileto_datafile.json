@@ -3,11 +3,23 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": null,
             "tripRequirementId": 1,
+            "passengersListId": 1,
+            "desiredFlexibility": "NON_FLEXIBLE"
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_TS_OB_RFND_5_Multileg",
+            "desiredType": "ADMISSION",
+            "currency": "CZK",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": null,
+            "tripRequirementId": 2,
             "passengersListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         }
@@ -44,6 +56,34 @@
                     "vehicleNumber": "1140",
                     "operatorCode": "urn:uic:rics:3189"
                 }
+        },
+        {
+            "id": 2,
+            "tripType": "SPECIFICATION",
+            "legs": [
+                {
+                    "origin": "urn:uic:stn:5457076",
+                    "destination": "urn:uic:stn:5454300",
+                    "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
+                    "productCategoryRef": "",
+                    "productCategoryName": "",
+                    "productCategoryShortName": "",
+                    "vehicleNumber": "1140",
+                    "operatorCode": "urn:uic:rics:3189"
+                },
+                {
+                    "origin": "urn:uic:stn:5457076",
+                    "destination": "urn:uic:stn:5454212",
+                    "startDatetime": "%TRIP_DATE%T09:53:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T10:20:00+01:00",
+                    "productCategoryRef": "",
+                    "productCategoryName": "",
+                    "productCategoryShortName": "",
+                    "vehicleNumber": "1140",
+                    "operatorCode": "urn:uic:rics:3189"
+                }
+            ]
         }
     ],
     "passengersList": [
@@ -56,7 +96,7 @@
 					"patchFirstName": "John",
 					"patchLastName": "Doe",
                     "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "0612345678",
+					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"
                 }
