@@ -52,10 +52,16 @@ function buildBookingRequest() {
 	pm.globals.set("bookingExternalRef", uuid.v4());
 	
 	placeSelections();
-	
-	var detail = new Detail("Pur","Chaser","yourusername@example.com","0612345678");
-	var purchaser = new Purchaser(detail);
-	
+	var osdmVersion = pm.globals.get("osdmVersion");
+	if (osdmVersion == "3") {	
+		var detail = new Detail("Pur","Chaser",);
+		var purchaser = new Purchaser(detail);
+	}
+	else if (osdmVersion == "3.4") {
+		var contact = new Contact("yourusername@example.com","+33612345678");
+		var detail = new DetailContact("Pur","Chaser", contact);
+		var purchaser = new Purchaser(detail);
+	}
 	pm.globals.set("BookingRequest", "{"
 			+ "\"offers\": [\n"
 			+ "{\n"
@@ -190,8 +196,8 @@ parseScenarioData = function(jsonData) {
                         tripRequirement.legs.forEach(function(leg){
                             pm.globals.set("leg"+(legIndex+1)+"StartStopPlaceRef", tripRequirement.legs[legIndex].origin);
                             pm.globals.set("leg"+(legIndex+1)+"EndStopPlaceRef", tripRequirement.legs[legIndex].destination);
-                            pm.globals.set("leg"+(legIndex+1)+"StartDatetime", tripRequirement.legs[legIndex].start_datetime.replace("%TRIP_DATE%", nextWeekdayString));
-                            pm.globals.set("leg"+(legIndex+1)+"EndDatetime", tripRequirement.legs[legIndex].end_datetime.replace("%TRIP_DATE%", nextWeekdayString));
+                            pm.globals.set("leg"+(legIndex+1)+"StartDatetime", tripRequirement.legs[legIndex].startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+                            pm.globals.set("leg"+(legIndex+1)+"EndDatetime", tripRequirement.legs[legIndex].endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
                             pm.globals.set("leg"+(legIndex+1)+"VehicleNumber", tripRequirement.legs[legIndex].vehicleNumber);
                             pm.globals.set("leg"+(legIndex+1)+"OperatorCode", tripRequirement.legs[legIndex].operatorCode);
                             pm.globals.set("leg"+(legIndex+1)+"ProductCategoryRef", tripRequirement.legs[legIndex].productCategoryRef);
@@ -200,9 +206,9 @@ parseScenarioData = function(jsonData) {
                         
                             legDefinitions.push(new TripLegDefinition(
                             	tripRequirement.legs[legIndex].origin,
-                            	tripRequirement.legs[legIndex].start_datetime.replace("%TRIP_DATE%", nextWeekdayString),
+                            	tripRequirement.legs[legIndex].startDatetime.replace("%TRIP_DATE%", nextWeekdayString),
                             	tripRequirement.legs[legIndex].destination,
-                            	tripRequirement.legs[legIndex].end_datetime.replace("%TRIP_DATE%", nextWeekdayString),
+                            	tripRequirement.legs[legIndex].endDatetime.replace("%TRIP_DATE%", nextWeekdayString),
                             	tripRequirement.legs[legIndex].productCategoryRef,
                             	tripRequirement.legs[legIndex].productCategoryName,
                             	tripRequirement.legs[legIndex].productCategoryShortName,
@@ -250,6 +256,7 @@ parseScenarioData = function(jsonData) {
 
 			//scenarios element
             pm.globals.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
+            pm.globals.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
 			pm.globals.set("refundOverruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundOverruleCode) ? null : jsonData.scenarios[dataFileIndex].refundOverruleCode);
 			pm.globals.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
             pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);

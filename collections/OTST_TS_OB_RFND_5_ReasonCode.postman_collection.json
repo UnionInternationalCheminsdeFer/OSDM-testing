@@ -95,7 +95,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{OfferCollectionRequest}}\r\n/*{\"objectType\": \"OfferCollectionRequest\",\"tripSearchCriteria\" : {\"departureTime\":\"2025-02-08T10:07:00\",\"origin\":{\"objectType\":\"StopPlaceRef\",\"stopPlaceRef\":\"urn:uic:stn:8814001\"},\"destination\":{\"objectType\":\"StopPlaceRef\",\"stopPlaceRef\":\"urn:uic:stn:8892007\"},\"parameters\":{\"dataFilter\":{\"carrierFilter\":null,\"vehicleFilter\":{\"vehicleNumbers\":[null],\"lineNumbers\":null,\"exclude\":false}}}},\"anonymousPassengerSpecifications\" : [{\"externalRef\":\"bbe81fba-d94f-4cad-8e7f-a4ed27ad04d4\",\"type\":\"PERSON\",\"dateOfBirth\":\"1999-01-01\"}],\"offerSearchCriteria\" : {\"currency\":\"EUR\",\"requestedOfferParts\":[\"RESERVATION\",\"ADMISSION\"],\"flexibilities\":[\"FULL_FLEXIBLE\",\"NON_FLEXIBLE\"]},\"requestedFulfillmentOptions\" : [{\"type\":\"ETICKET\",\"media\":\"UIC_A4\"}]}*/",
+					"raw": "{{OfferCollectionRequest}}\r\n\r\n/*\r\n{\r\n    \"objectType\": \"OfferCollectionRequest\",\r\n    \"tripSpecifications\": [\r\n        {\r\n            \"externalRef\": \"76123ea3-87f9-4b8c-85c0-87b8e4ad002c\",\r\n            \"legs\": [\r\n                {\r\n                    \"externalRef\": \"0313277f-c4bc-4a81-8540-d15afeaef965\",\r\n                    \"timedLeg\": {\r\n                        \"start\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5457076\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceDeparture\": {\r\n                                \"timetabledTime\": \"2024-11-13T07:23:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"end\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454300\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceArrival\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:10:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"service\": {\r\n                            \"vehicleNumbers\": [\r\n                                \"1140\"\r\n                            ],\r\n                            \"carriers\": [\r\n                                {\r\n                                    \"ref\": \"urn:uic:rics:3189\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    }\r\n                },\r\n                {\r\n                    \"externalRef\": \"0313277f-c4bc-4a81-8540-d15afeaef965\",\r\n                    \"timedLeg\": {\r\n                        \"start\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454300\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceDeparture\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:20:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"end\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454212\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceArrival\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:53:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"service\": {\r\n                            \"vehicleNumbers\": [\r\n                                \"1062\"\r\n                            ],\r\n                            \"carriers\": [\r\n                                {\r\n                                    \"ref\": \"urn:uic:rics:3189\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    }\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"anonymousPassengerSpecifications\": [\r\n    {\r\n            \"dateOfBirth\": \"1996-01-01\",\r\n            \"externalRef\": \"fa42f631-7fe6-4ef5-921f-4046076e4360\",\r\n            \"type\": \"PERSON\",\r\n            \"cards\": [],\r\n            \"prmNeeds\": []\r\n        }\r\n  ],\r\n    \"offerSearchCriteria\": {\r\n        \"currency\": \"CZK\",\r\n        \"requestedOfferParts\": [\r\n            \"RESERVATION\"\r\n        ],\r\n        \"serviceClassTypes\": [\r\n            \"STANDARD\"\r\n        ],\r\n        \"comfortClasses\": [\r\n            \"SECOND\"\r\n        ]\r\n    },\r\n    \"requestedFulfillmentOptions\": [\r\n        {\r\n            \"type\": \"ETICKET\",\r\n            \"media\": \"PDF_A4\"\r\n        }\r\n    ],\r\n    \"embed\": [\r\n        \"ALL\"\r\n    ]\r\n}*/",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -115,7 +115,7 @@
 			"response": []
 		},
 		{
-			"name": "02. GET Place Maps for Reservation of Offer (Bileto env))",
+			"name": "02. GET Place Maps for Reservation of Offer (Bileto env)",
 			"event": [
 				{
 					"listen": "test",
@@ -276,7 +276,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{BookingRequest}}\r\n/*{\r\n    \"offers\": [{\r\n            \"offerId\": \"0e0ce824ef4b043d7190a6055ca753539305b1a3b869c3074e65e7bd36714233\",\r\n            \"passengerRefs\": [\"33e047dd-0f18-41ec-b483-e4d98a33e0ed\"]\r\n        }\r\n    ],\r\n    \"purchaser\": {\r\n        \"detail\": {\r\n            \"firstName\": \"Pur\",\r\n            \"lastName\": \"Chaser\",\r\n            \"contact\": {\r\n                \"email\": \"yourusername@example.com\",\r\n                \"phoneNumber\": \"0612345678\"\r\n            }\r\n        }\r\n    },\r\n    \"passengerSpecifications\": [{\r\n            \"externalRef\": \"33e047dd-0f18-41ec-b483-e4d98a33e0ed\",\r\n            \"type\": \"PERSON\",\r\n            \"dateOfBirth\": \"1999-01-01\"\r\n        }\r\n    ],\r\n    \"externalRef\": \"33e047dd-0f18-41ec-b483-e4d98a33e0ed\"\r\n}*/",
+					"raw": "{{BookingRequest}}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -1343,6 +1343,8 @@
 					"",
 					"var scenarioType = \"RESERVATION\";",
 					"var scenarioCode = \"OTST_TS_OB_RFND_5_ReasonCode\";",
+					"//var scenarioCode = \"OTST_TS_OB_RFND_5_Multileg\";",
+					"",
 					"",
 					"function pad(number) {",
 					"    return (number < 10) ? '0' + number : number;",
@@ -1394,6 +1396,11 @@
 					"",
 					"// Cannot check exact URL as the endpoint path varies among different API vendors",
 					"if (pm.request.url.toString().includes(\"/offers\")) {",
+					"    console.log(`",
+					"####################################",
+					"# 🛠️  New Collection Execution 🛠️ #",
+					"####################################",
+					"`);",
 					"    console.log(\"Clearing the globals\")",
 					"    ",
 					"    pm.globals.clear();",

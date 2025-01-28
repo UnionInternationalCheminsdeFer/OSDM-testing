@@ -3,6 +3,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_ReasonCode",
+            "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "currency": "EUR",
             "refundOverruleCode": "DISRUPTION",
@@ -54,7 +55,7 @@
 					"patchFirstName": "John",
 					"patchLastName": "Doe",
                     "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "0612345678",
+					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"
                 }
