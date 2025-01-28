@@ -136,6 +136,27 @@ var Detail = class {
     }
 }
 
+var PurchaserContact = class {
+    constructor(detail) {
+        this.detail = detail;
+    }
+}
+
+var DetailContact = class {
+	constructor(firstName, lastName, contact) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.contact = contact;
+    }
+}
+
+class Contact {
+    constructor(email, phoneNumber) {
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+    }
+}
+
 var TripLegDefinition = class {
     constructor(startStopPlaceRef, startDateTime, endStopPlaceRef, endDateTime, productCategoryRef, productCategoryName, productCategoryShortName,vehicleNumber, carrier) {
         this.startStopPlaceRef = startStopPlaceRef;
