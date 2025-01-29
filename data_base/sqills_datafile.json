@@ -2,12 +2,12 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_5_ReasonCode",
+            "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "currency": "EUR",
             "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": null,
+			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
