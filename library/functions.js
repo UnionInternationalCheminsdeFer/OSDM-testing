@@ -3,13 +3,11 @@ Copyright UIC, Union Internationale des Chemins de fer
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 No reproduction nor distribution shall be allowed without the following notice
 “This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”
 */
@@ -25,23 +23,43 @@ setAuthToken = function () {
 
 function buildOfferCollectionRequest() {
 	var tripType = pm.globals.get("TripType");
-	switch(tripType) {
-    	case "SPECIFICATION":
-    		pm.globals.set("OfferCollectionRequest", "{\"objectType\": \"OfferCollectionRequest\","
-			+ "\"tripSpecifications\" : "+pm.globals.get("offerTripSpecifications")+","
-			+ "\"anonymousPassengerSpecifications\" : "+pm.globals.get("offerPassengerSpecifications")+","
-			+ "\"offerSearchCriteria\" : "+pm.globals.get("offerSearchCriteria")+","
-			+ "\"requestedFulfillmentOptions\" : "+pm.globals.get("offerFulfillmentOptions")
-			+ "}");
-    		break;
-	    case "SEARCH":
-	    	pm.globals.set("OfferCollectionRequest", "{\"objectType\": \"OfferCollectionRequest\","
-			+ "\"tripSearchCriteria\" : "+pm.globals.get("offerTripSearchCriteria")+","
-			+ "\"anonymousPassengerSpecifications\" : "+pm.globals.get("offerPassengerSpecifications")+","
-			+ "\"offerSearchCriteria\" : "+pm.globals.get("offerSearchCriteria")+","
-			+ "\"requestedFulfillmentOptions\" : "+pm.globals.get("offerFulfillmentOptions")
-			+ "}");
-	    	break;
+	var sandbox = pm.environment.get("api_base");
+	if (sandbox.includes("paxone")) {
+		switch(tripType) {
+			case "SPECIFICATION":
+				pm.globals.set("OfferCollectionRequest", "{\"tripSpecifications\" : "+pm.globals.get("offerTripSpecifications")+","
+				+ "\"anonymousPassengerSpecifications\" : "+pm.globals.get("offerPassengerSpecifications")+","
+				+ "\"offerSearchCriteria\" : "+pm.globals.get("offerSearchCriteria")
+				+ (pm.globals.get("offerFulfillmentOptions") ? ",\"requestedFulfillmentOptions\" : "+pm.globals.get("offerFulfillmentOptions") : "")
+				+ "}");
+				break;
+			case "SEARCH":
+				pm.globals.set("OfferCollectionRequest", "{\"tripSearchCriteria\" : "+pm.globals.get("offerTripSearchCriteria")+","
+				+ "\"anonymousPassengerSpecifications\" : "+pm.globals.get("offerPassengerSpecifications")+","
+				+ "\"offerSearchCriteria\" : "+pm.globals.get("offerSearchCriteria")
+				+ (pm.globals.get("offerFulfillmentOptions") ? ",\"requestedFulfillmentOptions\" : "+pm.globals.get("offerFulfillmentOptions") : "")
+				+ "}");
+				break;
+		}
+	} else {
+		switch(tripType) {
+			case "SPECIFICATION":
+				pm.globals.set("OfferCollectionRequest", "{\"objectType\": \"OfferCollectionRequest\","
+				+ "\"tripSpecifications\" : "+pm.globals.get("offerTripSpecifications")+","
+				+ "\"anonymousPassengerSpecifications\" : "+pm.globals.get("offerPassengerSpecifications")+","
+				+ "\"offerSearchCriteria\" : "+pm.globals.get("offerSearchCriteria")+","
+				+ "\"requestedFulfillmentOptions\" : "+pm.globals.get("offerFulfillmentOptions")
+				+ "}");
+				break;
+			case "SEARCH":
+				pm.globals.set("OfferCollectionRequest", "{\"objectType\": \"OfferCollectionRequest\","
+				+ "\"tripSearchCriteria\" : "+pm.globals.get("offerTripSearchCriteria")+","
+				+ "\"anonymousPassengerSpecifications\" : "+pm.globals.get("offerPassengerSpecifications")+","
+				+ "\"offerSearchCriteria\" : "+pm.globals.get("offerSearchCriteria")+","
+				+ "\"requestedFulfillmentOptions\" : "+pm.globals.get("offerFulfillmentOptions")
+				+ "}");
+				break;
+		}
 	}
 }
 
@@ -53,16 +71,32 @@ function buildBookingRequest() {
 	
 	placeSelections();
 	var osdmVersion = pm.globals.get("osdmVersion");
-	if (osdmVersion == "3") {	
+
+	if (osdmVersion == "3.4") {
+		var contact = new Contact("yourusername@example.com","+33612345678");
+		var detail = new DetailContact("Pur","Chaser", contact);
+		var purchaser = new PurchaserContact(detail);
+	} else {	
 		var detail = new Detail("Pur","Chaser",);
 		var purchaser = new Purchaser(detail);
 	}
-	else if (osdmVersion == "3.4") {
-		var contact = new Contact("yourusername@example.com","+33612345678");
-		var detail = new DetailContact("Pur","Chaser", contact);
-		var purchaser = new Purchaser(detail);
-	}
-	pm.globals.set("BookingRequest", "{"
+	var sandbox = pm.environment.get("api_base");
+	if (sandbox.includes("paxone")) {
+		pm.globals.set("BookingRequest", "{"
+				+ "\"offers\": [\n"
+				+ "{\n"
+				+ "            \"offerId\": \""+pm.globals.get("offerId")+"\",\n"
+				+ "            "+pm.globals.get("placeSelections")+"\n"
+				+ "            \"passengerRefs\": \n"
+				+ "                "+pm.globals.get("bookingPassengerReferences")+"\n"
+				+ "            \n"
+				+ "        }\n"
+				+ "    ],"
+				+ "\"purchaser\": "+JSON.stringify(purchaser)+","
+				+ "\"passengerSpecifications\" : "+pm.globals.get("bookingPassengerSpecifications")
+				+ "}");
+	} else {
+		pm.globals.set("BookingRequest", "{"
 			+ "\"offers\": [\n"
 			+ "{\n"
 			+ "            \"offerId\": \""+pm.globals.get("offerId")+"\",\n"
@@ -76,6 +110,7 @@ function buildBookingRequest() {
 			+ "\"passengerSpecifications\" : "+pm.globals.get("bookingPassengerSpecifications")+","
 			+ "\"externalRef\":\""+pm.globals.get("bookingExternalRef")+"\""
 			+ "}");
+	}
 }
 
 function placeSelections() {
@@ -120,14 +155,14 @@ getScenarioData = function() {
             } else {
                 var jsonData = JSON.parse(res.text());
 				pm.globals.set("data_base_tmp", jsonData);
-				validateJsonAgainstSchema(pm.globals.get("data_base_tmp"));
+				validateJsonWithTemplate(pm.globals.get("data_base_tmp"));
                 parseScenarioData(jsonData);
 
             }
         });
 	}
 	else if(pm.environment.has('data_file')) {
-		validateJsonAgainstSchema(JSON.parse(pm.environment.get("data_file")));
+		validateJsonWithTemplate(JSON.parse(pm.environment.get("data_file")));
         validationLogger("[INFO] data file was set, expecting running in postman");
         var res = pm.environment.get("data_file");
         var jsonData = JSON.parse(res);
@@ -138,34 +173,104 @@ getScenarioData = function() {
     }
 }
 
-function validateJsonAgainstSchema(dataType) {
-	var data = null;
-	pm.sendRequest({
-		url: pm.environment.get("json_schema"),
-		method: 'GET',
-	}, function (err, res) {
-		if (err) {
-			validationLogger(err);
-		} else {
-			data = JSON.parse(res.text());
-		}
-	});
+function validateJsonWithTemplate(jsonData) {
+    pm.sendRequest({
+        url: pm.environment.get("json_schema"),
+        method: 'GET'
+    }, function (err, res) {
+        if (err) {
+            console.error("Error loading the schema: ", err);
+            pm.test("Schema load failed", function () {
+                throw new Error("Schema load failed: " + err);
+            });
+            return;
+        }
 
-	const Ajv = require("ajv");
-	const ajv = new Ajv({ allErrors: true });
-	const schema = dataType
-	const validate = ajv.compile(schema);
-	const valid = validate(data);
-	
-	if (!valid) {
-		console.error("❌ JSON validation failed:", validate.errors);
-		process.exit(1);
-	} else {
-		console.log("✅ JSON validation passed");
-	}
+        const schema = res.json();
 
+        function validateType(type, value) {
+            if (type === "string") return typeof value === "string";
+            if (type === "integer") return Number.isInteger(value);
+            if (type === "boolean") return typeof value === "boolean";
+            if (type === "object") return value !== null && typeof value === "object";
+            if (type === "array") return Array.isArray(value);
+            if (type === "null") return value === null;
+            return false;
+        }
+
+        function validateJson(jsonData, schema) {
+            const requiredFields = schema.required || [];
+            
+            for (let key in schema.properties) {
+                const propertySchema = schema.properties[key];
+
+                if (!(key in jsonData)) {
+                    if (!requiredFields.includes(key)) {
+                        continue;
+                    }
+                    console.error(`The property '${key}' is required.`);
+                    pm.test(`Validation of '${key}' failed`, function () {
+                        throw new Error(`The property '${key}' is required.`);
+                    });
+                    return false;
+                }
+
+                const value = jsonData[key];
+
+                const expectedTypes = Array.isArray(propertySchema.type) ? propertySchema.type : [propertySchema.type];
+                if (propertySchema.nullable && !expectedTypes.includes("null")) {
+                    expectedTypes.push("null");
+                }
+
+                const isValidType = expectedTypes.some(type => validateType(type, value));
+                if (!isValidType) {
+                    console.error(`The type of '${key}' is invalid. Expected: ${expectedTypes.join(', ')}.`);
+                    pm.test(`Validation of '${key}' failed`, function () {
+                        throw new Error(`The type of '${key}' is invalid. Expected: ${expectedTypes.join(', ')}.`);
+                    });
+                    return false;
+                }
+
+                if (propertySchema.type === "object" && value !== null && typeof value === "object" && propertySchema.properties) {
+                    if (!validateJson(value, propertySchema)) {
+                        console.error(`The object '${key}' is invalid.`);
+                        pm.test(`Validation of '${key}' failed`, function () {
+                            throw new Error(`The object '${key}' is invalid.`);
+                        });
+                        return false;
+                    }
+                }
+
+                if (propertySchema.type === "array" && Array.isArray(value) && propertySchema.items) {
+                    for (let item of value) {
+                        if (!validateJson(item, propertySchema.items)) {
+                            console.error(`The item in '${key}' is invalid.`);
+                            pm.test(`Item in '${key}' failed`, function () {
+                                throw new Error(`The item in '${key}' is invalid.`);
+                            });
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        const isValid = validateJson(jsonData, schema);
+        if (isValid) {
+            console.log("✅ Valid JSON!");
+            pm.test("JSON validation passed", function () {
+                pm.expect(true).to.eql(true);
+            });
+        } else {
+            pm.globals.set("loggingType", "ERROR");
+            console.log("❌ Invalid JSON!");
+            pm.test("JSON validation failed", function () {
+                throw new Error("The provided JSON is invalid");
+            });
+        }
+    });
 }
-
 
 parseScenarioData = function(jsonData) {
 	var nextWeekday = get_next_weekday(new Date());
@@ -325,7 +430,7 @@ parseScenarioData = function(jsonData) {
 			
 			osdmOfferSearchCriteria(
 				jsonData.offerSearchCriteria[dataFileIndex].currency,
-				null,
+				jsonData.offerSearchCriteria[dataFileIndex].offerMode,
 				jsonData.offerSearchCriteria[dataFileIndex].requestedOfferParts,
 				jsonData.offerSearchCriteria[dataFileIndex].flexibilities,
 				jsonData.offerSearchCriteria[dataFileIndex].serviceClass,
@@ -333,10 +438,14 @@ parseScenarioData = function(jsonData) {
 				null
 			);
 
-			osdmFulfillmentOptions([
-				new FulfillmentOption(jsonData.requestedFulfillmentOptions[dataFileIndex].fulfillmentType, jsonData.requestedFulfillmentOptions[dataFileIndex].fulfillmentMedia)
+			
+			const fulfillmentType = jsonData.requestedFulfillmentOptions[dataFileIndex]?.fulfillmentType ?? null;
+			const fulfillmentMedia = jsonData.requestedFulfillmentOptions[dataFileIndex]?.fulfillmentMedia ?? null;
+			if(fulfillmentType != null && fulfillmentMedia != null) {
+				osdmFulfillmentOptions([
+				new FulfillmentOption(fulfillmentType, fulfillmentMedia)
 			]);
-
+			}
             foundCorrectDataSet = true;
             validationLogger("[INFO] correct data set was found for this scenario : "+scenarioCode);
         }
@@ -365,12 +474,23 @@ osdmTripSearchCriteria = function (legDefinitions) {
 
 	var tripParameters = new TripParameters(tripDataFilter);
 
-	var tripSearchCriteria = new TripSearchCriteria(
-		legDef.startDateTime.substring(0, legDef.startDateTime.length - 6) ,
-		new StopPlaceRef(legDef.startStopPlaceRef),
-		new StopPlaceRef(legDef.endStopPlaceRef),
-		tripParameters
-	);
+	var sandbox = pm.environment.get("api_base");
+	if (sandbox.includes("paxone")) {
+		console.log("sandbox : "+sandbox);
+		var tripSearchCriteria = new TripSearchCriteria(
+			legDef.startDateTime.substring(0, legDef.startDateTime.length - 6) ,
+			new StopPlaceRef(legDef.startStopPlaceRef),
+			new StopPlaceRef(legDef.endStopPlaceRef),
+			null
+		);
+	} else {
+		var tripSearchCriteria = new TripSearchCriteria(
+			legDef.startDateTime.substring(0, legDef.startDateTime.length - 6) ,
+			new StopPlaceRef(legDef.startStopPlaceRef),
+			new StopPlaceRef(legDef.endStopPlaceRef),
+			tripParameters
+		);
+	}
 	
 	pm.globals.set(OFFER.TRIP_SEARCH_CRITERIA, JSON.stringify(tripSearchCriteria));
 };
@@ -460,7 +580,10 @@ osdmOfferSearchCriteria = function (
     if (currency != null && currency != '') {
         offerSearchCriteria.currency = currency;
     }
-
+    if(offerMode != null && offerMode != ''){
+        console.log("Offer Mode : " + offerMode);
+        offerSearchCriteria.offerMode = offerMode;
+    }
     if (Array.isArray(offerParts) && offerParts.length > 0) {
         offerSearchCriteria.requestedOfferParts = offerParts;
     }
@@ -501,7 +624,7 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	
 	pm.test("offers are returned", function () {
 	    pm.expect(offers).not.to.be.empty;
-        console.log("[INFO] desiredType : "+scenarioType);
+        validationLogger("[INFO] desiredType : "+scenarioType);
 	    var requireAdmission = false;
 	    var requireAncillary = false;
 	    var requireReservation = false;

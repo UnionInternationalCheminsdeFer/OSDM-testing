@@ -4,43 +4,32 @@
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3.4",
-            "desiredType": "ADMISSION",
             "currency": "EUR",
             "refundOverruleCode": "DISRUPTION",
+			"refundDate": null,
             "tripRequirementId": 1,
-            "passengersListId": 1,
-            "desiredFlexibility": "FULL_FLEXIBLE"
+            "passengersListId": 1
         }
     ],
 	"offerSearchCriteria": [
         {
-			"requestedOfferParts": ["ADMISSION"],
             "currency": "EUR",
-            "serviceClass": "STANDARD",
-            "travelClass": "SECOND",
             "requiresPlaceSelection": false,
-            "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+            "offerMode": "INDIVIDUAL"
+
         }
     ],
-	"requestedFulfillmentOptions": [
-        {
-            "fulfillmentMedia": "UIC_PDF",
-            "fulfillmentType": "ETICKET"
-        }
-    ],
+	"requestedFulfillmentOptions": [],
     "tripRequirements": [
         {
             "id": 1,
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8814001",
-                    "destination": "urn:uic:stn:8892007",
-                    "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": ""
+                    "origin": "urn:uic:stn:0088140010",
+                    "destination": "urn:uic:stn:0070154005",
+                    "startDatetime": "%TRIP_DATE%T07:00:00Z+02:00",
+                    "endDatetime": "%TRIP_DATE%T10:20:00Z+02:00"
                 }
         }
     ],
