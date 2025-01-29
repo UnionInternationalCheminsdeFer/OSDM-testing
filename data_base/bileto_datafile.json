@@ -2,12 +2,12 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_5_ReasonCode",
+            "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": null,
+			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
@@ -15,10 +15,11 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_Multileg",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": null,
+			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
@@ -30,7 +31,7 @@
             "currency": "EUR",
             "serviceClass": "STANDARD",
             "travelClass": "SECOND",
-            "requiresPlaceSelection": true,
+            "requiresPlaceSelection": false,
             "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
         }
     ],
@@ -73,7 +74,7 @@
                     "operatorCode": "urn:uic:rics:3189"
                 },
                 {
-                    "origin": "urn:uic:stn:5457076",
+                    "origin": "urn:uic:stn:5454300",
                     "destination": "urn:uic:stn:5454212",
                     "startDatetime": "%TRIP_DATE%T09:53:00+01:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+01:00",

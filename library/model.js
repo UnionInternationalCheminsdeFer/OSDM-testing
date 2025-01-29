@@ -247,7 +247,9 @@ var TripSearchCriteria = class {
         this.departureTime = departureTime;
         this.origin = origin;
         this.destination = destination;
-        this.parameters = parameters;
+        if (parameters) {
+            this.parameters = parameters;
+        }
     }
 };
 
