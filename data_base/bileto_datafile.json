@@ -72,17 +72,6 @@
                     "productCategoryShortName": "",
                     "vehicleNumber": "1140",
                     "operatorCode": "urn:uic:rics:3189"
-                },
-                {
-                    "origin": "urn:uic:stn:5454300",
-                    "destination": "urn:uic:stn:5454212",
-                    "startDatetime": "%TRIP_DATE%T09:53:00+01:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+01:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
                 }
             ]
         }

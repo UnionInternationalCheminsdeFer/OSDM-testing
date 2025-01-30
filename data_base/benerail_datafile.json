@@ -42,6 +42,23 @@
                     "productCategoryName": "",
                     "productCategoryShortName": ""
                 }
+        },
+        {
+            "id": 2,
+            "tripType": "SPECIFICATION",
+            "legs": [
+                {
+                    "origin": "urn:uic:stn:8814001",
+                    "destination": "urn:uic:stn:8892007",
+                    "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
+                    "productCategoryRef": "",
+                    "productCategoryName": "",
+                    "productCategoryShortName": "",
+                    "vehicleNumber": "1140",
+                    "operatorCode": "urn:uic:rics:3189"
+                }
+            ]
         }
     ],
     "passengersList": [

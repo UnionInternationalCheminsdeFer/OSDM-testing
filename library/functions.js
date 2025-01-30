@@ -77,7 +77,7 @@ function buildBookingRequest() {
 		var detail = new DetailContact("Pur","Chaser", contact);
 		var purchaser = new PurchaserContact(detail);
 	} else {	
-		var detail = new Detail("Pur","Chaser",);
+		var detail = new Detail("Pur","Chaser","yourusername@example.com","+33612345678");
 		var purchaser = new Purchaser(detail);
 	}
 	var sandbox = pm.environment.get("api_base");
@@ -1907,9 +1907,10 @@ function validateBookingResponseRefund(response, refundType) {
 			validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
 		});
 	} else if (refundType == "delete") {
-		pm.test("Refund offers are not present, empty table returned", function () {
-			pm.expect(jsonResponse).to.have.property("refundOffers").that.is.an("array").that.is.empty;
+		pm.test("Refund offers are not present, empty array returned", function () {
+			pm.expect(pm.response.json()).to.have.property("refundOffers").that.is.an("array").that.is.empty;
 		});
+		
 	}
 
 	//TODO Valid Until to check 

@@ -31,6 +31,18 @@
                     "startDatetime": "%TRIP_DATE%T07:00:00Z+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00Z+02:00"
                 }
+        },
+        {
+            "id": 2,
+            "tripType": "SPECIFICATION",
+            "legs": [
+                {
+                    "origin": "urn:uic:stn:0088140010",
+                    "destination": "urn:uic:stn:0070154005",
+                    "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T09:30:00+01:00"
+                }
+            ]
         }
     ],
     "passengersList": [
