@@ -19,10 +19,10 @@
 							"ERROR"
 						]
 					},
-					"osdmVersion": {
+					"code": {
 						"type": "string"
 					},
-					"code": {
+					"osdmVersion": {
 						"type": "string"
 					},
 					"desiredType": {
@@ -41,7 +41,10 @@
 						"type": "string"
 					},
 					"refundDate": {
-						"type": ["string", "null"]
+						"type": [
+							"string",
+							"null"
+						]
 					},
 					"tripRequirementId": {
 						"type": "integer"
@@ -70,7 +73,6 @@
 		},
 		"offerSearchCriteria": {
 			"type": "array",
-			"title": "Offer Search Criteria",
 			"items": {
 				"type": "object",
 				"properties": {
@@ -79,26 +81,33 @@
 						"items": {
 							"type": "string",
 							"enum": [
-								"ADMISSION",
 								"RESERVATION",
-								"ANCILLARY",
-								"ALL"
+								"ADMISSION"
 							]
 						}
 					},
 					"currency": {
-						"type": "string"
+						"type": "string",
+						"minLength": 3,
+						"maxLength": 3
 					},
 					"serviceClass": {
-						"type": "string"
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"STANDARD"
+							]
+						}
 					},
 					"travelClass": {
-						"type": "string",
-						"enum": [
-							"ANY_CLASS",
-							"FIRST",
-							"SECOND"
-						]
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"SECOND"
+							]
+						}
 					},
 					"requiresPlaceSelection": {
 						"type": "boolean"
@@ -109,15 +118,14 @@
 							"type": "string",
 							"enum": [
 								"FULL_FLEXIBLE",
-								"SEMI_FLEXIBLE",
 								"NON_FLEXIBLE"
 							]
 						}
 					}
 				},
 				"required": [
-					"currency",
-					"requiresPlaceSelection"
+					"requestedOfferParts",
+					"currency"
 				]
 			}
 		},
@@ -125,24 +133,24 @@
 			"type": "array",
 			"items": {
 				"type": "object",
-				"title": "Requested Fulfillment Option",
 				"properties": {
 					"fulfillmentMedia": {
 						"type": "string",
 						"enum": [
-							"PDF_A4",
-							"UIC_PDF"
+							"PDF_A4"
 						]
 					},
 					"fulfillmentType": {
 						"type": "string",
 						"enum": [
-							"ETICKET",
-							"PDF_A4",
-							"UIC_PDF"
+							"ETICKET"
 						]
 					}
-				}
+				},
+				"required": [
+					"fulfillmentMedia",
+					"fulfillmentType"
+				]
 			}
 		},
 		"tripRequirements": {
@@ -159,96 +167,25 @@
 							"SEARCH",
 							"SPECIFICATION"
 						]
+					},
+					"trip": {
+						"type": "object"
+					},
+					"legs": {
+						"type": "array",
+						"items": {
+							"type": "object"
+						}
 					}
 				},
 				"required": [
 					"id",
 					"tripType"
-				],
-				"if": {
-					"properties": {
-						"tripType": {
-							"const": "SEARCH"
-						}
-					}
-				},
-				"then": {
-					"properties": {
-						"trip": {
-							"type": "object",
-							"properties": {
-								"origin": {
-									"type": "string"
-								},
-								"destination": {
-									"type": "string"
-								},
-								"startDatetime": {
-									"type": "string"
-								},
-								"endDatetime": {
-									"type": "string"
-								},
-								"vehicleNumber": {
-									"type": "string"
-								},
-								"operatorCode": {
-									"type": "string"
-								}
-							},
-							"required": [
-								"origin",
-								"destination",
-								"startDatetime",
-								"endDatetime"
-							]
-						}
-					},
-					"required": [
-						"trip"
-					]
-				},
-				"else": {
-					"properties": {
-						"legs": {
-							"type": "object",
-							"properties": {
-								"origin": {
-									"type": "string"
-								},
-								"destination": {
-									"type": "string"
-								},
-								"startDatetime": {
-									"type": "string"
-								},
-								"endDatetime": {
-									"type": "string"
-								},
-								"vehicleNumber": {
-									"type": "string"
-								},
-								"operatorCode": {
-									"type": "string"
-								}
-							},
-							"required": [
-								"origin",
-								"destination",
-								"startDatetime",
-								"endDatetime"
-							]
-						}
-					},
-					"required": [
-						"legs"
-					]
-				}
+				]
 			}
 		},
 		"passengersList": {
 			"type": "array",
-			"title": "Passenger List",
 			"items": {
 				"type": "object",
 				"properties": {
@@ -264,8 +201,7 @@
 									"type": "string"
 								},
 								"dateOfBirth": {
-									"type": "string",
-									"format": "date"
+									"type": "string"
 								},
 								"patchFirstName": {
 									"type": "string"
@@ -274,29 +210,21 @@
 									"type": "string"
 								},
 								"patchDateOfBirth": {
-									"type": "string",
-									"format": "date"
+									"type": "string"
 								},
 								"patchPhoneNumber": {
 									"type": "string"
 								},
 								"patchEmail": {
-									"type": "string",
-									"format": "email"
+									"type": "string"
 								},
 								"type": {
 									"type": "string",
 									"enum": [
-										"PERSON",
-										"GROUP"
+										"PERSON"
 									]
 								}
-							},
-							"required": [
-								"reference",
-								"dateOfBirth",
-								"type"
-							]
+							}
 						}
 					}
 				},

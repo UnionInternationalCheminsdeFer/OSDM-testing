@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "ff4d3c50-8243-4860-b071-0961e50db629",
-		"name": "OTST_V1.1.4_RFND_ALL_MonoLeg_MonoPax",
+		"name": "OTST_V1.2.0_RFND_ALL_Multileg_Multipax.postman_collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -13,15 +13,14 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
-							"",
-							"var jsonData = JSON.parse(responseBody);",
-							"",
 							"if (pm.response.code && pm.response.code !== 200) {",
-							"    console.warn(`Warning: Received unexpected status code ${jsonData.status}`);",
+							"    console.warn(`Warning: Received unexpected status code`);",
 							"    pm.execution.setNextRequest(null);",
-							"    throw new Error(`Exiting script due to response status: ${jsonData.status}`);",
+							"    throw new Error(`Exiting script due to wrong response status`);",
 							"}",
+							"",
+							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"var jsonData = JSON.parse(responseBody);",
 							"",
 							"pm.test('Successfully received offers', function () {",
 							"    pm.expect(pm.response.code).to.eql(200);",
@@ -58,8 +57,8 @@
 					"script": {
 						"exec": [
 							"eval(pm.globals.get(\"osdmHelpers\"));\r",
-							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-							"buildOfferCollectionRequest();"
+							"buildOfferCollectionRequest();\r",
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -95,7 +94,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{OfferCollectionRequest}}\r\n\r\n/*\r\n{\r\n    \"objectType\": \"OfferCollectionRequest\",\r\n    \"tripSpecifications\": [\r\n        {\r\n            \"externalRef\": \"76123ea3-87f9-4b8c-85c0-87b8e4ad002c\",\r\n            \"legs\": [\r\n                {\r\n                    \"externalRef\": \"0313277f-c4bc-4a81-8540-d15afeaef965\",\r\n                    \"timedLeg\": {\r\n                        \"start\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5457076\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceDeparture\": {\r\n                                \"timetabledTime\": \"2024-11-13T07:23:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"end\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454300\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceArrival\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:10:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"service\": {\r\n                            \"vehicleNumbers\": [\r\n                                \"1140\"\r\n                            ],\r\n                            \"carriers\": [\r\n                                {\r\n                                    \"ref\": \"urn:uic:rics:3189\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    }\r\n                },\r\n                {\r\n                    \"externalRef\": \"0313277f-c4bc-4a81-8540-d15afeaef965\",\r\n                    \"timedLeg\": {\r\n                        \"start\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454300\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceDeparture\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:20:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"end\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454212\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceArrival\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:53:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"service\": {\r\n                            \"vehicleNumbers\": [\r\n                                \"1062\"\r\n                            ],\r\n                            \"carriers\": [\r\n                                {\r\n                                    \"ref\": \"urn:uic:rics:3189\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    }\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"anonymousPassengerSpecifications\": [\r\n    {\r\n            \"dateOfBirth\": \"1996-01-01\",\r\n            \"externalRef\": \"fa42f631-7fe6-4ef5-921f-4046076e4360\",\r\n            \"type\": \"PERSON\",\r\n            \"cards\": [],\r\n            \"prmNeeds\": []\r\n        }\r\n  ],\r\n    \"offerSearchCriteria\": {\r\n        \"currency\": \"CZK\",\r\n        \"requestedOfferParts\": [\r\n            \"RESERVATION\"\r\n        ],\r\n        \"serviceClassTypes\": [\r\n            \"STANDARD\"\r\n        ],\r\n        \"comfortClasses\": [\r\n            \"SECOND\"\r\n        ]\r\n    },\r\n    \"requestedFulfillmentOptions\": [\r\n        {\r\n            \"type\": \"ETICKET\",\r\n            \"media\": \"PDF_A4\"\r\n        }\r\n    ],\r\n    \"embed\": [\r\n        \"ALL\"\r\n    ]\r\n}*/",
+					"raw": "{{OfferCollectionRequest}}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -440,7 +439,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth}}\",\r\n  \"type\": \"PERSON\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName}}\",\r\n    \"lastName\": \"{{patchLastName}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber}}\"\r\n    }\r\n  }\r\n}",
+					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth_0}}\",\r\n  \"type\": \"PERSON\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName_0}}\",\r\n    \"lastName\": \"{{patchLastName_0}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail_0}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber_0}}\"\r\n    }\r\n  }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -1343,7 +1342,9 @@
 					"",
 					"var scenarioType = \"RESERVATION\";",
 					"var scenarioCode = \"OTST_TS_OB_RFND\";",
-					"//var scenarioCode = \"OTST_TS_OB_RFND_5_Multileg\";",
+					"//var scenarioCode = \"OTST_TS_OB_RFND_Multipax\";",
+					"//var scenarioCode = \"OTST_TS_OB_RFND_Multileg_Search\";",
+					"//var scenarioCode = \"OTST_TS_OB_RFND_Multileg_Specification\";",
 					"",
 					"",
 					"function pad(number) {",
@@ -1376,6 +1377,7 @@
 					"    pm.sendRequest({",
 					"        url: pm.environment.get(\"library_base\") + jsLibraries[0] + \".js\",",
 					"        method: 'GET',",
+					"        proxy: false",
 					"    }, function (err, res) {",
 					"        if (err) {",
 					"            console.log(err);",
@@ -1401,12 +1403,25 @@
 					"# 🛠️  New Collection Execution 🛠️ #",
 					"####################################",
 					"`);",
-					"    console.log(\"Clearing the globals\")",
-					"    ",
+					"    console.log(\"[INFO] ⏳ Clearing the globals\")",
+					"",
+					"    // Clear all global variables",
 					"    pm.globals.clear();",
-					"    ",
+					"",
+					"    // Retrieve all global variables as an object",
+					"    let globals = pm.globals.toObject();",
+					"",
+					"    // Check if any global variables remain",
+					"    if (Object.keys(globals).length !== 0) {",
+					"        throw new Error(\"⛔ Global variables were not cleared successfully!\");",
+					"    } else {",
+					"        console.log(\"[INFO] ✅ All global variables have been successfully cleared.\");",
+					"    }",
+					"",
+					"    Object.keys(pm.globals.toObject()).forEach((key) => pm.globals.unset(key));",
+					"",
 					"    setTimeout(2000);",
-					"    ",
+					"    pm.globals.unset(\"osdmHelpers\");",
 					"    if (!pm.globals.get(\"osdmHelpers\")) {",
 					"        libGetter();",
 					"    }",
