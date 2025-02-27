@@ -3,7 +3,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND",
-            "osdmVersion": "3",
+            "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -14,8 +14,20 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_5_Multileg",
-            "osdmVersion": "3",
+            "code": "OTST_TS_OB_RFND_Multipax",
+            "osdmVersion": "3.4",
+            "desiredType": "ADMISSION",
+            "currency": "CZK",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 2,
+            "desiredFlexibility": "NON_FLEXIBLE"
+        },        
+        {
+			"loggingType": "INFO",
+            "code": "OTST_TS_OB_RFND_Multileg_Search",
+            "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -23,14 +35,26 @@
             "tripRequirementId": 2,
             "passengersListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_TS_OB_RFND_Multileg_Specification",
+            "osdmVersion": "3.4",
+            "desiredType": "ADMISSION",
+            "currency": "CZK",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 3,
+            "passengersListId": 1,
+            "desiredFlexibility": "NON_FLEXIBLE"
         }
     ],
 	"offerSearchCriteria": [
         {
 			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
-            "currency": "EUR",
-            "serviceClass": "STANDARD",
-            "travelClass": "SECOND",
+            "currency": "CZK",
+            "serviceClass": ["STANDARD"],
+            "travelClass": ["SECOND"],
             "requiresPlaceSelection": false,
             "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
         }
@@ -60,6 +84,22 @@
         },
         {
             "id": 2,
+            "tripType": "SEARCH",
+            "trip": 
+                {
+                    "origin": "urn:uic:stn:5457076",
+                    "destination": "urn:uic:stn:5454212",
+                    "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
+                    "productCategoryRef": "",
+                    "productCategoryName": "",
+                    "productCategoryShortName": "",
+                    "vehicleNumber": "1140",
+                    "operatorCode": "urn:uic:rics:3189"
+                }
+        },        
+        {
+            "id": 3,
             "tripType": "SPECIFICATION",
             "legs": [
                 {
@@ -71,6 +111,17 @@
                     "productCategoryName": "",
                     "productCategoryShortName": "",
                     "vehicleNumber": "1140",
+                    "operatorCode": "urn:uic:rics:3189"
+                },
+                {
+                    "origin": "urn:uic:stn:5454300",
+                    "destination": "urn:uic:stn:5454212",
+                    "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
+                    "productCategoryRef": "",
+                    "productCategoryName": "",
+                    "productCategoryShortName": "",
+                    "vehicleNumber": "1062",
                     "operatorCode": "urn:uic:rics:3189"
                 }
             ]
@@ -86,6 +137,31 @@
 					"patchFirstName": "John",
 					"patchLastName": "Doe",
                     "patchDateOfBirth": "1999-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "passengers": [
+                {
+                    "reference": "12345",
+                    "dateOfBirth": "1999-01-01",
+					"patchFirstName": "John",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "1999-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "54321",
+                    "dateOfBirth": "2000-01-01",
+					"patchFirstName": "Marta",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "2000-01-02",
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"
