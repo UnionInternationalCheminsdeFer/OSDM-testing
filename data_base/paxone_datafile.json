@@ -5,11 +5,11 @@
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
         {
@@ -17,11 +17,11 @@
             "code": "OTST_TS_OB_RFND_Multipax",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
+            "requestedFulfillmentOptionsListId": 2,
             "desiredFlexibility": "NON_FLEXIBLE"
         },        
         {
@@ -29,11 +29,11 @@
             "code": "OTST_TS_OB_RFND_Multileg_Search",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
         {
@@ -41,25 +41,27 @@
             "code": "OTST_TS_OB_RFND_Multileg_Specification",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         }
     ],
 	"offerSearchCriteria": [
         {
-			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
-            "currency": "CZK",
-            "serviceClass": ["STANDARD"],
-            "travelClass": ["SECOND"],
+            "currency": "EUR",
             "requiresPlaceSelection": false,
-            "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+            "offerMode": "INDIVIDUAL"
         }
     ],
-	"requestedFulfillmentOptions": [],
+	"requestedFulfillmentOptions": [
+        {
+            "id": 1,
+            "requestedFulfillmentOptions": []
+        }
+    ],
     "tripRequirements": [
         {
             "id": 1,

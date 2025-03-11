@@ -335,9 +335,9 @@ parseScenarioData = function(jsonData) {
 							pm.globals.set(`${legPrefix}EndDatetime`, endDatetime);
 							pm.globals.set(`${legPrefix}VehicleNumber`, leg.vehicleNumber);
 							pm.globals.set(`${legPrefix}OperatorCode`, leg.operatorCode);
-							pm.globals.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef);
-							pm.globals.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName);
-							pm.globals.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName);
+							pm.globals.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
+							pm.globals.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
+							pm.globals.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
 
 							// Add the leg definition to the array
 							legDefinitions.push(new TripLegDefinition(
@@ -365,10 +365,9 @@ parseScenarioData = function(jsonData) {
 						pm.globals.set("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
 						pm.globals.set("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
 						pm.globals.set("tripOperatorCode", tripRequirement.trip.operatorCode);
-						pm.globals.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef);
-						pm.globals.set("tripProductCategoryName", tripRequirement.trip.productCategoryName);
-						pm.globals.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName);
-
+						pm.globals.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef || null);
+						pm.globals.set("tripProductCategoryName", tripRequirement.trip.productCategoryName || null);
+						pm.globals.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName || null);
 						// Call the function to set trip search criteria
 						osdmTripSearchCriteria([
 							new TripLegDefinition(
@@ -458,11 +457,11 @@ parseScenarioData = function(jsonData) {
 					return true;
 				}
 			});
-			
+
 			// Set offer search criteria in global variables
 			osdmOfferSearchCriteria(
 				pm.globals.get("offerSearchCriteriaCurrency") || null,
-				pm.globals.get("offerMode") || [],
+				pm.globals.get("offerMode") || null,
 				pm.globals.get("requestedOfferParts") || [],
 				pm.globals.get("flexibilities") || [],
 				pm.globals.get("offerSearchCriteriaSearchClass") || null,
@@ -470,15 +469,35 @@ parseScenarioData = function(jsonData) {
 				null
 			);
 
-			// Set fulfillment options in global variables
-			pm.globals.set("fulfillmentType", jsonData.requestedFulfillmentOptions[0].fulfillmentType);
-			pm.globals.set("fulfillmentMedia", jsonData.requestedFulfillmentOptions[0].fulfillmentMedia);
-			const fulfillmentType = jsonData.requestedFulfillmentOptions[0].fulfillmentType ?? null;
-			if(pm.globals.get("fulfillmentType") != null && pm.globals.get("fulfillmentMedia") != null) {
-				osdmFulfillmentOptions([
-				new FulfillmentOption(pm.globals.get("fulfillmentType"), pm.globals.get("fulfillmentMedia"))
-			]);
+			// Loop through the requested fulfillment options list to find the matching fulfillment options ID
+			if (Array.isArray(jsonData.requestedFulfillmentOptionsList) && jsonData.requestedFulfillmentOptionsList.length > 0) {
+				// Loop through the requested fulfillment options list to find the matching fulfillment options ID
+				jsonData.requestedFulfillmentOptionsList.some(function(requestedFulfillmentOptionList) {
+					if (requestedFulfillmentOptionList.id == jsonData.scenarios[dataFileIndex].requestedFulfillmentOptionsListId) {
+						var requestedFulfillmentOptions = [];
+						console.log("DUMMY2");
+			
+						requestedFulfillmentOptionList.requestedFulfillmentOptions.forEach(function(requestedFulfillmentOption) {
+							// pm.globals.set("fulfillmentType", requestedFulfillmentOption.fulfillmentType);
+							// pm.globals.set("fulfillmentMedia", requestedFulfillmentOption.fulfillmentMedia);
+							const fulfillmentType = requestedFulfillmentOption.fulfillmentType ?? null;
+							const fulfillmentMedia = requestedFulfillmentOption.fulfillmentMedia ?? null;
+							
+							if (fulfillmentType != null && fulfillmentMedia != null) {
+								requestedFulfillmentOptions.push(new FulfillmentOption(fulfillmentType, fulfillmentMedia));
+							}
+						});
+			
+						console.log("DUMM3");
+						osdmFulfillmentOptions(requestedFulfillmentOptions);
+						return true; // Stop iteration once found
+					}
+				});
+			} else {
+				validationLogger("[ERROR] requestedFulfillmentOptionsList is empty or not an array.");
 			}
+			
+
 			foundCorrectDataSet = true;
 			validationLogger("[INFO] ✅ Correct data set was found for this scenario : "+scenarioCode);
 		}
@@ -733,47 +752,50 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 				if(offer.admissionOfferParts!=undefined && requireAdmission==true) {
 					var admissionOfferPartsIndex = 0;
 					var admissionOfferPartsLength = offer.admissionOfferParts.length;
+					var passengerIndex = 0;
 					
 					// Check admissions for items
 					while(admissionOfferPartsIndex < admissionOfferPartsLength) {
 						var admissionOfferPart = offer.admissionOfferParts[admissionOfferPartsIndex];
 
-						 var passengerIndex = 0;
-						 var passengerLength = passengerSpecifications.length;
+						var passengerLength = passengerSpecifications.length;
 
-						 admissionOfferPart.passengerRefs.forEach(function(passengerRef){
-							while(passengerIndex<passengerLength){
+						for (let passengerRef of admissionOfferPart.passengerRefs) {
+							let passengerFound = false;
+
+							for (let passenger of passengerSpecifications) {
 								
-								if(passengerSpecifications[passengerIndex].externalRef==passengerRef){
-
+								if (passenger.externalRef === passengerRef) {
+									passengerFound = true;
+						
 									// Check if fulfillment options were requested
-									if(fulfillmentOptions!=undefined) {
-
-										var correctFulfillmentOption = false;
-										var fulfillmentOptionRequested = JSON.parse(fulfillmentOptions);
-
-										admissionOfferPart.availableFulfillmentOptions.forEach(function(fulfillmentOption){
-
-											if(fulfillmentOption.type==fulfillmentOptionRequested[0].type&&fulfillmentOption.media==fulfillmentOptionRequested[0].media) {
+									if (fulfillmentOptions !== undefined) {
+						
+										let correctFulfillmentOption = false;
+										let fulfillmentOptionRequested = JSON.parse(fulfillmentOptions);
+						
+										for (let fulfillmentOption of admissionOfferPart.availableFulfillmentOptions) {
+											if (fulfillmentOption.type === fulfillmentOptionRequested[0].type &&
+												fulfillmentOption.media === fulfillmentOptionRequested[0].media) {
 												correctFulfillmentOption = true;
 												foundAdmissions++;
 											}
-										});
-
+										}
+						
 										pm.test("Correct requested fulfillments are returned", function () {
 											pm.expect(correctFulfillmentOption).to.equal(true);
-											
 										});
 									} else {
 										foundAdmissions++;
 									}
-									
+									break;
 								}
-
-								passengerIndex++;
 							}
-						 });
-
+						
+							if (!passengerFound) {
+								console.log("Passenger ref not found:", passengerRef);
+							}
+						}
 						admissionOfferPartsIndex++;
 					}
 				}
@@ -967,19 +989,22 @@ validateOfferResponse = function(passengerSpecifications, searchCriteria, fulfil
 	if (!Array.isArray(offers) || offers.length === 0) {
 		throw new Error("[INFO] ⛔ Error: offers array is empty!");
 	}
-	let selectedOffer = offers.find(offer => 
-		offer.offerSummary.overallFlexibility === desiredFlexibility
+
+	let selectedOffers = offers.filter(offer => 
+		offer.offerSummary && offer.offerSummary.overallFlexibility === desiredFlexibility
 	);
+	let selectedOffer = selectedOffers.length > 0 ? selectedOffers[0] : null;
+
 	pm.globals.set("offers", offers);
-	if (selectedOffer) {
-		validationLogger("[INFO] 🔍 Selected offer : ", selectedOffer);
+	if (selectedOffer != null) {
+		console.log("[INFO] 🔍 Selected offer : ", selectedOffer);
 		pm.globals.set("offerId", selectedOffer.offerId);
 		pm.globals.set("offer", selectedOffer);
 	} else {
 		pm.globals.set("offerId", offers[0].offerId);
 		pm.globals.set("offer", offers[0]);
 		validationLogger("[INFO] Offer doesn't match the entry FLEXIBILITY criteria, taking the 1st offer in the list and displaying warning.");
-		validationLogger("[INFO] 🔍 Selected offer : ", offers[0]);
+		console.log("[INFO] 🔍 Selected offer : ", offers[0]);
 		validationLogger("[INFO] ⚠️ Warnings  : ", jsonData.warnings);
 		// Taking the 1st as default 
 	}
@@ -1101,6 +1126,22 @@ validateBookingResponse = function( passengerSpecifications, searchCriteria, ful
 	var passengers = booking.passengers;
 	var confirmationTimeLimit = new Date(booking.confirmationTimeLimit);
 	var bookedOffers = booking.bookedOffers;
+
+	pm.globals.set("bookingId", bookingId);
+
+	if (jsonData.booking && Array.isArray(jsonData.booking.passengers) && jsonData.booking.passengers.length > 0) {
+		for (var i = 0; i < jsonData.booking.passengers.length; i++) {
+			var passengerId = jsonData.booking.passengers[i].id;
+			console.log("Passenger ID: " + passengerId);
+			if (passengerId) {
+				pm.globals.set("passengerId_" + i, passengerId);
+			} else {
+				validationLogger("[WARNING] Passenger at index " + i + " has no ID.");
+			}
+		}
+	} else {
+		validationLogger("[ERROR] Passengers structure is invalid or empty.");
+	}
 
 	// Log booking and offer information
 	validationLogger("[INFO] Checking booking with Id : " + bookingId);
@@ -1278,14 +1319,18 @@ compareAdmissions = function(bookedAdmission, offeredAdmission, booking){
 
 	// Compare products
 	pm.test("Products of the admission should be correct", function () {
-		bookedAdmission.products.forEach(function(bookedProduct){
-			var found = offeredAdmission.products.some(function(offeredProduct){
-				if(bookedProduct.productId==offeredProduct.productId){
-					return true;
+		for (var i = 0; i < bookedAdmission.products.length; i++) {
+			var bookedProduct = bookedAdmission.products[i];
+			var found = false;
+			for (var j = 0; j < offeredAdmission.products.length; j++) {
+				var offeredProduct = offeredAdmission.products[j];
+				if (bookedProduct.productId == offeredProduct.productId) {
+					found = true;
+					break;
 				}
-			});
+			}
 			pm.expect(found).to.equal(true);
-		});
+		}
 	});
 	
 	// Compare exchangeable property
@@ -1419,7 +1464,7 @@ compareAncillaries = function(ancillary1, ancillary2, booking){
 
 // Function to log validation messages based on logging type
 validationLogger = function (message) {
-	var loggingType = pm.globals.get("loggingType") || "FULL"; 
+	var loggingType = pm.globals.get("loggingType") || "INFO"; 
 	switch (loggingType) {
 		case "FULL":
 			console.log(message);
@@ -1453,9 +1498,7 @@ checkGenericBookedOfferPart = function(offerPart, state){
 
 	// Check createdOn date
 	pm.test("Correct createdOn is returned on bookedofferpart", function () {
-		pm.expect(currentDate.getDate()).to.equal(createdOn.getDate());
-		pm.expect(currentDate.getMonth()).to.equal(createdOn.getMonth());
-		pm.expect(currentDate.getFullYear()).to.equal(createdOn.getFullYear());
+		pm.expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
 	});
 	totalProvisionalOrBookingPrice += calculateTotalAmount(offerPart);
 
@@ -1552,18 +1595,25 @@ checkFulFilledBooking = function(booking, offer, bookingState, fulfillmentState=
 		}
 		
 		// Check passengers
-		offer.passengerRefs.forEach(function(passenger){
+		for (var i = 0; i < offer.passengerRefs.length; i++) {
+			var passenger = offer.passengerRefs[i];
 			var found = false;
-			found = passengers.some(function(bookedPassenger){
-				validationLogger("[INFO] Checking "+bookedPassenger.externalRef+" ⇔ "+passenger);
-				if(bookedPassenger.externalRef==passenger){
-					return true;
+
+			for (var j = 0; j < passengers.length; j++) {
+				var bookedPassenger = passengers[j];
+				validationLogger("[INFO] Checking bookedPassenger.externalRef = " + bookedPassenger.externalRef + " ⇔ passenger = " + passenger);
+
+				if (bookedPassenger.externalRef == passenger) {
+					found = true;
+					break;
 				}
-			});
-			pm.test("Passenger "+passenger+" returned", function () {
+			}
+			console.log("DUMMY3")
+
+			pm.test("Passenger " + passenger + " returned", function () {
 				pm.expect(found).to.equal(true);
 			});
-		});
+		}
 		
 		// Check purchaser
 		if(booking.purchaser!=undefined&&booking.purchaser!=null&&booking.purchaser.detail!=undefined&&booking.purchaser.detail!=null) {
@@ -1778,7 +1828,7 @@ function validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPri
 			pm.expect(refundOffer.refundableAmount.amount).to.equal(0);
 		});
 	} else {
-		pm.test("Refundable amount is VALID : refundOffer.refundableAmount.amount = " + refundOffer.refundableAmount.amount + " = bookingConfirmedPrice - refundOffer.refundFee.amount", function () {
+		pm.test("Refundable amount is VALID : refundOffer.refundableAmount.amount = " + refundOffer.refundableAmount.amount + " ⇔ bookingConfirmedPrice - refundOffer.refundFee.amount", function () {
 			pm.expect(refundOffer.refundableAmount.amount).to.equal(bookingConfirmedPrice - refundOffer.refundFee.amount);
 		});
 	}
@@ -1952,7 +2002,8 @@ function validateBookingResponseRefund(response, refundType) {
 		});
 	} else if (refundType == "delete") {
 		pm.test("Refund offers are not present, empty array returned", function () {
-			pm.expect(pm.response.json()).to.have.property("refundOffers").that.is.an("array").that.is.empty;
+			pm.expect(booking).to.have.property("refundOffers").that.is.an("array");
+			pm.expect(booking.refundOffers).to.be.empty;
 		});
 	}
 }
@@ -1986,11 +2037,11 @@ function logPassengerComparison(passengerData, firstName, lastName, dateOfBirth,
 // Function to validate passenger fields
 function validatePassengerFields(firstName, lastName, dateOfBirth, phoneNumber, email) {
 	pm.test("Passenger data is valid", function () {
-		pm.expect(firstName).to.equal(pm.globals.get("patchFirstName"));
-		pm.expect(lastName).to.equal(pm.globals.get("patchLastName"));
-		pm.expect(dateOfBirth).to.equal(pm.globals.get("patchDateOfBirth"));
-		pm.expect(phoneNumber).to.equal(pm.globals.get("patchPhoneNumber"));
-		pm.expect(email).to.equal(pm.globals.get("patchEmail"));
+		pm.expect(firstName).to.equal(pm.globals.get("patchFirstName_0"));
+		pm.expect(lastName).to.equal(pm.globals.get("patchLastName_0"));
+		pm.expect(dateOfBirth).to.equal(pm.globals.get("patchDateOfBirth_0"));
+		pm.expect(phoneNumber).to.equal(pm.globals.get("patchPhoneNumber_0"));
+		pm.expect(email).to.equal(pm.globals.get("patchEmail_0"));
 	});
 }
 

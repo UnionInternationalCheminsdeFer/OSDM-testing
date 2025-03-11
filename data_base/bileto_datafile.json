@@ -5,11 +5,11 @@
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "refundOverruleCode": "TECHNICAL_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
         {
@@ -17,11 +17,11 @@
             "code": "OTST_TS_OB_RFND_Multipax",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
+            "requestedFulfillmentOptionsListId": 2,
             "desiredFlexibility": "NON_FLEXIBLE"
         },        
         {
@@ -29,11 +29,11 @@
             "code": "OTST_TS_OB_RFND_Multileg_Search",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
         {
@@ -41,11 +41,11 @@
             "code": "OTST_TS_OB_RFND_Multileg_Specification",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         }
     ],
@@ -59,10 +59,24 @@
             "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
         }
     ],
-	"requestedFulfillmentOptions": [
+    "requestedFulfillmentOptionsList": [
         {
-            "fulfillmentMedia": "PDF_A4",
-            "fulfillmentType": "ETICKET"
+            "id": 1,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "PDF_A4",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "PDF_A4",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
         }
     ],
     "tripRequirements": [

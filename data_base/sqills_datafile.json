@@ -5,11 +5,11 @@
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
         {
@@ -17,11 +17,11 @@
             "code": "OTST_TS_OB_RFND_Multipax",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
+            "requestedFulfillmentOptionsListId": 2,
             "desiredFlexibility": "NON_FLEXIBLE"
         },        
         {
@@ -29,11 +29,11 @@
             "code": "OTST_TS_OB_RFND_Multileg_Search",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
         {
@@ -41,11 +41,11 @@
             "code": "OTST_TS_OB_RFND_Multileg_Specification",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         }
     ],
@@ -59,10 +59,28 @@
             "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
         }
     ],
-	"requestedFulfillmentOptions": [
+    "requestedFulfillmentOptionsList": [
         {
-            "fulfillmentMedia": "PDF_A4",
-            "fulfillmentType": "ETICKET"
+            "id": 1,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "PDF_A4",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "PDF_A4",
+                    "fulfillmentType": "ETICKET"
+                },
+                {
+                    "fulfillmentMedia": "PDF_A4",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
         }
     ],
     "tripRequirements": [
@@ -71,8 +89,8 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8400058",
-                    "destination": "urn:uic:stn:8727100",
+                    "origin": "urn:uic:stn:8727100",
+                    "destination": "urn:uic:stn:8500010",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
                     "productCategoryRef": "",
@@ -107,7 +125,7 @@
                     "destination": "urn:uic:stn:8400058",
                     "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
                     "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
-                    "productCategoryRef": "",
+                    "productCategoryRef": "urn:uic:sbc:76",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
                     "vehicleNumber": "OSDM_202",
@@ -118,7 +136,7 @@
                     "destination": "urn:uic:stn:8727100",
                     "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
                     "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
-                    "productCategoryRef": "",
+                    "productCategoryRef": "urn:uic:sbc:76",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
                     "vehicleNumber": "OSDM_111",
@@ -140,6 +158,21 @@
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "passengers": [
+                {
+                    "reference": "12345",
+                    "dateOfBirth": "1999-01-01",
+					"patchFirstName": "John",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "1999-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
                 },
                 {
                     "reference": "54321",
@@ -150,7 +183,7 @@
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"
-                }                
+                }
             ]
         }
     ]
