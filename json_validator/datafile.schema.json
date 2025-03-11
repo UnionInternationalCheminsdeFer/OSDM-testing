@@ -12,12 +12,7 @@
 				"properties": {
 					"loggingType": {
 						"type": "string",
-						"enum": [
-							"FULL",
-							"INFO",
-							"DEBUG",
-							"ERROR"
-						]
+						"enum": ["FULL", "INFO", "DEBUG", "ERROR"]
 					},
 					"code": {
 						"type": "string"
@@ -27,10 +22,7 @@
 					},
 					"desiredType": {
 						"type": "string",
-						"enum": [
-							"ADMISSION",
-							"RESERVATION"
-						]
+						"enum": ["ADMISSION", "RESERVATION"]
 					},
 					"currency": {
 						"type": "string",
@@ -41,10 +33,8 @@
 						"type": "string"
 					},
 					"refundDate": {
-						"type": [
-							"string",
-							"null"
-						]
+						"type": "string",
+						"enum": ["null"]
 					},
 					"tripRequirementId": {
 						"type": "integer"
@@ -52,22 +42,21 @@
 					"passengersListId": {
 						"type": "integer"
 					},
+					"requestedFulfillmentOptionsListId": {
+						"type": "integer"
+					},
 					"desiredFlexibility": {
 						"type": "string",
-						"enum": [
-							"NON_FLEXIBLE",
-							"SEMI_FLEXIBLE",
-							"FULL_FLEXIBLE"
-						]
+						"enum": ["NON_FLEXIBLE", "SEMI_FLEXIBLE", "FULL_FLEXIBLE"]
 					}
 				},
 				"required": [
 					"loggingType",
 					"code",
 					"osdmVersion",
-					"currency",
 					"tripRequirementId",
-					"passengersListId"
+					"passengersListId",
+					"requestedFulfillmentOptionsListId"
 				]
 			}
 		},
@@ -80,10 +69,7 @@
 						"type": "array",
 						"items": {
 							"type": "string",
-							"enum": [
-								"RESERVATION",
-								"ADMISSION"
-							]
+							"enum": ["RESERVATION", "ADMISSION"]
 						}
 					},
 					"currency": {
@@ -95,18 +81,14 @@
 						"type": "array",
 						"items": {
 							"type": "string",
-							"enum": [
-								"STANDARD"
-							]
+							"enum": ["STANDARD"]
 						}
 					},
 					"travelClass": {
 						"type": "array",
 						"items": {
 							"type": "string",
-							"enum": [
-								"SECOND"
-							]
+							"enum": ["SECOND"]
 						}
 					},
 					"requiresPlaceSelection": {
@@ -116,17 +98,11 @@
 						"type": "array",
 						"items": {
 							"type": "string",
-							"enum": [
-								"FULL_FLEXIBLE",
-								"NON_FLEXIBLE"
-							]
+							"enum": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
 						}
 					}
 				},
-				"required": [
-					"requestedOfferParts",
-					"currency"
-				]
+				"required": ["currency"]
 			}
 		},
 		"requestedFulfillmentOptions": {
@@ -136,21 +112,13 @@
 				"properties": {
 					"fulfillmentMedia": {
 						"type": "string",
-						"enum": [
-							"PDF_A4"
-						]
+						"enum": ["PDF_A4", "UIC_PDF"]
 					},
 					"fulfillmentType": {
 						"type": "string",
-						"enum": [
-							"ETICKET"
-						]
+						"enum": ["ETICKET"]
 					}
-				},
-				"required": [
-					"fulfillmentMedia",
-					"fulfillmentType"
-				]
+				}
 			}
 		},
 		"tripRequirements": {
@@ -163,10 +131,7 @@
 					},
 					"tripType": {
 						"type": "string",
-						"enum": [
-							"SEARCH",
-							"SPECIFICATION"
-						]
+						"enum": ["SEARCH", "SPECIFICATION"]
 					},
 					"trip": {
 						"type": "object"
@@ -178,10 +143,7 @@
 						}
 					}
 				},
-				"required": [
-					"id",
-					"tripType"
-				]
+				"required": ["id", "tripType"]
 			}
 		},
 		"passengersList": {
@@ -220,25 +182,20 @@
 								},
 								"type": {
 									"type": "string",
-									"enum": [
-										"PERSON"
-									]
+									"enum": ["PERSON"]
 								}
 							}
 						}
 					}
 				},
-				"required": [
-					"id",
-					"passengers"
-				]
+				"required": ["id", "passengers"]
 			}
 		}
 	},
 	"required": [
 		"scenarios",
 		"offerSearchCriteria",
-		"requestedFulfillmentOptions",
+		"requestedFulfillmentOptionsList",
 		"tripRequirements",
 		"passengersList"
 	]

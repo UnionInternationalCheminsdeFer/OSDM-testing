@@ -5,23 +5,23 @@
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "requestedFulfillmentOptionsListId": 1,
+            "desiredFlexibility": "FULL_FLEXIBLE"
         },
         {
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_Multipax",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
+            "requestedFulfillmentOptionsListId": 2,
             "desiredFlexibility": "NON_FLEXIBLE"
         },        
         {
@@ -29,11 +29,11 @@
             "code": "OTST_TS_OB_RFND_Multileg_Search",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
         {
@@ -41,11 +41,11 @@
             "code": "OTST_TS_OB_RFND_Multileg_Specification",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
             "passengersListId": 1,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         }
     ],
@@ -59,10 +59,28 @@
             "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
         }
     ],
-	"requestedFulfillmentOptions": [
+    "requestedFulfillmentOptionsList": [
         {
-            "fulfillmentMedia": "UIC_PDF",
-            "fulfillmentType": "ETICKET"
+            "id": 1,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "UIC_PDF",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "UIC_PDF",
+                    "fulfillmentType": "ETICKET"
+                },
+                {
+                    "fulfillmentMedia": "UIC_PDF",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
         }
     ],
     "tripRequirements": [
@@ -85,8 +103,8 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:5457076",
-                    "destination": "urn:uic:stn:5454212",
+                    "origin": "urn:uic:stn:8814001",
+                    "destination": "urn:uic:stn:8892007",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
                     "productCategoryRef": "",
@@ -101,8 +119,8 @@
             "tripType": "SPECIFICATION",
             "legs": [
                 {
-                    "origin": "urn:uic:stn:5457076",
-                    "destination": "urn:uic:stn:5454300",
+                    "origin": "urn:uic:stn:8814001",
+                    "destination": "urn:uic:stn:8892007",
                     "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
                     "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
                     "productCategoryRef": "",
@@ -112,8 +130,8 @@
                     "operatorCode": "urn:uic:rics:3189"
                 },
                 {
-                    "origin": "urn:uic:stn:5454300",
-                    "destination": "urn:uic:stn:5454212",
+                    "origin": "urn:uic:stn:8892007",
+                    "destination": "urn:uic:stn:8814001",
                     "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
                     "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
                     "productCategoryRef": "",

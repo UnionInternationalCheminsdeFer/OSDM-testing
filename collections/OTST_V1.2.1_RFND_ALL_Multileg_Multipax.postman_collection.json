@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "ff4d3c50-8243-4860-b071-0961e50db629",
-		"name": "OTST_V1.2.0_RFND_ALL_Multileg_Multipax.postman_collection",
+		"name": "OTST_V1.2.1_RFND_ALL_Multileg_Multipax",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -19,8 +19,13 @@
 							"    throw new Error(`Exiting script due to wrong response status`);",
 							"}",
 							"",
+							"",
 							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"if (!jsonData.offers || jsonData.offers.length === 0) {",
+							"    throw new Error(\"Exiting script, no offers available in the response\");",
+							"}",
 							"",
 							"pm.test('Successfully received offers', function () {",
 							"    pm.expect(pm.response.code).to.eql(200);",
@@ -94,7 +99,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{OfferCollectionRequest}}",
+					"raw": "{{OfferCollectionRequest}}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -212,9 +217,6 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"pm.globals.set(\"bookingId\", jsonData.booking.id);\r",
-							"pm.globals.set(\"passengerId\", jsonData.booking.passengers[0].id);\r",
-							"\r",
 							"pm.test('Successfully created booking', function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
@@ -226,7 +228,7 @@
 							"pm.globals.get(\"offers\"),\r",
 							"pm.globals.get(\"offerId\"),\r",
 							"jsonData.booking,  \r",
-							"pm.globals.get(\"ScenarioType\"),\r",
+							"pm.globals.get(\"desiredType\"),\r",
 							"\"PREBOOKED\");"
 						],
 						"type": "text/javascript",
@@ -295,7 +297,7 @@
 			"response": []
 		},
 		{
-			"name": "04. GET Passenger",
+			"name": "04. 1st GET Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -363,7 +365,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId_0}}",
 					"host": [
 						"{{api_base}}"
 					],
@@ -371,14 +373,97 @@
 						"bookings",
 						"{{bookingId}}",
 						"passengers",
-						"{{passengerId}}"
+						"{{passengerId_0}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "05. PATCH Passenger",
+			"name": "04. 2nd GET Passenger",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Access-Token",
+						"value": "{{access_token}}",
+						"description": "Legacy Authorization Header; remove for 2.0",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId_1}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}",
+						"passengers",
+						"{{passengerId_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "05. 1st PATCH Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -439,7 +524,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth_0}}\",\r\n  \"type\": \"PERSON\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName_0}}\",\r\n    \"lastName\": \"{{patchLastName_0}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail_0}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber_0}}\"\r\n    }\r\n  }\r\n}",
+					"raw": "{\r\n  \"id\": \"{{passengerId_0}}\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth_0}}\",\r\n  \"type\": \"PERSON\",\r\n  \"gender\": \"X\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName_0}}\",\r\n    \"lastName\": \"{{patchLastName_0}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail_0}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber_0}}\"\r\n    }\r\n  }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -447,7 +532,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId_0}}",
 					"host": [
 						"{{api_base}}"
 					],
@@ -455,14 +540,98 @@
 						"bookings",
 						"{{bookingId}}",
 						"passengers",
-						"{{passengerId}}"
+						"{{passengerId_0}}"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "06. GET Passenger after Patch Passenger",
+			"name": "05. 2nd PATCH Passenger",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"validatePassengerData(jsonData, display = false);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Access-Token",
+						"value": "{{access_token}}",
+						"description": "Legacy Authorization Header; remove for 2.0",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": \"{{passengerId_1}}\",\r\n  \"externalRef\": \"{{passengerSpecification2ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth_1}}\",\r\n  \"type\": \"PERSON\",\r\n  \"gender\": \"X\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName_1}}\",\r\n    \"lastName\": \"{{patchLastName_1}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail_1}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber_1}}\"\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId_1}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}",
+						"passengers",
+						"{{passengerId_1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "06. GET 1st Passenger after Patch Passenger",
 			"event": [
 				{
 					"listen": "test",
@@ -522,7 +691,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId_0}}",
 					"host": [
 						"{{api_base}}"
 					],
@@ -530,7 +699,82 @@
 						"bookings",
 						"{{bookingId}}",
 						"passengers",
-						"{{passengerId}}"
+						"{{passengerId_0}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "06. GET 2nd Passenger after Patch Passenger",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"validatePassengerData(jsonData, display = true);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Access-Token",
+						"value": "{{access_token}}",
+						"description": "Legacy Authorization Header; remove for 2.0",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId_1}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}",
+						"passengers",
+						"{{passengerId_1}}"
 					]
 				}
 			},
@@ -722,7 +966,6 @@
 							"\r",
 							"if(pm.globals.get(\"fulfillmentsId\")==undefined) {\r",
 							"    pm.globals.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
-							"    pm.environment.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
 							"}\r",
 							"\r",
 							"displayFulFilledBooking(jsonData);"
@@ -1340,8 +1583,9 @@
 					"“This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”",
 					"*/",
 					"",
-					"var scenarioType = \"RESERVATION\";",
-					"var scenarioCode = \"OTST_TS_OB_RFND\";",
+					"// To delete",
+					"//var scenarioType = \"RESERVATION\";",
+					"var scenarioCode = pm.environment.get(\"scenarioCode\");",
 					"//var scenarioCode = \"OTST_TS_OB_RFND_Multipax\";",
 					"//var scenarioCode = \"OTST_TS_OB_RFND_Multileg_Search\";",
 					"//var scenarioCode = \"OTST_TS_OB_RFND_Multileg_Specification\";",
@@ -1410,6 +1654,7 @@
 					"",
 					"    // Retrieve all global variables as an object",
 					"    let globals = pm.globals.toObject();",
+					"    Object.keys(pm.globals.toObject()).forEach((key) => pm.globals.unset(key));",
 					"",
 					"    // Check if any global variables remain",
 					"    if (Object.keys(globals).length !== 0) {",
@@ -1417,8 +1662,6 @@
 					"    } else {",
 					"        console.log(\"[INFO] ✅ All global variables have been successfully cleared.\");",
 					"    }",
-					"",
-					"    Object.keys(pm.globals.toObject()).forEach((key) => pm.globals.unset(key));",
 					"",
 					"    setTimeout(2000);",
 					"    pm.globals.unset(\"osdmHelpers\");",
