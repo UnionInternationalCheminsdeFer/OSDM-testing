@@ -2,7 +2,7 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -14,19 +14,31 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multipax",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
-            "requestedFulfillmentOptionsListId": 2,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },        
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multileg_Search",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "osdmVersion": "3.4",
+            "desiredType": "ADMISSION",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 3,
+            "requestedFulfillmentOptionsListId": 1,
+            "desiredFlexibility": "NON_FLEXIBLE"
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -38,13 +50,13 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multileg_Specification",
+            "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
-            "passengersListId": 1,
+            "passengersListId": 2,
             "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         }
@@ -63,19 +75,6 @@
         {
             "id": 1,
             "requestedFulfillmentOptions": [
-                {
-                    "fulfillmentMedia": "UIC_PDF",
-                    "fulfillmentType": "ETICKET"
-                }
-            ]
-        },
-        {
-            "id": 2,
-            "requestedFulfillmentOptions": [
-                {
-                    "fulfillmentMedia": "UIC_PDF",
-                    "fulfillmentType": "ETICKET"
-                },
                 {
                     "fulfillmentMedia": "UIC_PDF",
                     "fulfillmentType": "ETICKET"
@@ -178,6 +177,41 @@
 					"patchFirstName": "Marta",
 					"patchLastName": "Doe",
                     "patchDateOfBirth": "2000-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "passengers": [
+                {
+                    "reference": "12345",
+                    "dateOfBirth": "1999-01-01",
+					"patchFirstName": "John",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "1999-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "23451",
+                    "dateOfBirth": "2000-01-01",
+					"patchFirstName": "Marta",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "2000-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "34512",
+                    "dateOfBirth": "2018-01-01",
+					"patchFirstName": "Alice",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "2018-01-02",
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"

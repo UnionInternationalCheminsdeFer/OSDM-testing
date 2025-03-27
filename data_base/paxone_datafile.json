@@ -2,52 +2,46 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.4",
-            "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
+            "refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "requestedFulfillmentOptionsListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "requestedFulfillmentOptionsListId": 1
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multipax",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3.4",
-            "desiredType": "ADMISSION",
-            "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
-            "requestedFulfillmentOptionsListId": 2,
-            "desiredFlexibility": "NON_FLEXIBLE"
-        },        
-        {
-			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multileg_Search",
-            "osdmVersion": "3.4",
-            "desiredType": "ADMISSION",
-            "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
-            "tripRequirementId": 2,
-            "passengersListId": 1,
-            "requestedFulfillmentOptionsListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "requestedFulfillmentOptionsListId": 1
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multileg_Specification",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
             "osdmVersion": "3.4",
-            "desiredType": "ADMISSION",
-            "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
-            "tripRequirementId": 3,
+            "tripRequirementId": 1,
+            "passengersListId": 3,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+            "osdmVersion": "3.4",
+            "tripRequirementId": 2,
             "passengersListId": 1,
-            "requestedFulfillmentOptionsListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
-        }
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
+            "osdmVersion": "3.4",
+            "tripRequirementId": 2,
+            "passengersListId": 2,
+            "requestedFulfillmentOptionsListId": 1
+        }        
     ],
 	"offerSearchCriteria": [
         {
@@ -79,44 +73,11 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:0088140010",
-                    "destination": "urn:uic:stn:0070154005",
+                    "origin": "urn:uic:stn:0080334524",
+                    "destination": "urn:uic:stn:0071718010",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00"
                 }
-        },        
-        {
-            "id": 3,
-            "tripType": "SPECIFICATION",
-            "legs": [
-                {
-                    "origin": "urn:uic:stn:0088140010",
-                    "destination": "urn:uic:stn:5454300",
-                    "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
-                    "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
-                },
-                {
-                    "origin": "urn:uic:stn:5454300",
-                    "destination": "urn:uic:stn:0070154005",
-                    "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
-                    "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "1062",
-                    "operatorCode": "urn:uic:rics:3189"
-                }
-            ]
         }
     ],
     "passengersList": [
@@ -126,8 +87,8 @@
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
+					"patchFirstName": "john",
+					"patchLastName": "doe",
                     "patchDateOfBirth": "1999-01-02",
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
@@ -141,8 +102,8 @@
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
+					"patchFirstName": "john",
+					"patchLastName": "doe",
                     "patchDateOfBirth": "1999-01-02",
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
@@ -151,9 +112,44 @@
                 {
                     "reference": "54321",
                     "dateOfBirth": "2000-01-01",
-					"patchFirstName": "Marta",
-					"patchLastName": "Doe",
+					"patchFirstName": "marta",
+					"patchLastName": "doe",
                     "patchDateOfBirth": "2000-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "passengers": [
+                {
+                    "reference": "12345",
+                    "dateOfBirth": "1999-01-01",
+					"patchFirstName": "john",
+					"patchLastName": "doe",
+                    "patchDateOfBirth": "1999-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "23451",
+                    "dateOfBirth": "2000-01-01",
+					"patchFirstName": "marta",
+					"patchLastName": "doe",
+                    "patchDateOfBirth": "2000-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "34512",
+                    "dateOfBirth": "2018-01-01",
+					"patchFirstName": "alice",
+					"patchLastName": "doe",
+                    "patchDateOfBirth": "2018-01-02",
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"

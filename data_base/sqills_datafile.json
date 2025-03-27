@@ -2,8 +2,8 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND",
-            "osdmVersion": "3.4",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -14,20 +14,32 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multipax",
-            "osdmVersion": "3.4",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
-            "requestedFulfillmentOptionsListId": 2,
+            "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
-        },        
+        },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multileg_Search",
-            "osdmVersion": "3.4",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "osdmVersion": "3",
+            "desiredType": "ADMISSION",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 3,
+            "requestedFulfillmentOptionsListId": 1,
+            "desiredFlexibility": "NON_FLEXIBLE"
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -38,13 +50,13 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_Multileg_Specification",
-            "osdmVersion": "3.4",
+            "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
-            "passengersListId": 1,
+            "passengersListId": 2,
             "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         }
@@ -52,7 +64,7 @@
 	"offerSearchCriteria": [
         {
 			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
-            "currency": "CZK",
+            "currency": "EUR",
             "serviceClass": ["STANDARD"],
             "travelClass": ["SECOND"],
             "requiresPlaceSelection": false,
@@ -68,19 +80,6 @@
                     "fulfillmentType": "ETICKET"
                 }
             ]
-        },
-        {
-            "id": 2,
-            "requestedFulfillmentOptions": [
-                {
-                    "fulfillmentMedia": "PDF_A4",
-                    "fulfillmentType": "ETICKET"
-                },
-                {
-                    "fulfillmentMedia": "PDF_A4",
-                    "fulfillmentType": "ETICKET"
-                }
-            ]
         }
     ],
     "tripRequirements": [
@@ -89,14 +88,14 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8727100",
-                    "destination": "urn:uic:stn:8500010",
+                    "origin": "urn:uic:stn:8500010",
+                    "destination": "urn:uic:stn:8400058",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "OSDM_101",
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_IC",
+                    "productCategoryName": "OSDM Sqills Intercity train",
+                    "productCategoryShortName": "OSDM Sqills Intercity train",
+                    "vehicleNumber": "OSDM_202",
                     "operatorCode": "urn:uic:rics:1"
                 }
         },
@@ -109,11 +108,11 @@
                     "destination": "urn:uic:stn:8727100",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_IC",
+                    "productCategoryName": "OSDM Sqills Intercity train",
+                    "productCategoryShortName": "OSDM Sqills Intercity train",
+                    "vehicleNumber": "OSDM_202",
+                    "operatorCode": "urn:uic:rics:1"
                 }
         },        
         {
@@ -125,22 +124,22 @@
                     "destination": "urn:uic:stn:8400058",
                     "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
                     "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
-                    "productCategoryRef": "urn:uic:sbc:76",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_IC",
+                    "productCategoryName": "OSDM Sqills Intercity train",
+                    "productCategoryShortName": "OSDM Sqills Intercity train",
                     "vehicleNumber": "OSDM_202",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "operatorCode": "urn:uic:rics:1"
                 },
                 {
                     "origin": "urn:uic:stn:8400058",
                     "destination": "urn:uic:stn:8727100",
                     "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
                     "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
-                    "productCategoryRef": "urn:uic:sbc:76",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_HS",
+                    "productCategoryName": "OSDM Sqills High Speed train",
+                    "productCategoryShortName": "OSDM Sqills High Speed train",
                     "vehicleNumber": "OSDM_111",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "operatorCode": "urn:uic:rics:1"
                 }
             ]
         }
@@ -180,6 +179,41 @@
 					"patchFirstName": "Marta",
 					"patchLastName": "Doe",
                     "patchDateOfBirth": "2000-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "passengers": [
+                {
+                    "reference": "12345",
+                    "dateOfBirth": "1999-01-01",
+					"patchFirstName": "John",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "1999-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "23451",
+                    "dateOfBirth": "2000-01-01",
+					"patchFirstName": "Marta",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "2000-01-02",
+					"patchPhoneNumber": "+33612345678",
+					"patchEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "34512",
+                    "dateOfBirth": "2018-01-01",
+					"patchFirstName": "Alice",
+					"patchLastName": "Doe",
+                    "patchDateOfBirth": "2018-01-02",
 					"patchPhoneNumber": "+33612345678",
 					"patchEmail": "email@email.com",
                     "type": "PERSON"
