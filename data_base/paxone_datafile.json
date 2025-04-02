@@ -8,6 +8,7 @@
             "refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
             "requestedFulfillmentOptionsListId": 1
         },
         {
@@ -16,6 +17,7 @@
             "osdmVersion": "3.4",
             "tripRequirementId": 1,
             "passengersListId": 2,
+            "offerSearchCriteriaListId" : 2,
             "requestedFulfillmentOptionsListId": 1
         },
         {
@@ -24,6 +26,7 @@
             "osdmVersion": "3.4",
             "tripRequirementId": 1,
             "passengersListId": 3,
+            "offerSearchCriteriaListId" : 1,
             "requestedFulfillmentOptionsListId": 1
         },
         {
@@ -32,6 +35,7 @@
             "osdmVersion": "3.4",
             "tripRequirementId": 2,
             "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
             "requestedFulfillmentOptionsListId": 1
         },
         {
@@ -40,14 +44,37 @@
             "osdmVersion": "3.4",
             "tripRequirementId": 2,
             "passengersListId": 2,
+            "offerSearchCriteriaListId" : 1,
             "requestedFulfillmentOptionsListId": 1
         }        
     ],
-	"offerSearchCriteria": [
+	"offerSearchCriteriaList": [
         {
-            "currency": "EUR",
-            "requiresPlaceSelection": false,
-            "offerMode": "INDIVIDUAL"
+            "id": 1,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "currency": "CZK",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "currency": "CZK",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "COLLECTIVE"
+                }
+            ]
         }
     ],
 	"requestedFulfillmentOptions": [

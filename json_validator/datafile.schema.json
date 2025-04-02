@@ -100,6 +100,10 @@
 							"type": "string",
 							"enum": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
 						}
+					},
+					"offerMode": {
+						"type": "string",
+						"enum": ["INDIVIDUAL", "COLLECTIVE"]
 					}
 				},
 				"required": ["currency"]
@@ -194,7 +198,7 @@
 	},
 	"required": [
 		"scenarios",
-		"offerSearchCriteria",
+		"offerSearchCriteriaList",
 		"requestedFulfillmentOptionsList",
 		"tripRequirements",
 		"passengersList"
