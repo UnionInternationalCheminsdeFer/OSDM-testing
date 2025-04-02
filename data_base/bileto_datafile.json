@@ -5,24 +5,26 @@
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "TECHNICAL_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "requestedFulfillmentOptionsListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
         },
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
-            "requestedFulfillmentOptionsListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "offerSearchCriteriaListId" : 2,
+            "requestedFulfillmentOptionsListId": 1
         },
         {
 			"loggingType": "INFO",
@@ -33,6 +35,7 @@
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 3,
+            "offerSearchCriteriaListId" : 1,
             "requestedFulfillmentOptionsListId": 1,
             "desiredFlexibility": "NON_FLEXIBLE"
         },
@@ -41,34 +44,55 @@
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
-            "requestedFulfillmentOptionsListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
         },
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
             "passengersListId": 2,
-            "requestedFulfillmentOptionsListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
         }
     ],
-	"offerSearchCriteria": [
+	"offerSearchCriteriaList": [
         {
-			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
-            "currency": "CZK",
-            "serviceClass": ["STANDARD"],
-            "travelClass": ["SECOND"],
-            "requiresPlaceSelection": false,
-            "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+            "id": 1,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "currency": "CZK",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "currency": "CZK",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "COLLECTIVE"
+                }
+            ]
         }
     ],
     "requestedFulfillmentOptionsList": [

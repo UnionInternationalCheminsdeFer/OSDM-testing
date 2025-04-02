@@ -384,6 +384,7 @@ parseScenarioData = function(jsonData) {
 					return true;
 				}
 			});
+			console.log("DUMMY3");
 
 			// Set global variables for the scenario
 			pm.globals.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
@@ -393,13 +394,6 @@ parseScenarioData = function(jsonData) {
 			pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
 			pm.globals.set("desiredType", jsonData.scenarios[dataFileIndex].desiredType);
 			pm.globals.set("ScenarioCode", jsonData.scenarios[dataFileIndex].code);
-			pm.globals.set("requestedOfferParts", jsonData.offerSearchCriteria[0].requestedOfferParts);
-			pm.globals.set("offerSearchCriteriaCurrency", jsonData.offerSearchCriteria[0].currency);
-			pm.globals.set("offerSearchCriteriaTravelClass", jsonData.offerSearchCriteria[0].travelClass);
-			pm.globals.set("offerSearchCriteriaSearchClass", jsonData.offerSearchCriteria[0].serviceClass);
-			pm.globals.set("requiredPlaceSelection", jsonData.offerSearchCriteria[0].requiredPlaceSelection);
-			pm.globals.set("flexibilities", jsonData.offerSearchCriteria[0].flexibilities);
-			pm.globals.set("offerMode", jsonData.offerSearchCriteria[0].offerMode);
 
 			// Loop through the passengers list to find the matching passengers list ID
 			jsonData.passengersList.some(function(passengersList){
@@ -455,27 +449,31 @@ parseScenarioData = function(jsonData) {
 				}
 			});
 
-			// Set offer search criteria in global variables
-			osdmOfferSearchCriteria(
-				pm.globals.get("offerSearchCriteriaCurrency") || null,
-				pm.globals.get("offerMode") || null,
-				pm.globals.get("requestedOfferParts") || [],
-				pm.globals.get("flexibilities") || [],
-				pm.globals.get("offerSearchCriteriaSearchClass") || null,
-				pm.globals.get("offerSearchCriteriaTravelClass") || null,
-				null
-			);
-
+			// Loop through the offer search criteria list to find the matching offer search criteria ID
+			if (Array.isArray(jsonData.offerSearchCriteriaList) && jsonData.offerSearchCriteriaList.length > 0) {
+				jsonData.offerSearchCriteriaList.some(function (offerSearchCriteriaItem) {
+					if (offerSearchCriteriaItem.id == jsonData.scenarios[dataFileIndex].offerSearchCriteriaListId) {
+						osdmOfferSearchCriteria(
+							offerSearchCriteriaItem.offerSearchCriteria[0].currency || null,
+							offerSearchCriteriaItem.offerSearchCriteria[0].offerMode || null,
+							offerSearchCriteriaItem.offerSearchCriteria[0].requestedOfferParts,
+							offerSearchCriteriaItem.offerSearchCriteria[0].flexibilities || null,
+							offerSearchCriteriaItem.offerSearchCriteria[0].serviceClass || null,
+							offerSearchCriteriaItem.offerSearchCriteria[0].travelClass || null,
+							null
+						);
+						return true;
+					}
+				});
+			} else {
+				validationLogger("[ERROR] offerSearchCriteriaList is empty or not an array.");
+			}
 			// Loop through the requested fulfillment options list to find the matching fulfillment options ID
 			if (Array.isArray(jsonData.requestedFulfillmentOptionsList) && jsonData.requestedFulfillmentOptionsList.length > 0) {
-				// Loop through the requested fulfillment options list to find the matching fulfillment options ID
 				jsonData.requestedFulfillmentOptionsList.some(function(requestedFulfillmentOptionList) {
 					if (requestedFulfillmentOptionList.id == jsonData.scenarios[dataFileIndex].requestedFulfillmentOptionsListId) {
 						var requestedFulfillmentOptions = [];
-			
 						requestedFulfillmentOptionList.requestedFulfillmentOptions.forEach(function(requestedFulfillmentOption) {
-							// pm.globals.set("fulfillmentType", requestedFulfillmentOption.fulfillmentType);
-							// pm.globals.set("fulfillmentMedia", requestedFulfillmentOption.fulfillmentMedia);
 							const fulfillmentType = requestedFulfillmentOption.fulfillmentType ?? null;
 							const fulfillmentMedia = requestedFulfillmentOption.fulfillmentMedia ?? null;
 							
@@ -485,7 +483,7 @@ parseScenarioData = function(jsonData) {
 						});
 			
 						osdmFulfillmentOptions(requestedFulfillmentOptions);
-						return true; // Stop iteration once found
+						return true;
 					}
 				});
 			} else {
