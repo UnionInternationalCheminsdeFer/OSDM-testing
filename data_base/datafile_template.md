@@ -54,11 +54,11 @@ benerail_datafile :
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -161,11 +161,11 @@ bileto_datafile
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -216,11 +216,11 @@ paxone_datafile
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -285,11 +285,11 @@ sqills_datafile
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]

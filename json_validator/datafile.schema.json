@@ -169,19 +169,19 @@
 								"dateOfBirth": {
 									"type": "string"
 								},
-								"patchFirstName": {
+								"updateFirstName": {
 									"type": "string"
 								},
-								"patchLastName": {
+								"updateLastName": {
 									"type": "string"
 								},
-								"patchDateOfBirth": {
+								"updateDateOfBirth": {
 									"type": "string"
 								},
-								"patchPhoneNumber": {
+								"updatePhoneNumber": {
 									"type": "string"
 								},
-								"patchEmail": {
+								"updateEmail": {
 									"type": "string"
 								},
 								"type": {

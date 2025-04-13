@@ -1,7 +1,7 @@
 {
     "scenarios": [
         {
-			"loggingType": "INFO",
+            "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.4",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -12,53 +12,58 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-			"loggingType": "INFO",
+            "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3.4",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
             "offerSearchCriteriaListId" : 2,
             "requestedFulfillmentOptionsListId": 1
         },
         {
-			"loggingType": "INFO",
+            "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
             "osdmVersion": "3.4",
             "tripRequirementId": 1,
             "passengersListId": 3,
-            "offerSearchCriteriaListId" : 1,
+            "offerSearchCriteriaListId" : 2,
             "requestedFulfillmentOptionsListId": 1
         },
         {
-			"loggingType": "INFO",
+            "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "osdmVersion": "3.4",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
             "requestedFulfillmentOptionsListId": 1
         },
         {
-			"loggingType": "INFO",
+            "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
             "osdmVersion": "3.4",
             "tripRequirementId": 2,
             "passengersListId": 2,
-            "offerSearchCriteriaListId" : 1,
+            "offerSearchCriteriaListId": 2,
             "requestedFulfillmentOptionsListId": 1
-        }        
+        }
     ],
-	"offerSearchCriteriaList": [
+    "offerSearchCriteriaList": [
         {
             "id": 1,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
-                    "currency": "CZK",
-                    "serviceClass": ["STANDARD"],
-                    "travelClass": ["SECOND"],
+                    "currency": "EUR",
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+                    "offerMode": "INDIVIDUAL"
                 }
             ]
         },
@@ -66,18 +71,14 @@
             "id": 2,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
-                    "currency": "CZK",
-                    "serviceClass": ["STANDARD"],
-                    "travelClass": ["SECOND"],
+                    "currency": "EUR",
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "COLLECTIVE"
                 }
             ]
         }
     ],
-	"requestedFulfillmentOptions": [
+    "requestedFulfillmentOptions": [
         {
             "id": 1,
             "requestedFulfillmentOptions": []
@@ -112,13 +113,21 @@
             "id": 1,
             "passengers": [
                 {
-                    "reference": "12345",
+                    "reference": "00001",
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "john",
-					"patchLastName": "doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "firstName": "John",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -127,23 +136,39 @@
             "id": 2,
             "passengers": [
                 {
-                    "reference": "12345",
+                    "reference": "00001",
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "john",
-					"patchLastName": "doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "firstName": "John",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 },
                 {
-                    "reference": "54321",
-                    "dateOfBirth": "2000-01-01",
-					"patchFirstName": "marta",
-					"patchLastName": "doe",
-                    "patchDateOfBirth": "2000-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "reference": "00002",
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "Marta",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "MartaUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -152,33 +177,57 @@
             "id": 3,
             "passengers": [
                 {
-                    "reference": "12345",
+                    "reference": "00001",
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "john",
-					"patchLastName": "doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 },
                 {
-                    "reference": "23451",
-                    "dateOfBirth": "2000-01-01",
-					"patchFirstName": "marta",
-					"patchLastName": "doe",
-                    "patchDateOfBirth": "2000-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "reference": "00002",
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "Marta",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "MartaUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 },
                 {
-                    "reference": "34512",
-                    "dateOfBirth": "2018-01-01",
-					"patchFirstName": "alice",
-					"patchLastName": "doe",
-                    "patchDateOfBirth": "2018-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "reference": "00003",
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com",
+                    "dateOfBirth": "2010-01-01",
+                    "firstName": "Alice",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "AliceUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "2010-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
