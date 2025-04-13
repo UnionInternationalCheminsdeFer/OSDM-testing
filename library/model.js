@@ -48,6 +48,7 @@ var OfferPartType = {
 
 var BOOKING = {
 	PASSENGER_SPECIFICATIONS : "bookingPassengerSpecifications",
+	PURCHASER_SPECIFICATIONS : "bookingPurchaserSpecifications",
 	PASSENGER_REFERENCES : "bookingPassengerReferences"
 }
 
@@ -114,10 +115,11 @@ var AnonymousPassengerSpec = class {
 }
 
 var PassengerSpec = class {
-    constructor(externalRef, type, dateOfBirth) {
+    constructor(externalRef, type, dateOfBirth, detail) {
         this.externalRef = externalRef;
         this.type = type;
         this.dateOfBirth = dateOfBirth;
+        this.detail = detail;
     }
 }
 
