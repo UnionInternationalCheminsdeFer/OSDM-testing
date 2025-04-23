@@ -6,8 +6,7 @@
             "osdmVersion": "3.4",
             "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
-            "refundOverruleCode": "TECHNICAL_FAILURE",
-			"refundDate": "null",
+            "refundOverruleCode": "PAYMENT_FAILURE",
             "tripRequirementId": 1,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
@@ -71,12 +70,12 @@
             "id": 1,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
                     "currency": "CZK",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "INDIVIDUAL"
                 }
             ]
@@ -85,12 +84,12 @@
             "id": 2,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
                     "currency": "CZK",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "COLLECTIVE"
                 }
             ]

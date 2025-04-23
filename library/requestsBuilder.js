@@ -63,9 +63,6 @@ function buildBookingRequest() {
 		bookingPassengerSpecificationsContent = pm.globals.get("offerPassengerSpecifications");
 	}
 	validationLogger("[DEBUG] 🪲 DUMMY9")
-	validationLogger(bookingPassengerSpecificationsContent)
-	console.log(bookingPassengerSpecificationsContent)
-	console.log(JSON.stringify(bookingPassengerSpecificationsContent))
 	// Check if the sandbox includes "paxone"
 	var sandbox = pm.environment.get("api_base");
 	if (sandbox.includes("paxone")) {
