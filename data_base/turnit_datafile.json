@@ -112,15 +112,10 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:5457076",
-                    "destination": "urn:uic:stn:5454300",
-                    "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "origin": "urn:uic:stn:8000600",
+                    "destination": "urn:uic:stn:8600626",
+                    "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
                 }
         },
         {
