@@ -19,6 +19,8 @@ getScenarioData = function () {
 				// Validate JSON with template
 				validateJsonWithTemplate(pm.globals.get("data_base_tmp"));
 				validationLogger("[DEBUG] 🪲 DUMMYAA")
+				console.log("DUMMY")
+
 				parseScenarioData(jsonData);
 			}
 		});
@@ -39,7 +41,7 @@ getScenarioData = function () {
 parseScenarioData = function(jsonData) {
 	// Get the next weekday date
 	var nextWeekday = get_next_weekday(new Date());
-	var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth() + 1) + "-" + pad(nextWeekday.getUTCDate() + 2);
+	var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth()+1) + "-" + pad(nextWeekday.getUTCDate());
 
 	var dataFileIndex = 0;
 	var dataFileLength = jsonData.scenarios.length;
@@ -48,7 +50,6 @@ parseScenarioData = function(jsonData) {
 
 	// Loop through the scenarios to find the correct data set
 	while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {
-		validationLogger("[INFO] Checking scenario code : "+jsonData.scenarios[dataFileIndex].code+" ⇔ "+scenarioCode);
 		validationLogger("[DEBUG] 🪲 DUMMYA")
 
 		// Check if the scenario code matches
@@ -168,9 +169,7 @@ parseScenarioData = function(jsonData) {
 						validationLogger("[DEBUG] 🪲 DUMMY1")
 
 						var osdmVersion = pm.globals.get("osdmVersion");
-						if (osdmVersion == "3.4") {
-							validationLogger(purchaserSpecs)
-							console.log(purchaserSpecs)
+						if (osdmVersion == "3.4" || osdmVersion == "3.5") {
 							purchaserSpecs.push(new PurchaserContact(
 								new DetailContact(
 									passenger.purchaserFirstName,
@@ -181,9 +180,6 @@ parseScenarioData = function(jsonData) {
 									)
 								)
 							));
-							validationLogger("[DEBUG] 🪲 DUMMY1.5")
-							validationLogger(purchaserSpecs)
-							console.log(purchaserSpecs)
 						} else {
 							purchaserSpecs.push(new Purchaser(
 								new Detail(
@@ -194,10 +190,25 @@ parseScenarioData = function(jsonData) {
 								)
 							));
 						}
+
 						validationLogger("[DEBUG] 🪲 DUMMY2")
-						validationLogger(purchaserSpecs)
-						console.log(purchaserSpecs)
-						passengerSpecs.push(new PassengerSpec(
+						if (osdmVersion == "3.5") {
+							passengerSpecs.push(new PassengerSpec(
+								//pm.globals.get(passengerKey),
+								passenger.reference,
+								passenger.type,
+								passenger.dateOfBirth,
+								new DetailContact(
+									passenger.firstName,
+									passenger.lastName,
+									new Contact(
+										passenger.email || null,
+										passenger.phoneNumber || null
+									)
+								)
+							));
+						} else {							
+							passengerSpecs.push(new PassengerSpec(
 								//pm.globals.get(passengerKey),
 								passenger.reference,
 								passenger.type,
@@ -209,6 +220,7 @@ parseScenarioData = function(jsonData) {
 									passenger.phoneNumber || null
 								)
 							));
+						}
 						validationLogger("[DEBUG] 🪲 DUMMY3")
 						passengerReferences.push(passenger.reference);
 						//passengerReferences.push(pm.globals.get(passengerKey));
@@ -289,7 +301,7 @@ parseScenarioData = function(jsonData) {
 		dataFileIndex++;
 	}
 	if(foundCorrectDataSet==false) {
-		throw new Error("[INFO] ⛔ Wrong scenario code. No data set found for this scenario : "+scenarioCode);
+		throw new Error("[ERROR] ⛔ Wrong scenario code. No data set found for this scenario : "+scenarioCode);
 	}
 }
 

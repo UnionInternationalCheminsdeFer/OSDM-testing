@@ -3,11 +3,10 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
-            "osdmVersion": "3.4",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
-            "desiredFlexibility": "FULL_FLEXIBLE",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
@@ -16,7 +15,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
-            "osdmVersion": "3.4",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -29,7 +28,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
-            "osdmVersion": "3.4",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -42,7 +41,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
-            "osdmVersion": "3.4",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -55,7 +54,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
-            "osdmVersion": "3.4",
+            "osdmVersion": "3",
             "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -71,12 +70,13 @@
             "id": 1,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
-                    "currency": "EUR",
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
+                    "currency": "CZK",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "INDIVIDUAL"
                 }
             ]
         },
@@ -84,12 +84,12 @@
             "id": 2,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
-                    "currency": "EUR",
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
+                    "currency": "CZK",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "COLLECTIVE"
                 }
             ]
@@ -100,7 +100,7 @@
             "id": 1,
             "requestedFulfillmentOptions": [
                 {
-                    "fulfillmentMedia": "UIC_PDF",
+                    "fulfillmentMedia": "PDF_A4",
                     "fulfillmentType": "ETICKET"
                 }
             ]
@@ -112,15 +112,15 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8814001",
-                    "destination": "urn:uic:stn:8892007",
+                    "origin": "urn:uic:stn:5457076",
+                    "destination": "urn:uic:stn:5454300",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
                     "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"                    
+                    "operatorCode": "urn:uic:rics:3189"
                 }
         },
         {
@@ -128,8 +128,8 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8814001",
-                    "destination": "urn:uic:stn:8892007",
+                    "origin": "urn:uic:stn:5457076",
+                    "destination": "urn:uic:stn:5454212",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
                     "productCategoryRef": "",
@@ -144,8 +144,8 @@
             "tripType": "SPECIFICATION",
             "legs": [
                 {
-                    "origin": "urn:uic:stn:8814001",
-                    "destination": "urn:uic:stn:8892007",
+                    "origin": "urn:uic:stn:5457076",
+                    "destination": "urn:uic:stn:5454300",
                     "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
                     "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
                     "productCategoryRef": "",
@@ -155,10 +155,10 @@
                     "operatorCode": "urn:uic:rics:3189"
                 },
                 {
-                    "origin": "urn:uic:stn:8892007",
-                    "destination": "urn:uic:stn:8814001",
-                    "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
-                    "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
+                    "origin": "urn:uic:stn:5454300",
+                    "destination": "urn:uic:stn:5454212",
+                    "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
