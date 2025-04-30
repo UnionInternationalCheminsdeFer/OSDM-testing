@@ -134,26 +134,26 @@
             "tripType": "SPECIFICATION",
             "legs": [
                 {
-                    "origin": "urn:uic:stn:5457076",
-                    "destination": "urn:uic:stn:5454300",
-                    "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
-                    "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
+                    "origin": "urn:uic:stn:8400058",
+                    "destination": "urn:uic:stn:8000152",
+                    "startDatetime": "%TRIP_DATE%T08:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T14:40:00+02:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
-                    "vehicleNumber": "1140",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "vehicleNumber": "21",
+                    "operatorCode": "urn:uic:rics:1100"
                 },
                 {
-                    "origin": "urn:uic:stn:5454300",
-                    "destination": "urn:uic:stn:5454212",
-                    "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
-                    "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
+                    "origin": "urn:uic:stn:800152",
+                    "destination": "urn:uic:stn:8000600",
+                    "startDatetime": "%TRIP_DATE%T01:10:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T06:30:00+02:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
-                    "vehicleNumber": "1062",
-                    "operatorCode": "urn:uic:rics:3189"
+                    "vehicleNumber": "13",
+                    "operatorCode": "urn:uic:rics:1100"
                 }
             ]
         }
