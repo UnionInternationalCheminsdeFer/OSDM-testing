@@ -59,7 +59,7 @@
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
-            "tripRequirementId": 2,
+            "tripRequirementId": 3,
             "passengersListId": 2,
             "offerSearchCriteriaListId": 2,
             "requestedFulfillmentOptionsListId": 1
