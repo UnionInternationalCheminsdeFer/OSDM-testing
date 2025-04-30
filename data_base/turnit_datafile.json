@@ -125,7 +125,8 @@
                 {
                     "origin": "urn:uic:stn:8400058",
                     "destination": "urn:uic:stn:8000600",
-                    "startDatetime": "%TRIP_DATE%T00:00:00+02:00"
+                    "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
                 }
         },        
         {
