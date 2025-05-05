@@ -1,0 +1,80 @@
+,OTST_RFND_SRCH_CRIT_1ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG,OTST_RFND_SRCH_CRIT_1ADT_2LEG,OTST_RFND_TRIP_SPEC_2ADT_2LEG
+01. POST Get Offer,,,,"FAILED
+Correct admissions are returned (expected: 2, actual: 1)","Error: ? Exiting script, no offers available in the response"
+03. POST Create a Booking,"
+UTC date time to manage 
+FAILED CreatedOn in booking is returned","
+UTC date time to manage 
+FAILED CreatedOn in booking is returned","
+UTC date time to manage 
+FAILED CreatedOn in booking is returned","
+UTC date time to manage 
+FAILED CreatedOn in booking is returned",
+,"Wrong booking id is returned :
+FAILED Booked offerId: 1 matches offerId: d5b64752c75acb5a9f53756494cfd9a0c314ad409f106b8aec937373ff24e59d","Wrong booking id is returned :
+FAILED Booked offerId: 1 matches offerId: d5b64752c75acb5a9f53756494cfd9a0c314ad409f106b8aec937373ff24e59d","Wrong booking id is returned :
+FAILED Booked offerId: 1 matches offerId: d5b64752c75acb5a9f53756494cfd9a0c314ad409f106b8aec937373ff24e59d","Wrong booking id is returned :
+FAILED Booked offerId: 1 matches offerId: d5b64752c75acb5a9f53756494cfd9a0c314ad409f106b8aec937373ff24e59d",
+,"FAILED ValidUntil is set for bookedofferpart admissions
+ValidUntil is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValidUntil is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValidUntil is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValidUntil is null",
+,"FAILED Products of the admission should be set and similar to offer response
+Current value is :  ""id"": ""tariff_40058_2025-03-12_2025-03-11"",","FAILED Products of the admission should be set and similar to offer response
+Current value is :  ""id"": ""tariff_40058_2025-03-12_2025-03-11"",","FAILED Products of the admission should be set and similar to offer response
+Current value is :  ""id"": ""tariff_40058_2025-03-12_2025-03-11"",","FAILED Products of the admission should be set and similar to offer response
+Current value is :  ""id"": ""tariff_40058_2025-03-12_2025-03-11"",",
+,"Check this fail
+FAILED All booking admissions are matched in offer response admissions","Check this fail
+FAILED All booking admissions are matched in offer response admissions","Check this fail
+FAILED All booking admissions are matched in offer response admissions","Check this fail
+FAILED All booking admissions are matched in offer response admissions",
+04. GET Passenger,,,,,
+05. PATCH Passenger,,,,,
+06. GET Passenger after Patch Passenger,,,,,
+07. GET Booking before Fulfillments,"FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null",
+,"FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes","FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes","FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes","FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes",
+08. POST Obtaining Fulfillments from Booking,,,,,
+09. GET Booking after Fulfillments,"FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null","FAILED ValidUntil is set for bookedofferpart admissions
+ValudUntil value is null",
+,"FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes","FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes","FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes","FAILED Correct Purchaser is returned
+PhoneNumber is not returned, but preferredLanguage yes",
+,"FAILED
+Compare provisionalPrice
+FAILED
+Compare bookingConfirmedPrice","FAILED
+Compare provisionalPrice
+FAILED
+Compare bookingConfirmedPrice","FAILED
+Compare provisionalPrice
+FAILED
+Compare bookingConfirmedPrice","FAILED
+Compare provisionalPrice
+FAILED
+Compare bookingConfirmedPrice",
+10. POST Refund Offer,"500
+Internal Server Error","500
+Internal Server Error","500
+Internal Server Error","500
+Internal Server Error",
+11. GET Refund Offer,501Not Implemented,501Not Implemented,501Not Implemented,501Not Implemented,
+12. Get Booking before Patch Refund,,Refundable amount is VALID : refundOffer.refundableAmount.amount = 0 ? bookingConfirmedPrice - refundOffer.refundFee.amount | AssertionError: expected +0 to equal 1330,,,
+13. PATCH Refund Offer,,,,,
+14. GET Booking after Patch Refund,,,,,
+15. DEL Refund Offers,,,,,
+16. GET Booking after Delete Refund,,,,,

@@ -1,0 +1,84 @@
+,OTST_RFND_SRCH_CRIT_1ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG,OTST_RFND_SRCH_CRIT_1ADT_2LEG,OTST_RFND_TRIP_SPEC_2ADT_2LEG
+01. POST Get Offer,offerMode in response returns COLLECTIVE but INDIVIDUAL mentionned in data file,"As offerMode in response returns COLLECTIVE but INDIVIDUAL mentionned in data file, we have issue in Admissions returned
+FAILED
+Correct admissions are returned (expected: 2, actual: 1) | AssertionError: expected 1 to equal 2
+FAILED
+Correct reservations are returned (expected: 2, actual: 1) | AssertionError: expected 1 to equal 2","As offerMode in response returns COLLECTIVE but INDIVIDUAL mentionned in data file, we have issue in Admissions returned
+FAILED
+Correct admissions are returned (expected: 3, actual: 1) | AssertionError: expected 1 to equal 3
+FAILED
+Correct reservations are returned (expected: 3, actual: 1) | AssertionError: expected 1 to equal 3","Error: ? Exiting script, no offers available in the response",
+,"urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7 is not correct
+""origin"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7""
+                },
+""destination"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:uic:stn:5454300""
+                },","urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7 is not correct
+""origin"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7""
+                },
+""destination"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:uic:stn:5454300""
+                },","urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7 is not correct
+""origin"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7""
+                },
+""destination"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:uic:stn:5454300""
+                },",,"FAILED Correct legs are returned because :
+urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7 is not correct
+""origin"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:x_bileto:stn:7bbf6def-4dc5-49cd-8d2c-49048adf26a7""
+                },
+""destination"": {
+                    ""objectType"": ""StopPlaceRef"",
+                    ""stopPlaceRef"": ""urn:uic:stn:5454300""
+                },"
+03. POST Create a Booking,"FAILED ConfirmableUntil is returned on bookedofferpart admissions
+ConfirmableUntil value is null",,,,
+,"FAILED Products of the admission should be set and similar to offer response
+products element in admissions value is null",,,,
+,"FAILED ConfirmableUntil is returned on bookedofferpart reservations
+ConfirmableUntil value is null",,,,
+04. GET Passenger,,,,,
+05. PATCH Passenger,,,,,
+06. GET Passenger after Patch Passenger,,,,,
+07. GET Booking before Fulfillments,"FAILED ConfirmableUntil is returned on bookedofferpart admissions
+ConfirmableUntil value is null",,,,
+,"FAILED ConfirmableUntil is returned on bookedofferpart reservations
+ConfirmableUntil value is null",,,,
+,"provisionalRefundAmount.currency
+confirmedPrice.currency 
+values are EUR in reponse but CZK used in data file",,,,
+08. POST Obtaining Fulfillments from Booking,,,,,
+09. GET Booking after Fulfillments,"provisionalRefundAmount.currency
+confirmedPrice.currency 
+values are EUR in reponse but CZK used in data file",,,,
+10. POST Refund Offer,"Refund offer is still valid checking validUntil for the RefundOffers
+ValidUntil is null",,,,"FAILED
+Fulfillments are present and valid with status: CONFIRMED,FULFILLED
+Code to improve to compare fulfillments list"
+11. GET Refund Offer,"Refund offer is still valid checking validUntil for the RefundOffers
+ValidUntil is null",,,,
+12. Get Booking before Patch Refund,"Refund offer is still valid checking validUntil for the RefundOffers
+ValidUntil is null",,,,"FAILED
+Fulfillments are present and valid with status: CONFIRMED,FULFILLED
+Code to improve to compare fulfillments list"
+13. PATCH Refund Offer,"Refund offer is still valid checking validUntil for the RefundOffers
+ValidUntil is null",,,,
+14. GET Booking after Patch Refund,,,,,
+15. DEL Refund Offers,,,,,
+16. GET Booking after Delete Refund,"Should be correct, to check :
+""refundOffers"": [],","Should be correct, to check :
+""refundOffers"": [],","Should be correct, to check :
+""refundOffers"": [],","Should be correct, to check :
+""refundOffers"": [],","Should be correct, to check :
+""refundOffers"": [],"
