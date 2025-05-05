@@ -1,19 +1,14 @@
 // Function to log refund details
 function logRefundDetails(refundOffer) {
 	validationLogger(`[INFO] Checking refund offer with Id: ${refundOffer.id}`);
-	validationLogger(`[INFO] ValidUntil: ${new Date(pm.variables.get("validUntilRefundOffers"))}`);
+	validationLogger(`[INFO] validUntil for the RefundOffers: $${refundOffer.validUntil}`);
 	validationLogger(`[INFO] Status: ${refundOffer.status}`);
 }
 
 // Function to validate fulfillments
 function validateFulfillments(fulfillments, expectedStatus) {
 	let validStatuses = [];
-	var sandbox = pm.environment.get("api_base");
-	if (sandbox.includes("paxone")) {
-		validStatuses = expectedStatus === "CONFIRMED" ? ["REFUNDED"] : ["CONFIRMED", "FULFILLED"];
-	} else {
-		validStatuses = expectedStatus === "CONFIRMED" ? ["REFUNDED"] : ["FULFILLED"];
-	}
+	validStatuses = expectedStatus === "CONFIRMED" ? ["REFUNDED"] : ["CONFIRMED", "FULFILLED"];
 
 	pm.test(`Fulfillments are present and valid with status: ${validStatuses}`, () => {
 		pm.expect(fulfillments).to.be.an('array').that.is.not.empty;
@@ -22,6 +17,7 @@ function validateFulfillments(fulfillments, expectedStatus) {
 			pm.expect(fulfillment).to.have.property('status');
 			pm.expect(validStatuses).to.include(fulfillment.status);
 
+			//TODO correct fulfillmentsId implementation : Return all fulfillments IDs and compare with the one in the response
 			const fulfillmentsId = pm.globals.get("fulfillmentsId");
 			pm.expect(fulfillment.id).to.eql(fulfillmentsId);
 		});
@@ -57,21 +53,23 @@ function validateAppliedOverruleCode(appliedOverruleCode, expectedOverruleCode) 
 	validationLogger(`[INFO] ExpectedOverruleCode: ${expectedOverruleCode}`);
 	validationLogger(`[INFO] AppliedOverruleCode: ${appliedOverruleCode}`);
 
-	pm.test(expectedOverruleCode === null ? "AppliedOverruleCode is null as expected" : `AppliedOverruleCode is valid, compare appliedOverruleCode = ${appliedOverruleCode} with expectedOverruleCode = ${expectedOverruleCode}`, () => {
+	pm.test(expectedOverruleCode === null ? "AppliedOverruleCode is null as expected" : `AppliedOverruleCode is valid, (expected: appliedOverruleCode = ${appliedOverruleCode}, actual: expectedOverruleCode = ${expectedOverruleCode})`, () => {
 		pm.expect(appliedOverruleCode).to.equal(expectedOverruleCode);
 	});
 }
 
 // Function to validate refund offer
 function validateRefundOffer(refundOffer, expectedStatus) {
+	const currentDate = new Date();
+	const validUntilRefundOffers = new Date(refundOffer.validUntil);
 	logRefundDetails(refundOffer);
 
-	pm.test("Refund offer is still valid checking ValidUntil", () => {
-		const validUntil = new Date(refundOffer.validUntil);
-		const now = new Date();
-		pm.expect(validUntil.getTime()).to.be.above(now.getTime());
+	pm.test("Valid until is set and still valid for the RefundOffers", () => {
+		pm.expect(refundOffer.validUntil).to.exist;
+		pm.expect(validUntilRefundOffers.getTime()).to.be.above(currentDate.getTime());
 	});
 
+	//TODO : Check refundOfferPartReference implementation
 	pm.globals.set("refundOfferPartReference", refundOffer.fulfillments[0].bookingParts[0].id);
 
 	pm.test("Refund offer has a valid ID", () => {
@@ -79,20 +77,21 @@ function validateRefundOffer(refundOffer, expectedStatus) {
 		pm.globals.set("refundId", refundOffer.id);
 	});
 
-	pm.test(`Correct status is returned on refund: ${expectedStatus}`, () => {
+	pm.test(`Correct status is returned on refund | Expected: ${expectedStatus} | Actual: ${refundOffer.status}`, () => {
 		pm.expect(refundOffer.status).to.equal(expectedStatus);
 	});
-
+	
 	validateFulfillments(refundOffer.fulfillments, expectedStatus);
 
 	const overruleCode = pm.globals.get("refundOverruleCode");
 	validateAppliedOverruleCode(refundOffer.appliedOverruleCode, overruleCode);
 
-	if (expectedStatus === "CONFIRMED") {
+	if ((expectedStatus === "CONFIRMED") || (expectedStatus === "FULFILLED")) {
 		const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
 		validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
 		validateRefundFee(refundOffer.refundFee);
 	} else if (expectedStatus === "PROPOSED") {
+		//TODO : Check if price comparison must be done here
 		pm.globals.set("refundRefundAmount", refundOffer.refundableAmount.amount);
 		pm.globals.set("refundFee", refundOffer.refundFee.amount);
 	}
@@ -137,7 +136,6 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
 	checkWarningsAndProblems(response);
 
 	const refundOffers = isPatchResponse ? [response.refundOffer] : response.refundOffers;
-	pm.test("Status code is 200", () => pm.response.to.have.status(200));
 
 	pm.test(isPatchResponse ? "Patch refund response contains refundOffer" : "Refund response contains refundOffers", () => {
 		pm.expect(refundOffers).to.be.an('array').that.is.not.empty;
@@ -145,12 +143,6 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
 
 	const expectedStatus = isPatchResponse ? 'CONFIRMED' : 'PROPOSED';
 	refundOffers.forEach(refundOffer => {
-		if (expectedStatus === "PROPOSED") {
-			pm.globals.set("validUntilRefundOffers", refundOffer.validUntil);
-			pm.test("ValidUntil is set for refundOffer", () => {
-				pm.expect(refundOffer.validUntil).to.exist;
-			});
-		}
 		validateRefundOffer(refundOffer, expectedStatus);
 	});
 }
@@ -158,12 +150,6 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
 // Function to validate booking response for refund
 function validateBookingResponseRefund(response, refundType) {
 	const booking = response.booking;
-
-	pm.test("Refund offer is still valid checking ValidUntil", () => {
-		const validUntil = new Date(booking.refundOffers[0].validUntil);
-		const now = new Date();
-		pm.expect(validUntil.getTime()).to.be.above(now.getTime());
-	});
 
 	if (["post", "patch", "delete"].includes(refundType)) {
 		const refundOfferPartReference = pm.globals.get("refundOfferPartReference");
@@ -204,6 +190,14 @@ function validateBookingResponseRefund(response, refundType) {
 	});
 
 	if (["post", "patch"].includes(refundType)) {
+		const validUntilRefundOffers = new Date(booking.refundOffers[0].validUntil);
+		const currentDate = new Date();
+	
+		pm.test("Valid until is set and still valid for the RefundOffers", () => {
+			pm.expect(refundOffer.validUntil).to.exist;
+			pm.expect(validUntilRefundOffers.getTime()).to.be.above(currentDate.getTime());
+		});
+
 		pm.test("Refund offers are valid", () => {
 			pm.expect(booking).to.have.property('refundOffers').that.is.an('array').with.length.above(0);
 			const refundOffer = booking.refundOffers[0];

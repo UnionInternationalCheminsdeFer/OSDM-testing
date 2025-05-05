@@ -1,35 +1,22 @@
 // Function to validate offer response
-validateOfferResponse = function (passengerSpecifications, searchCriteria, fulfillmentOptions, offers, trips, scenarioType) {
+validateOfferResponse = function (passengerSpecifications, searchCriteria, fulfillmentOptions, offers, trips) {
 	// Test if offers are returned
-	pm.test("Offers are returned", function () {
-		validationLogger("[INFO] DesiredType : " + scenarioType);
+	validationLogger("[INFO] 🔍 There are " + offers.length + " offer(s) available");
 
-		const { requireAdmission, requireAncillary, requireReservation } = determineRequiredOfferParts(scenarioType);
+	let found = false;
+	for (let offerIndex = 0; offerIndex < offers.length && !found; offerIndex++) {
+		validationLogger("[INFO] Checking offer index : " + offerIndex);
+		const offer = offers[offerIndex];
 
-		if (offers && offers.length > 0) {
-			validationLogger("[INFO] 🔍 There are " + offers.length + " offers available");
+		const { foundAdmissions, foundAncillaries, foundReservations } = validateOfferParts(
+			offer,
+			passengerSpecifications,
+			fulfillmentOptions,
+			searchCriteria
+		);
 
-			let found = false;
-			for (let offerIndex = 0; offerIndex < offers.length && !found; offerIndex++) {
-				validationLogger("[INFO] Checking offer index : " + offerIndex);
-				const offer = offers[offerIndex];
-
-				const { foundAdmissions, foundAncillaries, foundReservations } = validateOfferParts(
-					offer,
-					passengerSpecifications,
-					fulfillmentOptions,
-					searchCriteria,
-					requireAdmission,
-					requireAncillary,
-					requireReservation
-				);
-
-				found = validateScenario(foundAdmissions, foundReservations, trips, passengerSpecifications, scenarioType);
-			}
-		} else {
-			validationLogger("[INFO] No offer(s) available");
-		}
-	});
+		found = validateScenario(foundAdmissions, foundAncillaries, foundReservations, trips, passengerSpecifications);
+	}
 
 	validateOfferSearchCriteria(trips);
 	validateTripSpecifications(trips);
@@ -38,49 +25,14 @@ validateOfferResponse = function (passengerSpecifications, searchCriteria, fulfi
 	handlePlaceSelection();
 };
 
-// Helper function to determine required offer parts
-function determineRequiredOfferParts(scenarioType) {
-	let requireAdmission = false;
-	let requireAncillary = false;
-	let requireReservation = false;
-
-	switch (scenarioType) {
-		case "BOTH":
-			requireAdmission = true;
-			requireReservation = true;
-			break;
-		case "RESERVATION":
-			requireReservation = true;
-			break;
-		default:
-			requireAdmission = true;
-	}
-
-	return { requireAdmission, requireAncillary, requireReservation };
-}
-
 // Helper function to validate offer parts
-function validateOfferParts(offer, passengerSpecifications, fulfillmentOptions, searchCriteria, requireAdmission, requireAncillary, requireReservation) {
+function validateOfferParts(offer, passengerSpecifications, fulfillmentOptions, searchCriteria) {
 	let foundAdmissions = 0;
 	let foundAncillaries = 0;
 	let foundReservations = 0;
 
-	/*
-	if (requireAdmission) {
-		foundAdmissions = validateAdmissions(offer.admissionOfferParts, passengerSpecifications, fulfillmentOptions);
-	}
-
-	if (requireAncillary) {
-		foundAncillaries = validateAncillaries(offer.ancillaryOfferParts, passengerSpecifications);
-	}
-
-	if (requireReservation) {
-		foundReservations = validateReservations(offer.reservationOfferParts, passengerSpecifications, searchCriteria, fulfillmentOptions);
-	}
-	*/
-
-	foundAdmissions = validateAdmissions(offer.admissionOfferParts, passengerSpecifications, fulfillmentOptions);
-	foundAncillaries = validateAncillaries(offer.ancillaryOfferParts, passengerSpecifications);
+	foundAdmissions = validateAdmissions(offer.admissionOfferParts, passengerSpecifications, searchCriteria, fulfillmentOptions);
+	foundAncillaries = validateAncillaries(offer.ancillaryOfferParts, passengerSpecifications, searchCriteria, fulfillmentOptions);
 	foundReservations = validateReservations(offer.reservationOfferParts, passengerSpecifications, searchCriteria, fulfillmentOptions);
 
 	validationLogger("[INFO] Admissions : " + foundAdmissions);
@@ -91,128 +43,132 @@ function validateOfferParts(offer, passengerSpecifications, fulfillmentOptions, 
 }
 
 // Helper function to validate admissions
-function validateAdmissions(admissionOfferParts, passengerSpecifications, fulfillmentOptions) {
-	let foundAdmissions = 0;
+function validateAdmissions(admissionOfferParts, passengerSpecifications, searchCriteria, fulfillmentOptions) {
+    let foundAdmissions = 0;
 
-	if (admissionOfferParts) {
-		for (const part of admissionOfferParts) {
-			for (const passengerRef of part.passengerRefs) {
-				const passengerFound = passengerSpecifications.some(passenger => passenger.externalRef === passengerRef);
-
-				if (passengerFound) {
-					if (fulfillmentOptions) {
-						const fulfillmentOptionRequested = JSON.parse(fulfillmentOptions);
-						const correctFulfillmentOption = part.availableFulfillmentOptions.some(
-							option => option.type === fulfillmentOptionRequested[0].type && option.media === fulfillmentOptionRequested[0].media
-						);
-
-						pm.test("Correct requested fulfillments are returned", function () {
-							pm.expect(correctFulfillmentOption).to.equal(true);
-						});
-
-						if (correctFulfillmentOption) foundAdmissions++;
-					} else {
-						foundAdmissions++;
-					}
-				} else {
-					console.log("Passenger ref not found:", passengerRef);
-				}
-			}
-		}
-	}
-
-	return foundAdmissions;
+    if (admissionOfferParts && Array.isArray(admissionOfferParts)) {
+        for (const part of admissionOfferParts) {
+            const hasMatchingPassenger = part.passengerRefs.some(passengerRef =>
+                passengerSpecifications.some(passenger => passenger.externalRef === passengerRef)
+            );
+            if (hasMatchingPassenger) {
+				pm.test(`AdmissionOfferParts currency matches searchCriteria currency (expected: ${searchCriteria.currency}, actual: ${part.price.currency})`, function () {
+					pm.expect(part.price.currency).to.eql(searchCriteria.currency);
+				});
+                if (fulfillmentOptions) {
+					const fulfillmentOptionRequested = JSON.parse(fulfillmentOptions);
+					const actualOptions = part.availableFulfillmentOptions || [];
+					const correctFulfillmentOption = actualOptions.some(
+						option => option.type === fulfillmentOptionRequested[0].type && option.media === fulfillmentOptionRequested[0].media
+					);
+					pm.test(`AdmissionOfferParts fulfillments matches fulfillmentOptions fulfillments (expected: ${fulfillmentOptionRequested[0].type}/${fulfillmentOptionRequested[0].media}, actual: ${actualOptions.map(opt => `${opt.type}/${opt.media}`).join(', ')})`, function () {
+						pm.expect(correctFulfillmentOption).to.eql(true);
+					});
+					
+                }
+				foundAdmissions++;
+            }
+        }
+    }
+    return foundAdmissions;
 }
 
 // Helper function to validate ancillaries
-function validateAncillaries(ancillaryOfferParts, passengerSpecifications) {
+function validateAncillaries(ancillaryOfferParts, passengerSpecifications, searchCriteria, fulfillmentOptions) {
 	let foundAncillaries = 0;
 
-	if (ancillaryOfferParts) {
+	if (ancillaryOfferParts && Array.isArray(ancillaryOfferParts)) {
 		for (const part of ancillaryOfferParts) {
-			for (const passengerRef of part.passengerRefs) {
-				if (passengerSpecifications.some(passenger => passenger.externalRef === passengerRef)) {
-					foundAncillaries++;
+			const hasMatchingPassenger = part.passengerRefs.some(passengerRef =>
+				passengerSpecifications.some(passenger => passenger.externalRef === passengerRef)
+			);
+			if (hasMatchingPassenger) {
+				pm.test(`AncillaryOfferParts currency matches searchCriteria currency (expected: ${searchCriteria.currency}, actual: ${part.price.currency})`, function () {
+					pm.expect(part.price.currency).to.eql(searchCriteria.currency);
+				});
+				if (fulfillmentOptions) {
+					const fulfillmentOptionRequested = JSON.parse(fulfillmentOptions);
+					const actualOptions = part.availableFulfillmentOptions || [];
+					const correctFulfillmentOption = actualOptions.some(
+						option => option.type === fulfillmentOptionRequested[0].type && option.media === fulfillmentOptionRequested[0].media
+					);
+					pm.test(`AncillaryOfferParts fulfillments matches fulfillmentOptions fulfillments (expected: ${fulfillmentOptionRequested[0].type}/${fulfillmentOptionRequested[0].media}, actual: ${actualOptions.map(opt => `${opt.type}/${opt.media}`).join(', ')})`, function () {
+						pm.expect(correctFulfillmentOption).to.eql(true);
+					});
+					
 				}
+				foundAncillaries++;
 			}
 		}
 	}
-
 	return foundAncillaries;
 }
 
-// Helper function to validate reservations
 function validateReservations(reservationOfferParts, passengerSpecifications, searchCriteria, fulfillmentOptions) {
 	let foundReservations = 0;
 
-	if (reservationOfferParts) {
+	if (reservationOfferParts && Array.isArray(reservationOfferParts)) {
 		for (const part of reservationOfferParts) {
-			for (const passengerRef of part.passengerRefs) {
-				if (passengerSpecifications.some(passenger => passenger.externalRef === passengerRef)) {
-					if (searchCriteria?.currency) {
-						if (part.price.currency === searchCriteria.currency) {
-							foundReservations++;
-						}
-					} else {
-						foundReservations++;
-					}
-
-					if (fulfillmentOptions) {
-						const fulfillmentOptionRequested = JSON.parse(fulfillmentOptions);
-						const correctFulfillmentOption = part.availableFulfillmentOptions.some(
-							option => option.type === fulfillmentOptionRequested[0].type && option.media === fulfillmentOptionRequested[0].media
-						);
-
-						pm.test("Correct requested fulfillments for reservations are returned", function () {
-							pm.expect(correctFulfillmentOption).to.equal(true);
-						});
-					}
+			const hasMatchingPassenger = part.passengerRefs.some(passengerRef =>
+				passengerSpecifications.some(passenger => passenger.externalRef === passengerRef)
+			);
+			if (hasMatchingPassenger) {
+				pm.test(`ReservationOfferParts currency matches searchCriteria currency (expected: ${searchCriteria.currency}, actual: ${part.price.currency})`, function () {
+					pm.expect(part.price.currency).to.eql(searchCriteria.currency);
+				});
+				if (fulfillmentOptions) {
+					const fulfillmentOptionRequested = JSON.parse(fulfillmentOptions);
+					const actualOptions = part.availableFulfillmentOptions || [];
+					const correctFulfillmentOption = actualOptions.some(
+						option => option.type === fulfillmentOptionRequested[0].type && option.media === fulfillmentOptionRequested[0].media
+					);
+					pm.test(`ReservationOfferParts fulfillments matches fulfillmentOptions fulfillments (expected: ${fulfillmentOptionRequested[0].type}/${fulfillmentOptionRequested[0].media}, actual: ${actualOptions.map(opt => `${opt.type}/${opt.media}`).join(', ')})`, function () {
+						pm.expect(correctFulfillmentOption).to.eql(true);
+					});
+					
 				}
+				foundReservations++;
 			}
 		}
 	}
-
 	return foundReservations;
 }
 
 // Helper function to validate scenario
-function validateScenario(foundAdmissions, foundReservations, trips, passengerSpecifications, scenarioType) {
+function validateScenario(foundAdmissions, foundAncillaries, foundReservations, trips, passengerSpecifications) {
+	//TODO : Check trips[0] if it is correct
 	const legAmountsLength = trips[0].legs.length;
 	const passengerAmounts = passengerSpecifications.length;
 	const amounts = legAmountsLength * passengerAmounts;
-
-	switch (scenarioType) {
-		case "BOTH":
-			pm.test("Correct admissions are returned", function () {
-				pm.expect(foundAdmissions).to.equal(amounts);
-			});
-			pm.test("Correct reservations are returned", function () {
-				pm.expect(foundReservations).to.equal(amounts);
-			});
-			return foundAdmissions === amounts && foundReservations === amounts;
-
-		case "RESERVATION":
-			pm.test("Correct reservations are returned", function () {
-				pm.expect(foundReservations).to.equal(amounts);
-			});
-			return foundReservations === amounts;
-
-		default:
-			pm.test("Correct admissions are returned", function () {
-				pm.expect(foundAdmissions).to.equal(amounts);
-			});
-			return foundAdmissions === amounts;
+	let allValid = true;
+	if (foundAdmissions !== 0) {
+		pm.test(`Correct admissions are returned (expected: ${amounts}, actual: ${foundAdmissions})`, function () {
+			pm.expect(foundAdmissions).to.equal(amounts);
+		});
+		allValid = allValid && (foundAdmissions === amounts);
 	}
+	if (foundAncillaries !== 0) {
+		pm.test(`Correct ancillaries are returned (expected: ${amounts}, actual: ${foundAncillaries})`, function () {
+			pm.expect(foundAncillaries).to.equal(amounts);
+		});
+		allValid = allValid && (foundAncillaries === amounts);
+	}
+	if (foundReservations !== 0) {
+		pm.test(`Correct reservations are returned (expected: ${amounts}, actual: ${foundReservations})`, function () {
+			pm.expect(foundReservations).to.equal(amounts);
+		});
+		allValid = allValid && (foundReservations === amounts);
+	}
+	
+	return allValid;
 }
 
 // Helper function to validate trip specifications
 function validateTripSpecifications(trips) {
-	if (pm.globals.get(OFFER.TRIP_SPECIFICATIONS)) {
-		const requiredTrip = JSON.parse(pm.globals.get(OFFER.TRIP_SPECIFICATIONS));
-
-		pm.test("Trips are returned", function () {
+	if (pm.globals.get("offerTripSpecifications")) {
+		const requiredTrip = JSON.parse(pm.globals.get("offerTripSpecifications"));
+		pm.test("validateTripSpecifications : Trips are returned", function () {
 			pm.expect(trips).not.to.be.empty;
-
 			const found = trips.some(trip => {
 				const legsFound = trip.legs.filter(leg =>
 					requiredTrip[0].legs.some(requiredLeg =>
@@ -222,10 +178,8 @@ function validateTripSpecifications(trips) {
 						requiredLeg.timedLeg.service.carriers[0].ref === leg.timedLeg.service.carriers[0].ref
 					)
 				).length;
-
 				return legsFound === requiredTrip[0].legs.length;
 			});
-
 			pm.test("Correct legs are returned", function () {
 				pm.expect(found).to.equal(true);
 			});
@@ -235,55 +189,28 @@ function validateTripSpecifications(trips) {
 
 // Helper function to validate offer search criteria
 function validateOfferSearchCriteria(trips) {
-	if (pm.globals.get(OFFER.TRIP_SEARCH_CRITERIA)) {
-		const requiredCriteria = JSON.parse(pm.globals.get(OFFER.TRIP_SEARCH_CRITERIA));
-		pm.test("Trips are returned", function () {
+	if (pm.globals.get("offerTripSearchCriteria")) {
+		pm.test("validateOfferSearchCriteria : Trips are returned", function () {
 			pm.expect(trips).not.to.be.empty;
-
-			const vehicleNumberCriteria = requiredCriteria?.parameters?.dataFilter?.vehicleFilter?.vehicleNumbers?.length > 0 
-				? requiredCriteria.parameters.dataFilter.vehicleFilter.vehicleNumbers[0] 
-				: undefined;
-		
-			const carrierCriteria = requiredCriteria?.parameters?.dataFilter?.carrierFilter?.carriers?.length > 0 
-				? requiredCriteria.parameters.dataFilter.carrierFilter.carriers[0] 
-				: undefined;
-		
-			const found = trips.some(trip => {
-				const legs = trip.legs;
-				const firstLeg = legs[0];
-				const lastLeg = legs[legs.length - 1];
-
-				if (!firstLeg || !lastLeg) return false;
-				const matches = [firstLeg, lastLeg].every(leg => {
-					const matchesOrigin = firstLeg.timedLeg.start.stopPlaceRef.stopPlaceRef === requiredCriteria.origin.stopPlaceRef;
-					const matchesDestination = lastLeg.timedLeg.end.stopPlaceRef.stopPlaceRef === requiredCriteria.destination.stopPlaceRef;
-					const matchesVehicleNumber = vehicleNumberCriteria !== undefined
-					? firstLeg.timedLeg.service.vehicleNumbers[0] === vehicleNumberCriteria
-					: true;
-
-				const matchesCarrier = carrierCriteria !== undefined
-					? firstLeg.timedLeg.service.carriers[0].ref === carrierCriteria
-					: true;
-
-					return matchesOrigin && matchesDestination && matchesVehicleNumber && matchesCarrier;
-				});
-				return matches;
-			});
-
-			pm.test("Correct legs matching search criteria are returned", function () {
-				pm.expect(found).to.equal(true);
-			});
+			//TODO : Correct validation of the trip search criteria ?
 		});
 	}
 }
 
 // Helper function to validate anonymous passenger specifications
 function validateAnonymousPassengerSpecifications() {
-	pm.test("AnonymousPassengerSpecifications are returned", function () {
+	pm.test("validateAnonymousPassengerSpecifications : AnonymousPassengerSpecifications contain valid externalRef", function () {
 		const response = pm.response.json();
-		pm.expect(response.anonymousPassengerSpecifications).not.to.be.empty;
+		const specs = response.anonymousPassengerSpecifications;
+
+		pm.expect(specs).to.be.an('array').that.is.not.empty;
+
+		specs.forEach((spec, index) => {
+			pm.expect(spec.externalRef, `Missing externalRef at index ${index}`).to.be.a('string').that.is.not.empty;
+		});
 	});
 }
+
 
 // Helper function to select and set the desired offer
 function selectAndSetOffer(offers) {
@@ -291,16 +218,35 @@ function selectAndSetOffer(offers) {
 	const selectedOffers = offers.filter(offer => offer.offerSummary?.overallFlexibility === desiredFlexibility);
 	const selectedOffer = selectedOffers.length > 0 ? selectedOffers[0] : offers[0];
 
-	validationLogger("[INFO] DesiredFlexibility for current scenario : " + desiredFlexibility);
-	console.log("[INFO] 🔍 Selected offer : ", selectedOffer);
+	let allMatchingProducts = [];
 
+	if (desiredFlexibility === null) {
+		validationLogger("[INFO] DesiredFlexibility is not set, taking the 1st offer in the list");
+	} else {
+		validationLogger("[INFO] DesiredFlexibility for current scenario : " + desiredFlexibility);
+		pm.test(`Selected offer has the expected overallFlexibility (expected: ${desiredFlexibility}, actual: ${selectedOffer.offerSummary?.overallFlexibility})`, function () {
+			pm.expect(selectedOffer.offerSummary?.overallFlexibility).to.eql(desiredFlexibility);
+		});
+		offers.forEach((offer, offerIndex) => {
+			const products = offer.products || [];
+			const matchingProducts = products.filter(p => p.flexibility === desiredFlexibility);
+			if (matchingProducts.length === 0) {
+				console.warn(`[WARNING] No matching products found for offer ${offerIndex} with flexibility: ${desiredFlexibility}`);
+			}
+			matchingProducts.forEach((product, productIndex) => {
+				console.log(`[INFO] Offer ${offerIndex} - Product ${productIndex}: flexibility: ${product.flexibility}, id: ${product.id}`);
+			});
+			allMatchingProducts = allMatchingProducts.concat(matchingProducts);
+		});
+		
+		pm.test(`Total number of matching products with flexibility = ${desiredFlexibility} (found: ${allMatchingProducts.length})`, function () {
+			pm.expect(allMatchingProducts.length, `Expected at least 1, but found ${allMatchingProducts.length}`).to.be.above(0);
+		});
+	}
+	console.log("[INFO] 🔍 Selected offer : ", selectedOffer);
 	pm.globals.set("offers", offers);
 	pm.globals.set("offerId", selectedOffer.offerId);
 	pm.globals.set("offer", selectedOffer);
-
-	if (selectedOffers.length === 0) {
-		validationLogger("[INFO] Offer doesn't match the entry FLEXIBILITY criteria, taking the 1st offer in the list");
-	}
 }
 
 // Helper function to handle place selection

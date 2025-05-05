@@ -4,7 +4,6 @@
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -17,7 +16,6 @@
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -30,7 +28,6 @@
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -43,7 +40,6 @@
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -56,7 +52,6 @@
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -168,16 +163,25 @@
             ]
         }
     ],
+    "purchaserList": [
+        {
+            "id": 1,
+            "purchaser": [
+                {
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com"
+                }
+            ]
+        }
+    ],
     "passengersList": [
         {
             "id": 1,
             "passengers": [
                 {
                     "reference": "00001",
-                    "purchaserFirstName": "JohnPurchaser",
-                    "purchaserLastName": "DoePurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
                     "firstName": "John",
                     "lastName": "Doe",
@@ -197,10 +201,6 @@
             "passengers": [
                 {
                     "reference": "00001",
-                    "purchaserFirstName": "JohnPurchaser",
-                    "purchaserLastName": "DoePurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
                     "firstName": "John",
                     "lastName": "Doe",
@@ -215,10 +215,6 @@
                 },
                 {
                     "reference": "00002",
-                    "purchaserFirstName": "JohnPurchaser",
-                    "purchaserLastName": "DoePurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-03",
                     "firstName": "Marta",
                     "lastName": "Doe",
@@ -238,10 +234,6 @@
             "passengers": [
                 {
                     "reference": "00001",
-                    "purchaserFirstName": "JohnPurchaser",
-                    "purchaserLastName": "DoePurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
                     "firstName": "John",
                     "lastName": "Doe",
@@ -256,10 +248,6 @@
                 },
                 {
                     "reference": "00002",
-                    "purchaserFirstName": "JohnPurchaser",
-                    "purchaserLastName": "DoePurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-03",
                     "firstName": "Marta",
                     "lastName": "Doe",
@@ -274,10 +262,6 @@
                 },
                 {
                     "reference": "00003",
-                    "purchaserFirstName": "JohnPurchaser",
-                    "purchaserLastName": "DoePurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "2010-01-01",
                     "firstName": "Alice",
                     "lastName": "Doe",

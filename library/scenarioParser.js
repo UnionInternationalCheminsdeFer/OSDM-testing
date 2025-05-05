@@ -41,7 +41,7 @@ getScenarioData = function () {
 parseScenarioData = function(jsonData) {
 	// Get the next weekday date
 	var nextWeekday = get_next_weekday(new Date());
-	var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth()+1) + "-" + pad(nextWeekday.getUTCDate());
+	var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth()+1) + "-" + pad(nextWeekday.getUTCDate()+1);
 
 	var dataFileIndex = 0;
 	var dataFileLength = jsonData.scenarios.length;
@@ -142,23 +142,60 @@ parseScenarioData = function(jsonData) {
 			pm.globals.set("refundOverruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundOverruleCode) ? null : jsonData.scenarios[dataFileIndex].refundOverruleCode);
 			pm.globals.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
 			pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
-			pm.globals.set("desiredType", jsonData.scenarios[dataFileIndex].desiredType);
 			pm.globals.set("ScenarioCode", jsonData.scenarios[dataFileIndex].code);
 			validationLogger("[DEBUG] 🪲 DUMMY0")
+
+			// Purchaser details
+			jsonData.purchaserList.some(function(purchaserList){
+				validationLogger('[INFO] Found number of purchaser: '+purchaserList.purchaser.length);
+				var purchaserSpecs = [];
+				purchaserList.purchaser.forEach(function(purchaser){
+					validationLogger("[DEBUG] 🪲 DUMMY1")
+
+					var osdmVersion = pm.globals.get("osdmVersion");
+					if (osdmVersion == "3.4" || osdmVersion == "3.5") {
+						purchaserSpecs.push(new PurchaserContact(
+							new DetailContact(
+								purchaser.purchaserFirstName,
+								purchaser.purchaserLastName,
+								new Contact(
+									purchaser.purchaserEmail,
+									purchaser.purchaserPhoneNumber
+								)
+							)
+						));
+					} else {
+						purchaserSpecs.push(new Purchaser(
+							new Detail(
+								purchaser.firstName,
+								purchaser.lastName,
+								purchaser.email,
+								purchaser.phoneNumber
+							)
+						));
+					}
+
+				});
+				validationLogger("[DEBUG] 🪲 DUMMY4")
+
+				validationLogger('[FULL] Pushed purchaserSpec to globals: '+JSON.stringify(purchaserSpecs));
+				pm.globals.set("bookingPurchaserSpecifications", JSON.stringify(purchaserSpecs[0]));
+				return true;
+			});
+
 			// Loop through the passengers list to find the matching passengers list ID
 			jsonData.passengersList.some(function(passengersList){
 				if(passengersList.id==jsonData.scenarios[dataFileIndex].passengersListId){
 					validationLogger('[INFO] Found number of passengers: '+passengersList.passengers.length);
-					pm.globals.set(OFFER.PASSENGER_NUMBER, passengersList.passengers.length);
+					pm.globals.set("offerPassengerNumber", passengersList.passengers.length);
 					var offerPassengerSpecs = [];
 					var passengerSpecs = [];
-					var purchaserSpecs = [];
 					var passengerReferences = [];
 					var passengerAdditionalData = [];
 					var passengerIndex = 0;
 					// Loop through the passengers and set global variables for each passenger
 					passengersList.passengers.forEach(function(passenger){
-						var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", (passengerIndex+1));
+						var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", (passengerIndex+1));
 						pm.globals.set(passengerKey, uuid.v4());
 						offerPassengerSpecs.push(new AnonymousPassengerSpec(
 							//pm.globals.get(passengerKey),
@@ -169,29 +206,6 @@ parseScenarioData = function(jsonData) {
 						validationLogger("[DEBUG] 🪲 DUMMY1")
 
 						var osdmVersion = pm.globals.get("osdmVersion");
-						if (osdmVersion == "3.4" || osdmVersion == "3.5") {
-							purchaserSpecs.push(new PurchaserContact(
-								new DetailContact(
-									passenger.purchaserFirstName,
-									passenger.purchaserLastName,
-									new Contact(
-										passenger.purchaserEmail,
-										passenger.purchaserPhoneNumber
-									)
-								)
-							));
-						} else {
-							purchaserSpecs.push(new Purchaser(
-								new Detail(
-									passenger.firstName,
-									passenger.lastName,
-									passenger.email,
-									passenger.phoneNumber
-								)
-							));
-						}
-
-						validationLogger("[DEBUG] 🪲 DUMMY2")
 						if (osdmVersion == "3.5") {
 							passengerSpecs.push(new PassengerSpec(
 								//pm.globals.get(passengerKey),
@@ -237,12 +251,10 @@ parseScenarioData = function(jsonData) {
 					});
 					validationLogger("[DEBUG] 🪲 DUMMY4")
 
-					validationLogger('[INFO] Pushed passengerSpec to globals: '+JSON.stringify(passengerSpecs));
-					validationLogger('[INFO] Pushed purchaserSpec to globals: '+JSON.stringify(purchaserSpecs));
-					pm.globals.set(OFFER.PASSENGER_SPECIFICATIONS, JSON.stringify(offerPassengerSpecs));
-					pm.globals.set(BOOKING.PASSENGER_SPECIFICATIONS, JSON.stringify(passengerSpecs));
-					pm.globals.set(BOOKING.PURCHASER_SPECIFICATIONS, JSON.stringify(purchaserSpecs[0]));
-					pm.globals.set(BOOKING.PASSENGER_REFERENCES, JSON.stringify(passengerReferences));
+					validationLogger('[FULL] Pushed passengerSpec to globals: '+JSON.stringify(passengerSpecs));
+					pm.globals.set("offerPassengerSpecifications", JSON.stringify(offerPassengerSpecs));
+					pm.globals.set("bookingPassengerSpecifications", JSON.stringify(passengerSpecs));
+					pm.globals.set("bookingPassengerReferences", JSON.stringify(passengerReferences));
 					pm.globals.set("passengerAdditionalData", JSON.stringify(passengerAdditionalData));
 					let passengerData = pm.globals.get("passengerAdditionalData");
 					passengerData = JSON.parse(passengerData);
@@ -293,7 +305,7 @@ parseScenarioData = function(jsonData) {
 					}
 				});
 			} else {
-				validationLogger("[ERROR] requestedFulfillmentOptionsList is empty or not an array.");
+				validationLogger("[INFO] requestedFulfillmentOptionsList is empty");
 			}
 			foundCorrectDataSet = true;
 			validationLogger("[INFO] ✅ Correct data set was found for this scenario : "+scenarioCode);
@@ -348,7 +360,7 @@ osdmTripSearchCriteria = function (legDefinitions) {
 	}
 	
 	// Set trip search criteria in global variables
-	pm.globals.set(OFFER.TRIP_SEARCH_CRITERIA, JSON.stringify(tripSearchCriteria));
+	pm.globals.set("offerTripSearchCriteria", JSON.stringify(tripSearchCriteria));
 };
 
 // Function to set trip specifications
@@ -401,20 +413,20 @@ osdmTripSpecification = function (legDefinitions) {
 	);
 
 	// Set trip specifications in global variables
-	pm.globals.set(OFFER.TRIP_SPECIFICATIONS, JSON.stringify([tripSpecification]));
+	pm.globals.set("offerTripSpecifications", JSON.stringify([tripSpecification]));
 };
 
 // Function to set anonymous passenger specifications
 osdmAnonymousPassengerSpecifications = function(passengerNumber) {
 
 	// Set the number of passengers in global variables
-	pm.globals.set(OFFER.PASSENGER_NUMBER, passengerNumber);
+	pm.globals.set("offerPassengerNumber", passengerNumber);
 
 	var passengerSpecs = [];
 
 	// Loop through the number of passengers and set global variables for each passenger
 	for (let n = 1; n <= passengerNumber; n++) {
-		var passengerKey = OFFER.PASSENGER_SPECIFICATION_EXTERNAL_REF_PATTERN.replace("%PASSENGER_COUNT%", n);
+		var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", n);
 
 		var birthDate = new Date();
 		birthDate.setFullYear(birthDate.getFullYear() - 26);
@@ -431,7 +443,7 @@ osdmAnonymousPassengerSpecifications = function(passengerNumber) {
 	}
 
 	// Set passenger specifications in global variables
-	pm.globals.set(OFFER.PASSENGER_SPECIFICATIONS, JSON.stringify(passengerSpecs));
+	pm.globals.set("offerPassengerSpecifications", JSON.stringify(passengerSpecs));
 };
 // Function to set offer search criteria
 osdmOfferSearchCriteria = function (
@@ -476,13 +488,13 @@ osdmOfferSearchCriteria = function (
 	}
 
 	// Set offer search criteria in global variables
-	pm.globals.set(OFFER.SEARCH_CRITERIA, JSON.stringify(offerSearchCriteria));
+	pm.globals.set("offerSearchCriteria", JSON.stringify(offerSearchCriteria));
 };
 
 // Function to set fulfillment options
 osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
 	// Set fulfillment options in global variables if provided
 	if (Array.isArray(requestedFulfillmentOptions) && requestedFulfillmentOptions.length > 0) {
-		pm.globals.set(OFFER.FULFILLMENT_OPTIONS, JSON.stringify(requestedFulfillmentOptions));
+		pm.globals.set("offerFulfillmentOptions", JSON.stringify(requestedFulfillmentOptions));
 	}
 };
