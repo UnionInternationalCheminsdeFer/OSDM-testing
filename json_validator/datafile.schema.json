@@ -20,10 +20,6 @@
 					"osdmVersion": {
 						"type": "string"
 					},
-					"desiredType": {
-						"type": "string",
-						"enum": ["ADMISSION", "RESERVATION"]
-					},
 					"currency": {
 						"type": "string",
 						"minLength": 3,

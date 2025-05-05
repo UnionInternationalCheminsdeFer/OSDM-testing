@@ -15,11 +15,19 @@ function validatePassengerData(response, passengerIndex) {
     validationLogger(`[INFO] Passenger phoneNumber data to patch : ${passenger.updatePhoneNumber} ⇔ found : ${phoneNumber}`);
     validationLogger(`[INFO] Passenger email data to patch : ${passenger.updateEmail} ⇔ found : ${email}`);	
 
-    pm.test(`Passenger ${passengerIndex} data is valid`, function () {
-        pm.expect(firstName, `First name for passenger ${passengerIndex}`).to.equal(passenger.updateFirstName);
-        pm.expect(lastName, `Last name for passenger ${passengerIndex}`).to.equal(passenger.updateLastName);
-        pm.expect(dateOfBirth, `Date of birth for passenger ${passengerIndex}`).to.equal(passenger.updateDateOfBirth);
-        pm.expect(phoneNumber, `Phone number for passenger ${passengerIndex}`).to.equal(passenger.updatePhoneNumber);
-        pm.expect(email, `Email for passenger ${passengerIndex}`).to.equal(passenger.updateEmail);
+    pm.test(`Passenger ${passengerIndex} - First name is correct (expected: ${passenger.updateFirstName}, actual: ${firstName})`, function () {
+        pm.expect(firstName).to.equal(passenger.updateFirstName);
+    });
+    pm.test(`Passenger ${passengerIndex} - Last name is correct (expected: ${passenger.updateLastName}, actual: ${lastName})`, function () {
+        pm.expect(lastName).to.equal(passenger.updateLastName);
+    });
+    pm.test(`Passenger ${passengerIndex} - Date of birth is correct (expected: ${passenger.updateDateOfBirth}, actual: ${dateOfBirth})`, function () {
+        pm.expect(dateOfBirth).to.equal(passenger.updateDateOfBirth);
+    });
+    pm.test(`Passenger ${passengerIndex} - Phone number is correct (expected: ${passenger.updatePhoneNumber}, actual: ${phoneNumber})`, function () {
+        pm.expect(phoneNumber).to.equal(passenger.updatePhoneNumber);
+    });
+    pm.test(`Passenger ${passengerIndex} - Email is correct (expected: ${passenger.updateEmail}, actual: ${email})`, function () {
+        pm.expect(email).to.equal(passenger.updateEmail);
     });
 }

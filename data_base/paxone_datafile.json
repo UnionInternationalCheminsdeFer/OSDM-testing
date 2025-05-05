@@ -108,16 +108,25 @@
                 }
         }
     ],
+    "purchaserList": [
+        {
+            "id": 1,
+            "purchaser": [
+                {
+                    "purchaserFirstName": "johnpurchaser",
+                    "purchaserLastName": "doepurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com"
+                }
+            ]
+        }
+    ],
     "passengersList": [
         {
             "id": 1,
             "passengers": [
                 {
                     "reference": "00001",
-                    "purchaserFirstName": "johnpurchaser",
-                    "purchaserLastName": "doepurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
                     "firstName": "john",
                     "lastName": "doe",
@@ -137,10 +146,6 @@
             "passengers": [
                 {
                     "reference": "00001",
-                    "purchaserFirstName": "johnpurchaser",
-                    "purchaserLastName": "doepurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
                     "firstName": "john",
                     "lastName": "doe",
@@ -155,10 +160,6 @@
                 },
                 {
                     "reference": "00002",
-                    "purchaserFirstName": "johnpurchaser",
-                    "purchaserLastName": "doepurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-03",
                     "firstName": "marta",
                     "lastName": "doe",
@@ -178,10 +179,6 @@
             "passengers": [
                 {
                     "reference": "00001",
-                    "purchaserFirstName": "johnpurchaser",
-                    "purchaserLastName": "doepurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-01",
                     "firstName": "john",
                     "lastName": "doe",
@@ -196,10 +193,6 @@
                 },
                 {
                     "reference": "00002",
-                    "purchaserFirstName": "johnpurchaser",
-                    "purchaserLastName": "doepurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "1999-01-03",
                     "firstName": "marta",
                     "lastName": "doe",
@@ -214,17 +207,13 @@
                 },
                 {
                     "reference": "00003",
-                    "purchaserFirstName": "johnpurchaser",
-                    "purchaserLastName": "doepurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
-                    "purchaserEmail": "emailPurchaser@email.com",
                     "dateOfBirth": "2010-01-01",
                     "firstName": "alice",
                     "lastName": "doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
                     "updateFirstName": "aliceupdate",
-                    "updateLastName": "doeUpdate",
+                    "updateLastName": "doeupdate",
                     "updateDateOfBirth": "2010-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",

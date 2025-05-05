@@ -15,9 +15,6 @@ No reproduction nor distribution shall be allowed without the following notice
 // Import the uuid module for generating unique identifiers
 var uuid = require('uuid');
 
-// Initialize a variable to keep track of the total provisional or booking price
-var totalProvisionalOrBookingPrice = 0;
-
 // Function to set the authentication token
 setAuthToken = function () {
 	let jsonData = JSON.parse(responseBody);

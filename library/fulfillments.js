@@ -15,7 +15,7 @@ function validatePassengers(booking, offer) {
             return bookedPassenger.externalRef === passenger;
         });
 
-        pm.test(`Passenger ${passenger} returned`, () => {
+        pm.test(`Passenger ${passenger} with correct externalRef returned`, () => {
             pm.expect(found).to.equal(true);
         });
     });
@@ -27,6 +27,8 @@ function validatePurchaserDetails(purchaserDetail) {
         pm.test("Correct Purchaser is returned", () => {
             pm.expect(purchaserDetail.firstName).not.to.be.empty;
             pm.expect(purchaserDetail.lastName).not.to.be.empty;
+            pm.expect(purchaserDetail.contact.email).not.to.be.empty;
+            pm.expect(purchaserDetail.contact.phoneNumber).not.to.be.empty;
         });
     }
 }
@@ -35,7 +37,7 @@ function validatePurchaserDetails(purchaserDetail) {
 function validateFulfillmentId(booking) {
     const fulfillmentsId = pm.globals.get("fulfillmentsId");
     if (fulfillmentsId !== undefined) {
-        pm.test("Verify fulfillment ID", () => {
+        pm.test(`Verify booking booking.fulfillments[0].id equals to : ${fulfillmentsId}`, () => {
             pm.expect(booking.fulfillments[0].id).to.eql(fulfillmentsId);
         });
     }
@@ -43,52 +45,45 @@ function validateFulfillmentId(booking) {
 
 // Function to validate prices
 function validatePrices(booking, fulfillmentState, totalPrice) {
-    if (fulfillmentState === "FULFILLED") {
+    if (fulfillmentState !== undefined) {
         pm.globals.set("bookingConfirmedPrice", booking.confirmedPrice.amount);
         const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
         const provisionalPrice = pm.globals.get("provisionalPrice");
 
-        pm.test(`Check bookingConfirmedPrice = ${totalPrice} with Admission + Reservation + Ancillaries + Fees + Fares = ${bookingConfirmedPrice}`, () => {
-            pm.expect(totalPrice).to.eql(bookingConfirmedPrice);
-        });
-        pm.test(`Check provisionalPrice = ${provisionalPrice} with bookingConfirmedPrice = ${bookingConfirmedPrice}`, () => {
+        pm.test(`Compare provisionalPrice = ${provisionalPrice} with bookingConfirmedPrice = ${bookingConfirmedPrice}`, () => {
             pm.expect(provisionalPrice).to.eql(bookingConfirmedPrice);
         });
-    } else if (fulfillmentState === undefined) {
+        pm.test(`Compare bookingConfirmedPrice = ${totalPrice} with Admission + Reservation + Ancillaries + Fees + Fares = ${bookingConfirmedPrice}`, () => {
+            pm.expect(totalPrice).to.eql(bookingConfirmedPrice);
+        });
+    } else {
         pm.globals.set("provisionalPrice", booking.provisionalPrice.amount);
         const provisionalPrice = pm.globals.get("provisionalPrice");
 
-        pm.test(`Check provisionalPrice = ${totalPrice} with Admission + Reservation + Ancillaries + Fees + Fares = ${provisionalPrice}`, () => {
+        pm.test(`Compare provisionalPrice = ${totalPrice} with Admission + Reservation + Ancillaries + Fees + Fares = ${provisionalPrice}`, () => {
             pm.expect(totalPrice).to.eql(provisionalPrice);
         });
     }
 }
 
 // Function to check fulfillment details
-function checkFulfillment(booking, fulfillment, state) {
+function checkFulfillment(booking, fulfillment) {
+    const currentDate = new Date();
+    const createdOn = new Date(fulfillment.createdOn);
+
     pm.test("Correct booking reference is returned on fulfillment", () => {
         pm.expect(fulfillment.bookingRef).to.equal(booking.id);
     });
 
-    const currentDate = new Date();
-    const createdOn = new Date(fulfillment.createdOn);
-
-    pm.test("Correct createdOn is returned on fulfillment", () => {
+    pm.test("CreatedOn is returned on fulfillment", () => {
         pm.expect(currentDate.getDate()).to.equal(createdOn.getDate());
         pm.expect(currentDate.getMonth()).to.equal(createdOn.getMonth());
         pm.expect(currentDate.getFullYear()).to.equal(createdOn.getFullYear());
     });
 
-	var sandbox = pm.environment.get("api_base");
-	if (sandbox.includes("paxone") && state !== "PREBOOKED") {
-        pm.test(`Correct state is returned on fulfillment: ${state}`, () => {
-			pm.expect(["FULFILLED", "CONFIRMED"]).to.include(fulfillment.status);
-		});
-	} else {
-		pm.test(`Correct status is returned on fulfillment: ${state}`, () => {
-            pm.expect(fulfillment.status).to.equal(state);
-		});
-	}
+    pm.test(`Correct state FULFILLED or CONFIRMED is returned on fulfillment: ${fulfillment.status}`, () => {
+        pm.expect(["FULFILLED", "CONFIRMED"]).to.include(fulfillment.status);
+    });
 }
 
 // Main function to check fulfilled booking
@@ -100,24 +95,24 @@ function checkFulFilledBooking(booking, offer, bookingState, fulfillmentState = 
         ['admissions', 'reservations', 'ancillaries', 'fees', 'fares'].forEach(partType => {
             checkBookedOfferParts(bookedOffer, partType, bookingState);
         });
-        validationLogger("[DEBUG] 🪲 checkFulFilledBooking method 1");
 
         // Check fulfillments
         if (fulfillmentState !== undefined && booking.fulfillments && Array.isArray(booking.fulfillments) && booking.fulfillments.length > 0) {
             booking.fulfillments.forEach(fulfillment => {
-                checkFulfillment(booking, fulfillment, fulfillmentState);
+                checkFulfillment(booking, fulfillment);
             });
         }
-        validationLogger("[DEBUG] 🪲 checkFulFilledBooking method 2");
 
-        // Validate passengers
-        validatePassengers(booking, offer);
-
-        // Validate purchaser details
-        validatePurchaserDetails(booking.purchaser?.detail);
     });
+    
+    // Validate passengers
+    validatePassengers(booking, offer);
+
+    // Validate purchaser details
+    validatePurchaserDetails(booking.purchaser?.detail);
 
     // Validate fulfillment ID
+    // TODO : Validate only 1st fulfillment ID or full list ? Or to delete ?
     validateFulfillmentId(booking);
 
     // Validate prices

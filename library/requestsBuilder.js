@@ -1,6 +1,7 @@
 // Function to build the offer collection request
 function buildOfferCollectionRequest() {
 	var tripType = pm.globals.get("TripType");
+	
 	var sandbox = pm.environment.get("api_base");
 
 	// Check if the sandbox includes "paxone"
@@ -41,6 +42,28 @@ function buildOfferCollectionRequest() {
 				break;
 		}
 	}
+
+	/*
+	let requestBody = {};
+	
+	// Add the appropriate field based on the trip type
+	if (tripType === "SPECIFICATION") {
+		requestBody.tripSpecifications = JSON.parse(pm.globals.get("offerTripSpecifications"));
+	} else if (tripType === "SEARCH") {
+		requestBody.tripSearchCriteria = JSON.parse(pm.globals.get("offerTripSearchCriteria"));
+	}
+	
+	requestBody.anonymousPassengerSpecifications = JSON.parse(pm.globals.get("offerPassengerSpecifications")),
+	requestBody.offerSearchCriteria = JSON.parse(pm.globals.get("offerSearchCriteria"))
+
+	// Conditionally add the fulfillment options if available
+	const fulfillmentOptions = pm.globals.get("offerFulfillmentOptions");
+	if (fulfillmentOptions !== undefined) {
+		requestBody.requestedFulfillmentOptions = JSON.parse(fulfillmentOptions);
+	}
+	
+	pm.globals.set("OfferCollectionRequest", JSON.stringify(requestBody));
+	*/
 }
 
 // Function to build the booking request
@@ -92,6 +115,7 @@ function buildBookingRequest() {
 			"    ]," +
 			"\"purchaser\": "+pm.globals.get("bookingPurchaserSpecifications")+"," +
 			"\"passengerSpecifications\" : "+bookingPassengerSpecificationsContent+"," +
+			//TODO : Condition externalRef to remove for PAXONE ?
 			"\"externalRef\":\""+pm.globals.get("bookingExternalRef")+"\"" +
 			"}");
 	}
