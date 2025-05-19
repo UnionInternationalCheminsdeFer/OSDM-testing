@@ -121,6 +121,53 @@ function validateRefundOffer(refundOffer, expectedStatus) {
 	}
 }
 
+// Function to validate exchange offer
+function validateExchangeOffer(exchangeOffer, expectedStatus) {
+	const currentDate = new Date();
+	const validUntilExchangeOffers = new Date(exchangeOffer.validUntil);
+	logExchangeDetails(exchangeOffer);
+
+	pm.test("Valid until is set and still valid for the ExchangeOffers", () => {
+		pm.expect(exchangeOffer.validUntil).to.exist;
+		pm.expect(validUntilExchangeOffers.getTime()).to.be.above(currentDate.getTime());
+	});
+
+	//TODO : Check if getting fulfillments ids is correct and compare it to bookedAdmissions/Reservations ids
+	// idsAdmissionAncillariesReservationReferenceDummy is dummy variable
+	const partRefs = [];
+	exchangeOffer.fulfillments.forEach(f => {
+		f.bookingParts.forEach(bp => {
+			partRefs.push(bp.id);
+		});
+	});
+	pm.globals.set("idsAdmissionAncillariesReservationReferenceDummy", JSON.stringify(partRefs));
+
+
+	pm.test("Exchange offer has a valid ID", () => {
+		pm.expect(exchangeOffer.id).to.exist;
+		pm.globals.set("exchangeId", exchangeOffer.id);
+	});
+
+	pm.test(`Correct status is returned on exchange | Expected: ${expectedStatus} | Actual: ${exchangeOffer.status}`, () => {
+		pm.expect(exchangeOffer.status).to.equal(expectedStatus);
+	});
+
+	validateFulfillments(exchangeOffer.fulfillments, expectedStatus);
+
+	const overruleCode = pm.globals.get("exchangeOverruleCode");
+	validateAppliedOverruleCode(exchangeOffer.appliedOverruleCode, overruleCode);
+
+	if ((expectedStatus === "CONFIRMED") || (expectedStatus === "FULFILLED")) {
+		const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
+		validateExchangeAmount(exchangeOffer, overruleCode, bookingConfirmedPrice);
+		validateExchangeFee(exchangeOffer.refundFee);
+	} else if (expectedStatus === "PROPOSED") {
+		//TODO : Check if price comparison must be done here
+		pm.globals.set("exchangeRefundAmount", exchangeOffer.exchangeRefundAmount.amount);
+		pm.globals.set("exchangeFee", exchangeOffer.exchangeFee.amount);
+	}
+}
+
 // Function to check warnings and problems in the response
 function checkWarningsAndProblems(response) {
 	try {
@@ -171,11 +218,27 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
 	});
 }
 
+// Function to validate exchange offers response
+function validateExchangeOffersResponse(response, isPatchResponse = false) {
+	checkWarningsAndProblems(response);
+
+	const exchangeOffers = isPatchResponse ? [response.exchangeOffer] : response.exchangeOffers;
+
+	pm.test(isPatchResponse ? "Patch exchange response contains exchangeOffer" : "Exchange response contains exchangeOffers", () => {
+		pm.expect(exchangeOffers).to.be.an('array').that.is.not.empty;
+	});
+
+	const expectedStatus = isPatchResponse ? 'CONFIRMED' : 'PROPOSED';
+	exchangeOffers.forEach(exchangeOffer => {
+		validateExchangeOffer(exchangeOffer, expectedStatus);
+	});
+}
+
 // Function to validate booking response for refund
-function validateBookingResponseRefund(response, refundType) {
+function validateBookingResponseRefund(response, scenarioType) {
 	const booking = response.booking;
 
-	if (["post", "patch"].includes(refundType)) {
+	if (["postRefund", "patchRefund"].includes(scenarioType)) {
 		const idsAdmissionAncillariesReservationReference = JSON.parse(pm.globals.get("idsAdmissionAncillariesReservationReferenceDummy"));
 		validationLogger(`[INFO] Reference for admissions, ancillaries and reservations: ${idsAdmissionAncillariesReservationReference}`);
 
@@ -222,7 +285,7 @@ function validateBookingResponseRefund(response, refundType) {
 
 			pm.expect(refundOffer).to.have.property('id').that.is.a('string').and.not.empty;
 
-			const expectedStatus = refundType === "post" ? 'PROPOSED' : 'CONFIRMED';
+			const expectedStatus = scenarioType === "post" ? 'PROPOSED' : 'CONFIRMED';
 			if(expectedStatus === 'CONFIRMED') {
 				pm.globals.set("isRefundConfirmed", true);
 			}
@@ -233,7 +296,7 @@ function validateBookingResponseRefund(response, refundType) {
 			const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
 			validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
 		});
-	} else if (refundType === "delete") {
+	} else if (scenarioType === "deleteRefund") {
 		pm.test("Refund offers are not present, empty array returned", () => {
 			pm.expect(booking).to.have.property("refundOffers").that.is.an("array");
 			pm.expect(booking.refundOffers).to.be.empty;
