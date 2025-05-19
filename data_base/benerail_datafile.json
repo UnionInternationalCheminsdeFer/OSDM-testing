@@ -3,6 +3,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
+            "description": "LIEGE-GUILLEMINS(8841004) to BRUXELLES-NORD(8812005) - other possible trip : BRUXELLES-MIDI(8814001) to GENT-SINT-PIETERS(8892007)",
             "osdmVersion": "3.4",
             "desiredFlexibility": "FULL_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -71,7 +72,7 @@
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"]
                 }
             ]
         },
@@ -113,9 +114,7 @@
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "429",
-                    "operatorCode": "urn:uic:rics:1088"
+                    "productCategoryShortName": ""
                 }
         },
         {

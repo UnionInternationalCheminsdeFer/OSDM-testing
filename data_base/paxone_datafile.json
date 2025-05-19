@@ -137,7 +137,9 @@
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "gender": "X",
+                    "updateGender": "MALE"
                 }
             ]
         },

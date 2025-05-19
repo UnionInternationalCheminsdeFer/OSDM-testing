@@ -1,8 +1,9 @@
 let totalProvisionalOrBookingPrice = 0;
 
 validateBookingResponse = function (offers, offerId, booking, state) {
+	const currentDate = new Date();
 	const bookingId = booking.id;
-	const createdOn = booking.createdOn;
+	const createdOn = new Date(booking.createdOn);
 	const bookedOffers = booking.bookedOffers;
 	const passengerIdList = [];
 
@@ -29,15 +30,8 @@ validateBookingResponse = function (offers, offerId, booking, state) {
 		pm.expect(bookingId).to.be.a('string').and.not.be.empty;
 	});
 
-	validationLogger(`[INFO] CreatedOn specific date format is valid: ${createdOn}`);
-	pm.test(`CreatedOn in booking is returned : ${createdOn}`, () => {
-		pm.expect(createdOn).to.not.be.empty;
-		pm.expect(createdOn).to.be.a('string');
-		const createdOnParsed = new Date(createdOn);
-		const formatted = createdOnParsed.toISOString();
-		const expected = createdOn.substring(0, 19);
-		const actual = formatted.substring(0, 19);
-		pm.expect(actual, `Expected: ${expected}, Actual: ${actual}`).to.equal(expected);
+	pm.test(`CreatedOn in booking is returned`, () => {
+		pm.expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
 	});
 	
 
@@ -71,6 +65,7 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 	pm.test(`Booked offerId: ${bookedOffer.offerId} matches offerId: ${offer.offerId}`, function () {
 		pm.expect(bookedOffer.offerId).to.eql(offer.offerId);
 	});	
+	const partRefs = [];
 
 	if (!bookedOffer.admissions?.length && !offer.admissionOfferParts?.length) {
 		validationLogger("[INFO] Skipping admissions");
@@ -81,6 +76,7 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 			offer.admissionOfferParts.some(offeredAdmission => compareAdmissions(bookedAdmission, offeredAdmission, booking));
 
 		});
+
 		pm.test("All booking admissions are matched in offer response admissions", function () {
 			const unmatched = [];
 			bookedOffer.admissions.forEach(bookedAdmission => {
@@ -89,9 +85,12 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 				);
 				if (!match) {
 					unmatched.push(bookedAdmission.id);
+					partRefs.push(bookedAdmission.id);
+				} else {
+					partRefs.push(bookedAdmission.id);
 				}
 			});
-			pm.expect(unmatched, `Unmatched admission IDs: ${unmatched.join(", ")}`).to.be.empty;
+			pm.expect(unmatched, `Expected no unmatched admission IDs, but got: ${JSON.stringify(unmatched)}`).to.be.empty;
 		});
 	}
 
@@ -133,12 +132,15 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 				);
 				if (!match) {
 					unmatched.push(bookedReservation.id);
+					partRefs.push(bookedReservation.id);
+				} else {
+					partRefs.push(bookedReservation.id);
 				}
 			});
 			pm.expect(unmatched, `Unmatched reservation IDs: ${unmatched.join(", ")}`).to.be.empty;
 		});
 	}
-
+	pm.globals.set("idsAdmissionAncillariesReservationReference", JSON.stringify(partRefs));
 	return true;
 };
 
@@ -233,7 +235,6 @@ checkGenericBookedOfferPart = function (offerPart, state, textDescription) {
 	const validUntil = new Date(offerPart.validUntil)
 	const confirmableUntil = new Date(offerPart.confirmableUntil);
 
-	//TODO : review createdOn date format and check consistency with other date formats in the response
 	pm.test(`CreatedOn is returned on bookedofferpart ${textDescription}`, () => {
 		pm.expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
 	});
