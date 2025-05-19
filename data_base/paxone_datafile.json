@@ -54,6 +54,16 @@
             "passengersListId": 2,
             "offerSearchCriteriaListId": 2,
             "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
+            "osdmVersion": "3.5",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+            "tripRequirementId": 2,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
         }
     ],
     "offerSearchCriteriaList": [
@@ -138,7 +148,6 @@
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
                     "type": "PERSON",
-                    "gender": "X",
                     "updateGender": "MALE"
                 }
             ]
