@@ -1,29 +1,25 @@
-,OTST_RFND_SRCH_CRIT_1ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG,OTST_RFND_SRCH_CRIT_1ADT_2LEG,OTST_RFND_SRCH_CRIT_2ADT_2LEG
-01. POST Get Offer,"To check why it is failing
-FAILED Correct ancillaries are returned (expected: 1, actual: 2)","To check why it is failing
-FAILED Correct ancillaries are returned (expected: 2, actual: 4)","To check why it is failing
-FAILED Correct ancillaries are returned (expected: 3, actual: 6)",Same,Same
+Last update : 16MAY2025,OTST_RFND_SRCH_CRIT_1ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG,OTST_RFND_SRCH_CRIT_1ADT_2LEG,OTST_RFND_SRCH_CRIT_2ADT_2LEG
+01. POST Get Offer,,,,,
 03. POST Create a Booking,,,,,
 04. GET Passenger,,,,,
 05. PATCH Passenger,,,,,
 06. GET Passenger after Patch Passenger,,,,,
-07. GET Booking before Fulfillments,,,,,
+07. GET Booking before Fulfillments,"FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part"
 08. POST Obtaining Fulfillments from Booking,,,,,
-09. GET Booking after Fulfillments,"Check why it is failing
-FAILED CreatedOn is returned on fulfillment","Check why it is failing
-FAILED CreatedOn is returned on fulfillment","Check why it is failing
-FAILED CreatedOn is returned on fulfillment","Check why it is failing
-FAILED CreatedOn is returned on fulfillment","Check why it is failing
-FAILED CreatedOn is returned on fulfillment"
-10. POST Refund Offer,,"Issue on fulfillments Id comparison, compare full list fulfillments
-FAILED Fulfillments are present and valid with status: CONFIRMED,FULFILLED","Issue on fulfillments Id comparison, compare full list fulfillments
-FAILED Fulfillments are present and valid with status: CONFIRMED,FULFILLED","Issue on fulfillments Id comparison, compare full list fulfillments
-FAILED Fulfillments are present and valid with status: CONFIRMED,FULFILLED","Issue on fulfillments Id comparison, compare full list fulfillments
-FAILED Fulfillments are present and valid with status: CONFIRMED,FULFILLED"
+09. GET Booking after Fulfillments,"FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part","FAILED CreatedOn is returned on fulfillment
+CreatedOn is null in fulfillment part"
+10. POST Refund Offer,,,,,
 11. GET Refund Offer,,,,,
-12. Get Booking before Patch Refund,"Check why it is failing
-FAILED
-Valid until is set and still valid for the RefundOffers","FAILED
+12. Get Booking before Patch Refund,,"FAILED
 Refundable amount is VALID","FAILED
 Refundable amount is VALID","FAILED
 Refundable amount is VALID","FAILED
@@ -33,21 +29,14 @@ Refundable amount is VALID","FAILED
 Refundable amount is VALID","FAILED
 Refundable amount is VALID","FAILED
 Refundable amount is VALID"
-14. GET Booking after Patch Refund,"Check why it is failing
-FAILED
-Valid until is set and still valid for the RefundOffers","Check why it is failing
-FAILED
-Valid until is set and still valid for the RefundOffers","Check why it is failing
-FAILED
-Valid until is set and still valid for the RefundOffers","Check why it is failing
-FAILED
-Valid until is set and still valid for the RefundOffers","Check why it is failing
-FAILED
-Valid until is set and still valid for the RefundOffers"
-,,"FAILED
+14. GET Booking after Patch Refund,,"FAILED
 Refundable amount is VALID","FAILED
 Refundable amount is VALID","FAILED
 Refundable amount is VALID","FAILED
 Refundable amount is VALID"
 15. DEL Refund Offers,,,,,
-16. GET Booking after Delete Refund,,,,,
+16. GET Booking after Delete Refund,,"FAILED
+Refundable amount is VALID","FAILED
+Refundable amount is VALID","FAILED
+Refundable amount is VALID","FAILED
+Refundable amount is VALID"

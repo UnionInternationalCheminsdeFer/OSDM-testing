@@ -1,6 +1,7 @@
-,OTST_RFND_SRCH_CRIT_1ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG,OTST_RFND_SRCH_CRIT_1ADT_2LEG,OTST_RFND_TRIP_SPEC_2ADT_2LEG
-01. POST Get Offer,,,,,
-03. POST Create a Booking,,,,,
+Last update : 16MAY2025,OTST_RFND_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover,OTST_RFND_SRCH_CRIT_2ADT_2LEG,OTST_RFND_SRCH_CRIT_2ADT_1CHD_2LEG,OTST_RFND_SRCH_CRIT_1ADT_2LEG_Amsterdam_Hannover,OTST_RFND_TRIP_SPEC_2ADT_2LEG
+01. POST Get Offer,"Correct admissions returned (expected: 2, actual: 1)
+Only 1 admissionOfferPart instead of 2 returned",,,,
+03. POST Create a Booking,"The following passenger fields must not be empty: First name, Last name, Phone field",,,,
 04. GET Passenger,,,,,
 05. PATCH Passenger,,,,,
 06. GET Passenger after Patch Passenger,,,,,
