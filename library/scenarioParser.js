@@ -167,10 +167,10 @@ parseScenarioData = function(jsonData) {
 					} else {
 						purchaserSpecs.push(new Purchaser(
 							new Detail(
-								purchaser.firstName,
-								purchaser.lastName,
-								purchaser.email,
-								purchaser.phoneNumber
+								purchaser.purchaserFirstName,
+								purchaser.purchaserLastName,
+								purchaser.purchaserEmail,
+								purchaser.purchaserPhoneNumber
 							)
 						));
 					}
@@ -178,7 +178,7 @@ parseScenarioData = function(jsonData) {
 				});
 				validationLogger("[DEBUG] 🪲 DUMMY4")
 
-				validationLogger('[FULL] Pushed purchaserSpec to globals: '+JSON.stringify(purchaserSpecs));
+				validationLogger('[INFO] Pushed purchaserSpec to globals: '+JSON.stringify(purchaserSpecs));
 				pm.globals.set("bookingPurchaserSpecifications", JSON.stringify(purchaserSpecs[0]));
 				return true;
 			});
@@ -202,16 +202,18 @@ parseScenarioData = function(jsonData) {
 							passenger.reference,
 							passenger.type,
 							passenger.dateOfBirth,
+							passenger.gender || "X",
 						));
 						validationLogger("[DEBUG] 🪲 DUMMY1")
 
 						var osdmVersion = pm.globals.get("osdmVersion");
-						if (osdmVersion == "3.5") {
+						if (osdmVersion == "3.4" || osdmVersion == "3.5") {
 							passengerSpecs.push(new PassengerSpec(
 								//pm.globals.get(passengerKey),
 								passenger.reference,
 								passenger.type,
 								passenger.dateOfBirth,
+								passenger.gender || "X",
 								new DetailContact(
 									passenger.firstName,
 									passenger.lastName,
@@ -227,6 +229,7 @@ parseScenarioData = function(jsonData) {
 								passenger.reference,
 								passenger.type,
 								passenger.dateOfBirth,
+								passenger.gender || "X",
 								new Detail(
 									passenger.firstName,
 									passenger.lastName,
@@ -245,13 +248,14 @@ parseScenarioData = function(jsonData) {
 							updateDateOfBirth: passenger.updateDateOfBirth,
 							updateEmail: passenger.updateEmail,
 							updatePhoneNumber: passenger.updatePhoneNumber,
+							updateGender: passenger.updateGender || passenger.gender || "X",
 						};
 						passengerAdditionalData.push(passengerAdditionalDataStruct);
 						passengerIndex++;
 					});
 					validationLogger("[DEBUG] 🪲 DUMMY4")
 
-					validationLogger('[FULL] Pushed passengerSpec to globals: '+JSON.stringify(passengerSpecs));
+					validationLogger('[INFO] Pushed passengerSpec to globals: '+JSON.stringify(passengerSpecs));
 					pm.globals.set("offerPassengerSpecifications", JSON.stringify(offerPassengerSpecs));
 					pm.globals.set("bookingPassengerSpecifications", JSON.stringify(passengerSpecs));
 					pm.globals.set("bookingPassengerReferences", JSON.stringify(passengerReferences));
@@ -416,35 +420,6 @@ osdmTripSpecification = function (legDefinitions) {
 	pm.globals.set("offerTripSpecifications", JSON.stringify([tripSpecification]));
 };
 
-// Function to set anonymous passenger specifications
-osdmAnonymousPassengerSpecifications = function(passengerNumber) {
-
-	// Set the number of passengers in global variables
-	pm.globals.set("offerPassengerNumber", passengerNumber);
-
-	var passengerSpecs = [];
-
-	// Loop through the number of passengers and set global variables for each passenger
-	for (let n = 1; n <= passengerNumber; n++) {
-		var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", n);
-
-		var birthDate = new Date();
-		birthDate.setFullYear(birthDate.getFullYear() - 26);
-		birthDate.setDate(birthDate.getDate() -1);
-
-		pm.globals.set(passengerKey, uuid.v4());
-
-		// Add the passenger specification to the array
-		passengerSpecs.push(new AnonymousPassengerSpec(
-			pm.globals.get(passengerKey),
-			PassengerType.PERSON,
-			birthDate.toISOString().substring(0,10),
-		));
-	}
-
-	// Set passenger specifications in global variables
-	pm.globals.set("offerPassengerSpecifications", JSON.stringify(passengerSpecs));
-};
 // Function to set offer search criteria
 osdmOfferSearchCriteria = function (
 	currency,
