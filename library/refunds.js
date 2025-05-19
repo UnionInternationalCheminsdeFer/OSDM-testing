@@ -16,12 +16,28 @@ function validateFulfillments(fulfillments, expectedStatus) {
 			pm.expect(fulfillment.id).to.be.a('string').and.not.be.empty;
 			pm.expect(fulfillment).to.have.property('status');
 			pm.expect(validStatuses).to.include(fulfillment.status);
-
-			//TODO correct fulfillmentsId implementation : Return all fulfillments IDs and compare with the one in the response
-			const fulfillmentsId = pm.globals.get("fulfillmentsId");
-			pm.expect(fulfillment.id).to.eql(fulfillmentsId);
+			pm.expect(fulfillment).to.have.property('bookingParts').that.is.an('array').and.is.not.empty;
 		});
 	});
+	const fulfillmentsIdRaw = pm.globals.get("fulfillmentsIds");
+	if (fulfillmentsIdRaw) {
+		const expectedIds = JSON.parse(fulfillmentsIdRaw);
+		const actualIds = fulfillments.map(f => f.id);
+		actualIds.forEach((id, index) => {
+			pm.test(`booking.fulfillments[${index}].id (${id}) should be one of expected fulfillments`, () => {
+				pm.expect(id).to.be.oneOf(expectedIds);
+			});
+		});
+	}
+
+    const refundPartRefs = JSON.parse(pm.globals.get("idsAdmissionAncillariesReservationReference") || "[]");
+    const bookingPartIds = fulfillments.flatMap(f => f.bookingParts.map(bp => bp.id));
+
+	pm.test(`Each bookingPart id is included in idsAdmissionAncillariesReservationReference: ${refundPartRefs}`, () => {
+        bookingPartIds.forEach(bpId => {
+            pm.expect(refundPartRefs, `Expected refundPartRefs to contain bookingPart id: ${bpId}`).to.include.oneOf([bpId]);
+        });
+    });
 }
 
 // Function to validate refund fee
@@ -69,8 +85,16 @@ function validateRefundOffer(refundOffer, expectedStatus) {
 		pm.expect(validUntilRefundOffers.getTime()).to.be.above(currentDate.getTime());
 	});
 
-	//TODO : Check refundOfferPartReference implementation
-	pm.globals.set("refundOfferPartReference", refundOffer.fulfillments[0].bookingParts[0].id);
+	//TODO : Check if getting fulfillments ids is correct and compare it to bookedAdmissions/Reservations ids
+	// idsAdmissionAncillariesReservationReferenceDummy is dummy variable
+	const partRefs = [];
+	refundOffer.fulfillments.forEach(f => {
+		f.bookingParts.forEach(bp => {
+			partRefs.push(bp.id);
+		});
+	});
+	pm.globals.set("idsAdmissionAncillariesReservationReferenceDummy", JSON.stringify(partRefs));
+
 
 	pm.test("Refund offer has a valid ID", () => {
 		pm.expect(refundOffer.id).to.exist;
@@ -151,50 +175,44 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
 function validateBookingResponseRefund(response, refundType) {
 	const booking = response.booking;
 
-	if (["post", "patch", "delete"].includes(refundType)) {
-		const refundOfferPartReference = pm.globals.get("refundOfferPartReference");
-		validationLogger(`[INFO] RefundOfferPartReference: ${refundOfferPartReference}`);
+	if (["post", "patch"].includes(refundType)) {
+		const idsAdmissionAncillariesReservationReference = JSON.parse(pm.globals.get("idsAdmissionAncillariesReservationReferenceDummy"));
+		validationLogger(`[INFO] Reference for admissions, ancillaries and reservations: ${idsAdmissionAncillariesReservationReference}`);
 
-		/*
-		let refundOfferPart = booking.bookedOffers[0].admissions?.find(admission => admission.id === refundOfferPartReference)
-			|| booking.bookedOffers[0].reservations?.find(reservation => reservation.id === refundOfferPartReference);
-		*/
-
-		let refundOfferPart;
-
-		// Check if referenced part is an admission
-		if (booking.bookedOffers[0].admissions != null && booking.bookedOffers[0].admissions != undefined) {
-			refundOfferPart = booking.bookedOffers[0].admissions.find(admission =>
-				admission.id === refundOfferPartReference
-			);
-		}
-
-		// Check if the referenced part is a reservation
-		if ((refundOfferPart == null || refundOfferPart == undefined) &&
-			(booking.bookedOffers[0].reservations != null && booking.bookedOffers[0].reservations != undefined)) {
-			refundOfferPart = booking.bookedOffers[0].reservations.find(reservation =>
-				reservation.id === refundOfferPartReference
-			);
-		}
-		// Code finish here
+		idsAdmissionAncillariesReservationReference.forEach(refId => {
+			const admissions = booking.bookedOffers[0].admissions || [];
+			const reservations = booking.bookedOffers[0].reservations || [];
+		
+			const matchedAdmission = admissions.find(admission => admission.id === refId);
+			const matchedReservation = reservations.find(reservation => reservation.id === refId);
+		
+			// TODO : implement for ancillaries ?
+			if (matchedAdmission || matchedReservation) {
+				pm.test(`RefundOfferPart '${refId}' found in booking`, () => {
+					pm.expect(true).to.be.true;
+				});
+			} else {
+				pm.test(`RefundOfferPart '${refId}' NOT found in booking`, () => {
+					pm.expect.fail(`[ERROR] ID '${refId}' not found in admissions or reservations`);
+				});
+			}
+		});		
 
 		pm.globals.set("admissionsRefundAmount", booking.bookedOffers[0].admissions?.refundAmount);
 		if (booking.bookedOffers[0].reservations) {
 			pm.globals.set("reservationsRefundAmount", booking.bookedOffers[0].reservations.refundAmount);
 		}
-	}
 
-	pm.test("Booking is present and Booking ID is valid", () => {
-		pm.expect(response).to.have.property('booking');
-		pm.expect(booking).to.have.property('id').that.is.a('string').and.not.empty;
-	});
+		pm.test("Booking is present and Booking ID is valid", () => {
+			pm.expect(response).to.have.property('booking');
+			pm.expect(booking).to.have.property('id').that.is.a('string').and.not.empty;
+		});
 
-	if (["post", "patch"].includes(refundType)) {
 		const validUntilRefundOffers = new Date(booking.refundOffers[0].validUntil);
 		const currentDate = new Date();
 	
 		pm.test("Valid until is set and still valid for the RefundOffers", () => {
-			pm.expect(refundOffer.validUntil).to.exist;
+			pm.expect(validUntilRefundOffers).to.exist;
 			pm.expect(validUntilRefundOffers.getTime()).to.be.above(currentDate.getTime());
 		});
 
@@ -205,6 +223,9 @@ function validateBookingResponseRefund(response, refundType) {
 			pm.expect(refundOffer).to.have.property('id').that.is.a('string').and.not.empty;
 
 			const expectedStatus = refundType === "post" ? 'PROPOSED' : 'CONFIRMED';
+			if(expectedStatus === 'CONFIRMED') {
+				pm.globals.set("isRefundConfirmed", true);
+			}
 			validateFulfillments(refundOffer.fulfillments, expectedStatus);
 			validateRefundFee(refundOffer.refundFee);
 

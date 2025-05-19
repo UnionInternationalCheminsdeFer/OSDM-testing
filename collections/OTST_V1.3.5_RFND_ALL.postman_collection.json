@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "ff5bbce9-1574-4df8-b7ae-3d58eec7ca33",
-		"name": "OTST_V1.3.3_RFND_ALL",
+		"name": "OTST_V1.3.5_RFND_ALL",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -17,21 +17,31 @@
 							"var jsonData = JSON.parse(responseBody);",
 							"",
 							"if (pm.response.code !== 200) {",
+							"    const statusCode = pm.response.code;",
+							"    let errorMessage = \"\";",
+							"",
+							"    try {",
+							"        const responseBody = pm.response.json();",
+							"        errorMessage = responseBody.detail || JSON.stringify(responseBody);",
+							"    } catch (e) {",
+							"        errorMessage = \"Unable to parse error message from response body.\";",
+							"    }",
+							"",
 							"    pm.execution.setNextRequest(null);",
-							"    throw new Error(`Exiting script due to wrong response status`);",
+							"    throw new Error(`Exiting script due to wrong response status: ${statusCode} - ${errorMessage}`);",
 							"}",
+							"",
 							"if (!jsonData.offers || jsonData.offers.length === 0) {",
 							"    throw new Error(\"⛔ Exiting script, no offers available in the response\");",
 							"}",
 							"pm.test('Successfully received offers', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
 							"validateOfferResponse(",
-							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), ",
-							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), ",
-							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), ",
+							"JSON.parse(pm.globals.get(\"offerPassengerSpecifications\")), ",
+							"JSON.parse(pm.globals.get(\"offerSearchCriteria\")), ",
+							"pm.globals.get(\"offerFulfillmentOptions\"), ",
 							"jsonData.offers, ",
-							"jsonData.trips, ",
-							"pm.globals.get(\"desiredType\"));",
+							"jsonData.trips);",
 							"",
 							"displayOfferResponse(jsonData);",
 							"",
@@ -183,7 +193,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -281,7 +291,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -341,8 +351,6 @@
 						"exec": [
 							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 							"\r",
-							"//let passengerIdListRaw = pm.globals.get(\"passengerIdList\");\r",
-							"//let passengerIdList = passengerIdListRaw ? passengerIdListRaw.split(\",\") : [];\r",
 							"let passengerIdList = pm.globals.get(\"passengerIdList\");\r",
 							"\r",
 							"let passengerAdditionalData = JSON.parse(pm.globals.get(\"passengerAdditionalData\") || \"[]\");\r",
@@ -364,14 +372,18 @@
 							"    pm.globals.set(\"patchEmail\", data.updateEmail || \"\");\r",
 							"    pm.globals.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
 							"\r",
-							"    pm.globals.set(\"currentPassengerIndex\", currentIndex + 1);\r",
+							"    currentIndex++;\r",
+							"    pm.globals.set(\"currentPassengerIndex\", currentIndex);\r",
 							"\r",
-							"    postman.setNextRequest(pm.info.requestName);\r",
+							"    if (currentIndex < totalPassengers) {\r",
+							"        postman.setNextRequest(pm.info.requestName);\r",
+							"    } else {\r",
+							"        postman.setNextRequest(\"07. GET Booking before Fulfillments\");\r",
+							"    }\r",
 							"} else {\r",
 							"    pm.globals.unset(\"currentPassengerIndex\");\r",
 							"    postman.setNextRequest(null);\r",
-							"}\r",
-							""
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -399,7 +411,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -478,7 +490,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -560,7 +572,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -591,14 +603,19 @@
 							"    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
 							"}\r",
 							"\r",
-							"if (!jsonData.fulfillments || jsonData.fulfillments.length === 0) {\r",
-							"    console.log(\"⛔ Exiting script, no fulfillments available in the response\");\r",
-							"}\r",
-							"\r",
 							"pm.test('Successfully received fulfillments with status 200 or 202', () => {\r",
 							"    pm.expect([200, 202]).to.include(pm.response.code);\r",
 							"});\r",
-							""
+							"\r",
+							"if (!jsonData.fulfillments || jsonData.fulfillments.length === 0) {\r",
+							"    console.log(\"⛔ Exiting script, no fulfillments available in the response\");\r",
+							"}\r",
+							"else {\r",
+							"    const ids = jsonData.fulfillments.map(f => f.id);\r",
+							"    pm.globals.set(\"fulfillmentsIds\", JSON.stringify(ids));\r",
+							"\r",
+							"    pm.globals.set(\"fulfillmentsId\", jsonData.fulfillments[0].id);\r",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -636,7 +653,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -683,25 +700,11 @@
 							"}\r",
 							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));\r",
 							"\r",
-							"if (pm.response.code === 200 && jsonData.booking?.fulfillments?.length > 0) {\r",
-							"    pm.globals.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
-							"} else {\r",
-							"    pm.globals.unset(\"fulfillmentsId\");\r",
-							"}\r",
-							"\r",
-							"/*var fulfillmentState = \"\";\r",
-							"var sandbox = pm.environment.get(\"api_base\");\r",
-							"if (sandbox.includes(\"paxone\") || sandbox.includes(\"sqills\")) {\r",
-							"    fulfillmentState = \"CONFIRMED\";\r",
-							"} else {\r",
-							"    fulfillmentState = \"FULFILLED\";\r",
-							"}*/\r",
-							"\r",
 							"checkFulFilledBooking(\r",
 							"jsonData.booking,\r",
 							"pm.globals.get(\"offer\"),\r",
-							"\"CONFIRMED\",\r",
-							"\"FULFILLED\");\r",
+							"\"CONFIRMEDorFULFILLED\",\r",
+							"\"CONFIRMEDorFULFILLED\");\r",
 							"\r",
 							"displayFulFilledBooking(jsonData);"
 						],
@@ -741,7 +744,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -825,7 +828,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -903,7 +906,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -974,7 +977,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1054,7 +1057,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1135,7 +1138,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1165,10 +1168,15 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 204\", function () {\r",
-							"    pm.response.to.have.status(204);\r",
-							"});\r",
-							""
+							"if(pm.globals.get(\"isRefundConfirmed\")) {\r",
+							"    pm.test(\"Status code is 404, refund offer has been confirmed\", function () {\r",
+							"        pm.response.to.have.status(404);\r",
+							"    });\r",
+							"} else {\r",
+							"    pm.test(\"Status code is 204, offer is deleted\", function () {\r",
+							"        pm.response.to.have.status(204);\r",
+							"    });\r",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1205,7 +1213,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1253,7 +1261,11 @@
 							"}",
 							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
-							"validateBookingResponseRefund(jsonData, refundType=\"delete\");"
+							"if(pm.globals.get(\"isRefundConfirmed\")) {",
+							"    validateBookingResponseRefund(jsonData, refundType=\"patch\");",
+							"} else {",
+							"    validateBookingResponseRefund(jsonData, refundType=\"delete\");",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1285,7 +1297,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],

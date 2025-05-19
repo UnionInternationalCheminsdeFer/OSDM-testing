@@ -67,7 +67,7 @@
             "offerSearchCriteria": [
                 {
                     "requestedOfferParts": ["RESERVATION", "ADMISSION"],
-                    "currency": "EUR",
+                    "currency": "CZK",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,

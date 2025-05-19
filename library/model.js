@@ -107,18 +107,20 @@ var FulfillmentOption = class {
 }
 
 var AnonymousPassengerSpec = class {
-    constructor(externalRef, type, dateOfBirth) {
+    constructor(externalRef, type, dateOfBirth, gender = null) {
         this.externalRef = externalRef;
         this.type = type;
         this.dateOfBirth = dateOfBirth;
+        this.gender = gender;
     }
 }
 
 var PassengerSpec = class {
-    constructor(externalRef, type, dateOfBirth, detail) {
+    constructor(externalRef, type, dateOfBirth, detail, gender) {
         this.externalRef = externalRef;
         this.type = type;
         this.dateOfBirth = dateOfBirth;
+        this.gender = gender;
         this.detail = detail;
     }
 }
