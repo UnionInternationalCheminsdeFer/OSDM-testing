@@ -2,12 +2,10 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
-            "description": "LIEGE-GUILLEMINS(8841004) to BRUXELLES-NORD(8812005) - other possible trip : BRUXELLES-MIDI(8814001) to GENT-SINT-PIETERS(8892007)",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
             "osdmVersion": "3.4",
-            "desiredFlexibility": "FULL_FLEXIBLE",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
@@ -15,9 +13,10 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
+            "description": "No offer found with multipax",
             "osdmVersion": "3.4",
-            "desiredFlexibility": "FULL_FLEXIBLE",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
@@ -27,9 +26,10 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_2LEG",
+            "description": "No offer found with multipax",
             "osdmVersion": "3.4",
-            "desiredFlexibility": "FULL_FLEXIBLE",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
@@ -39,9 +39,9 @@
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG_Amsterdam_Hannover",
             "osdmVersion": "3.4",
-            "desiredFlexibility": "FULL_FLEXIBLE",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
@@ -52,12 +52,13 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
+            "description": "INTERNAL_ERROR 400 Bad request",
             "osdmVersion": "3.4",
-            "desiredFlexibility": "FULL_FLEXIBLE",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
-            "passengersListId": 2,
+            "passengersListId": 1,
             "offerSearchCriteriaListId": 2,
             "requestedFulfillmentOptionsListId": 1
         }
@@ -67,12 +68,13 @@
             "id": 1,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
                     "currency": "EUR",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"]
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "INDIVIDUAL"
                 }
             ]
         },
@@ -80,12 +82,12 @@
             "id": 2,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
                     "currency": "EUR",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "COLLECTIVE"
                 }
             ]
@@ -96,7 +98,7 @@
             "id": 1,
             "requestedFulfillmentOptions": [
                 {
-                    "fulfillmentMedia": "UIC_PDF",
+                    "fulfillmentMedia": "PDF_A4",
                     "fulfillmentType": "ETICKET"
                 }
             ]
@@ -108,13 +110,11 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8841004",
-                    "destination": "urn:uic:stn:8812005",
-                    "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": ""
+                    "description": "Muenchen Hbf(8000600) to Hannover Hbf(8000152) - intermediates : Nürnberg Hbf(8096025) to Würzburg Hbf(8000260)",
+                    "origin": "urn:uic:stn:8000600",
+                    "destination": "urn:uic:stn:8600626",
+                    "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
                 }
         },
         {
@@ -122,42 +122,38 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8841004",
-                    "destination": "urn:uic:stn:8821121",
-                    "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "429",
-                    "operatorCode": "urn:uic:rics:1088"
+                    "description": "Amsterdam Centraal(8400058) to Hannover Hbf(8000152) - intermediates : Utrecht Centraal(8400621) to Osnabrück Hbf(8049700)",
+                    "origin": "urn:uic:stn:8400058",
+                    "destination": "urn:uic:stn:8000600",
+                    "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
                 }
-        },        
+        },
         {
             "id": 3,
             "tripType": "SPECIFICATION",
             "legs": [
-               {
-                    "origin": "urn:uic:stn:8841004",
-                    "destination": "urn:uic:stn:8812005",
-                    "startDatetime": "%TRIP_DATE%T07:30:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T08:19:00+02:00",
+                {
+                    "origin": "urn:uic:stn:8400058",
+                    "destination": "urn:uic:stn:8000152",
+                    "startDatetime": "%TRIP_DATE%T08:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T14:40:00+02:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
-                    "vehicleNumber": "429",
-                    "operatorCode": "urn:uic:rics:1088"
+                    "vehicleNumber": "21",
+                    "operatorCode": "urn:uic:rics:1100"
                 },
                 {
-                    "origin": "urn:uic:stn:8812005",
-                    "destination": "urn:uic:stn:8821121",
-                    "startDatetime": "%TRIP_DATE%T08:33:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T09:01:00+02:00",
+                    "origin": "urn:uic:stn:800152",
+                    "destination": "urn:uic:stn:8000600",
+                    "startDatetime": "%TRIP_DATE%T01:10:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T06:30:00+02:00",
                     "productCategoryRef": "",
                     "productCategoryName": "",
                     "productCategoryShortName": "",
-                    "vehicleNumber": "4507",
-                    "operatorCode": "urn:uic:rics:1088"
+                    "vehicleNumber": "13",
+                    "operatorCode": "urn:uic:rics:1100"
                 }
             ]
         }
@@ -169,7 +165,7 @@
                 {
                     "purchaserFirstName": "JohnPurchaser",
                     "purchaserLastName": "DoePurchaser",
-                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserPhoneNumber": "+33612345678",
                     "purchaserEmail": "emailPurchaser@email.com"
                 }
             ]
@@ -191,7 +187,8 @@
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "gender": "MALE"
                 }
             ]
         },
@@ -210,7 +207,8 @@
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "gender": "MALE"
                 },
                 {
                     "reference": "00002",
@@ -224,7 +222,8 @@
                     "updateDateOfBirth": "1999-01-04",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "gender": "FEMALE"
                 }
             ]
         },
@@ -243,7 +242,8 @@
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "gender": "MALE"
                 },
                 {
                     "reference": "00002",
@@ -257,7 +257,8 @@
                     "updateDateOfBirth": "1999-01-04",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "gender": "FEMALE"
                 },
                 {
                     "reference": "00003",
@@ -271,7 +272,8 @@
                     "updateDateOfBirth": "2010-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "gender": "FEMALE"
                 }
             ]
         }

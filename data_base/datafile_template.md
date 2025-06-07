@@ -7,7 +7,6 @@ benerail_datafile :
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3.4",
-            "desiredType": "ADMISSION",
             "currency": "EUR",
             "refundOverruleCode": "DISRUPTION",
             "tripRequirementId": 1,
@@ -54,11 +53,11 @@ benerail_datafile :
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -73,8 +72,6 @@ bileto_datafile
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
@@ -85,8 +82,6 @@ bileto_datafile
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND_5_Multileg",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
-            "currency": "CZK",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
@@ -163,11 +158,11 @@ bileto_datafile
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -218,11 +213,11 @@ paxone_datafile
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -237,7 +232,6 @@ sqills_datafile
 			"loggingType": "INFO",
             "code": "OTST_TS_OB_RFND",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
             "currency": "EUR",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -287,11 +281,11 @@ sqills_datafile
                 {
                     "reference": "12345",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+					"updateFirstName": "John",
+					"updateLastName": "Doe",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345678",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
