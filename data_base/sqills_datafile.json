@@ -2,31 +2,103 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3",
-            "desiredType": "ADMISSION",
-            "currency": "EUR",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+            "osdmVersion": "3",
+            "desiredFlexibility": "NON_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 2,
+            "offerSearchCriteriaListId" : 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "osdmVersion": "3",
+            "desiredFlexibility": "NON_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 3,
+            "offerSearchCriteriaListId" : 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+            "osdmVersion": "3",
+            "desiredFlexibility": "NON_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 2,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
+            "osdmVersion": "3",
+            "desiredFlexibility": "NON_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 3,
+            "passengersListId": 2,
+            "offerSearchCriteriaListId": 2,
+            "requestedFulfillmentOptionsListId": 1
         }
     ],
-	"offerSearchCriteria": [
+	"offerSearchCriteriaList": [
         {
-			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
-            "currency": "EUR",
-            "serviceClass": "STANDARD",
-            "travelClass": "SECOND",
-            "requiresPlaceSelection": false,
-            "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+            "id": 1,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "currency": "CZK",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION"],
+                    "currency": "EUR",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "COLLECTIVE"
+                }
+            ]
         }
     ],
-	"requestedFulfillmentOptions": [
+    "requestedFulfillmentOptionsList": [
         {
-            "fulfillmentMedia": "PDF_A4",
-            "fulfillmentType": "ETICKET"
+            "id": 1,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "PDF_A4",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
         }
     ],
     "tripRequirements": [
@@ -35,28 +107,71 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8400058",
-                    "destination": "urn:uic:stn:8727100",
+                    "origin": "urn:uic:stn:8500010",
+                    "destination": "urn:uic:stn:8400058",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "productCategoryRef": "",
-                    "productCategoryName": "",
-                    "productCategoryShortName": "",
-                    "vehicleNumber": "OSDM_101",
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_IC",
+                    "productCategoryName": "OSDM Sqills Intercity train",
+                    "productCategoryShortName": "OSDM Sqills Intercity train",
+                    "vehicleNumber": "OSDM_202",
                     "operatorCode": "urn:uic:rics:1"
                 }
         },
         {
             "id": 2,
-            "tripType": "SPECIFICATION",
-            "legs": [
+            "tripType": "SEARCH",
+            "trip": 
                 {
-                    "origin": "urn:uic:stn:8400058",
+                    "origin": "urn:uic:stn:8500010",
                     "destination": "urn:uic:stn:8727100",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
-                    "vehicleNumber": "OSDM_101",
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_IC",
+                    "productCategoryName": "OSDM Sqills Intercity train",
+                    "productCategoryShortName": "OSDM Sqills Intercity train",
+                    "vehicleNumber": "OSDM_202",
                     "operatorCode": "urn:uic:rics:1"
+                }
+        },        
+        {
+            "id": 3,
+            "tripType": "SPECIFICATION",
+            "legs": [
+                {
+                    "origin": "urn:uic:stn:8500010",
+                    "destination": "urn:uic:stn:8400058",
+                    "startDatetime": "%TRIP_DATE%T09:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T09:30:00+01:00",
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_IC",
+                    "productCategoryName": "OSDM Sqills Intercity train",
+                    "productCategoryShortName": "OSDM Sqills Intercity train",
+                    "vehicleNumber": "OSDM_202",
+                    "operatorCode": "urn:uic:rics:1"
+                },
+                {
+                    "origin": "urn:uic:stn:8400058",
+                    "destination": "urn:uic:stn:8727100",
+                    "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
+                    "productCategoryRef": "urn:uic:sbc:SQILLS_HS",
+                    "productCategoryName": "OSDM Sqills High Speed train",
+                    "productCategoryShortName": "OSDM Sqills High Speed train",
+                    "vehicleNumber": "OSDM_111",
+                    "operatorCode": "urn:uic:rics:1"
+                }
+            ]
+        }
+    ],
+    "purchaserList": [
+        {
+            "id": 1,
+            "purchaser": [
+                {
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com"
                 }
             ]
         }
@@ -66,13 +181,97 @@
             "id": 1,
             "passengers": [
                 {
-                    "reference": "12345",
+                    "reference": "00001",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "firstName": "John",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "passengers": [
+                {
+                    "reference": "00001",
+                    "dateOfBirth": "1999-01-01",
+                    "firstName": "John",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "00002",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "Marta",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "MartaUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "passengers": [
+                {
+                    "reference": "00001",
+                    "dateOfBirth": "1999-01-01",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "00002",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "Marta",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "MartaUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "00003",
+                    "dateOfBirth": "2010-01-01",
+                    "firstName": "Alice",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "AliceUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "2010-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]

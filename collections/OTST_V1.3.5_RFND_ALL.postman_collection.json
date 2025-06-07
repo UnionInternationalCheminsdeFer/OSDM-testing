@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "ff4d3c50-8243-4860-b071-0961e50db629",
-		"name": "OTST_V1.1.4_RFND_ALL_MonoLeg_MonoPax",
+		"_postman_id": "ff5bbce9-1574-4df8-b7ae-3d58eec7ca33",
+		"name": "OTST_V1.3.5_RFND_ALL",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -14,40 +14,38 @@
 					"script": {
 						"exec": [
 							"eval(pm.globals.get(\"osdmHelpers\"));",
-							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
-							"if (pm.response.code && pm.response.code !== 200) {",
-							"    console.warn(`Warning: Received unexpected status code ${jsonData.status}`);",
+							"if (pm.response.code !== 200) {",
+							"    const statusCode = pm.response.code;",
+							"    let errorMessage = \"\";",
+							"",
+							"    try {",
+							"        const responseBody = pm.response.json();",
+							"        errorMessage = responseBody.detail || JSON.stringify(responseBody);",
+							"    } catch (e) {",
+							"        errorMessage = \"Unable to parse error message from response body.\";",
+							"    }",
+							"",
 							"    pm.execution.setNextRequest(null);",
-							"    throw new Error(`Exiting script due to response status: ${jsonData.status}`);",
+							"    throw new Error(`Exiting script due to wrong response status: ${statusCode} - ${errorMessage}`);",
 							"}",
 							"",
-							"pm.test('Successfully received offers', function () {",
-							"    pm.expect(pm.response.code).to.eql(200);",
-							"});",
-							"",
-							"var offer = jsonData.offers[0];",
-							"validateOfferConformsToOfferSearchCriteria(offer);",
+							"if (!jsonData.offers || jsonData.offers.length === 0) {",
+							"    throw new Error(\"⛔ Exiting script, no offers available in the response\");",
+							"}",
+							"pm.test('Successfully received offers', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
 							"validateOfferResponse(",
-							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), ",
-							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), ",
-							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), ",
+							"JSON.parse(pm.globals.get(\"offerPassengerSpecifications\")), ",
+							"JSON.parse(pm.globals.get(\"offerSearchCriteria\")), ",
+							"pm.globals.get(\"offerFulfillmentOptions\"), ",
 							"jsonData.offers, ",
-							"jsonData.trips, ",
-							"pm.globals.get(\"desiredType\"));",
+							"jsonData.trips);",
 							"",
 							"displayOfferResponse(jsonData);",
 							"",
-							"//determine the flow",
-							"if(pm.globals.get(\"requiresPlaceSelection\")==true) {",
-							"    var reservationOfferPart = offer.reservationOfferParts[0];",
-							"    pm.globals.set(\"reservationId\", reservationOfferPart.id);",
-							"} else {",
-							"    validationLogger(\"skipping Get Place Maps for Reservation of Offer\");",
-							"    pm.execution.setNextRequest(\"03. Create a Booking\");",
-							"}"
+							"//swaggerSchemaValidatorContent();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -58,8 +56,42 @@
 					"script": {
 						"exec": [
 							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
+							"// If the scenario is not found throw an error\r",
+							"const scenarioCode = pm.environment.get(\"scenarioCode\");\r",
+							"const data_base_tmp = pm.globals.get(\"data_base_tmp\");\r",
+							"const found = data_base_tmp.scenarios.some(s => s.code === scenarioCode);\r",
+							"if (!found) {\r",
+							"    throw new Error(`⛔ The scenario \"${scenarioCode}\" does not exist in data file scenarios list`);\r",
+							"}\r",
+							"\r",
+							"buildOfferCollectionRequest();\r",
 							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-							"buildOfferCollectionRequest();"
+							"\r",
+							"//captureSwaggerSchemaValidator();\r",
+							"\r",
+							"let reqHeaders = {};\r",
+							"if (pm.request?.headers) {\r",
+							"    pm.request.headers.each(header => {\r",
+							"        reqHeaders[header.key] = header.value;\r",
+							"    });\r",
+							"}\r",
+							"pm.globals.set(\"requestHeaders\", JSON.stringify(reqHeaders));\r",
+							"\r",
+							"pm.globals.set(\"method\", pm.request?.method || '');\r",
+							"pm.globals.set(\"url\", pm.request?.url?.toString() || '');\r",
+							"\r",
+							"let resHeaders = {};\r",
+							"if (pm.response?.headers) {\r",
+							"    pm.response.headers.each(header => {\r",
+							"        resHeaders[header.key] = header.value;\r",
+							"    });\r",
+							"}\r",
+							"pm.globals.set(\"responseHeaders\", JSON.stringify(resHeaders));\r",
+							"\r",
+							"pm.globals.set(\"responseBody\", pm.response?.text() || '');\r",
+							"\r",
+							"//swaggerSchemaValidatorContent();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -67,9 +99,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "POST",
 				"header": [
 					{
@@ -89,13 +118,13 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{{OfferCollectionRequest}}\r\n\r\n/*\r\n{\r\n    \"objectType\": \"OfferCollectionRequest\",\r\n    \"tripSpecifications\": [\r\n        {\r\n            \"externalRef\": \"76123ea3-87f9-4b8c-85c0-87b8e4ad002c\",\r\n            \"legs\": [\r\n                {\r\n                    \"externalRef\": \"0313277f-c4bc-4a81-8540-d15afeaef965\",\r\n                    \"timedLeg\": {\r\n                        \"start\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5457076\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceDeparture\": {\r\n                                \"timetabledTime\": \"2024-11-13T07:23:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"end\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454300\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceArrival\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:10:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"service\": {\r\n                            \"vehicleNumbers\": [\r\n                                \"1140\"\r\n                            ],\r\n                            \"carriers\": [\r\n                                {\r\n                                    \"ref\": \"urn:uic:rics:3189\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    }\r\n                },\r\n                {\r\n                    \"externalRef\": \"0313277f-c4bc-4a81-8540-d15afeaef965\",\r\n                    \"timedLeg\": {\r\n                        \"start\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454300\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceDeparture\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:20:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"end\": {\r\n                            \"stopPlaceRef\": {\r\n                                \"stopPlaceRef\": \"urn:uic:stn:5454212\",\r\n                                \"objectType\": \"StopPlaceRef\"\r\n                            },\r\n                            \"serviceArrival\": {\r\n                                \"timetabledTime\": \"2024-11-13T09:53:00+01:00\"\r\n                            }\r\n                        },\r\n                        \"service\": {\r\n                            \"vehicleNumbers\": [\r\n                                \"1062\"\r\n                            ],\r\n                            \"carriers\": [\r\n                                {\r\n                                    \"ref\": \"urn:uic:rics:3189\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    }\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"anonymousPassengerSpecifications\": [\r\n    {\r\n            \"dateOfBirth\": \"1996-01-01\",\r\n            \"externalRef\": \"fa42f631-7fe6-4ef5-921f-4046076e4360\",\r\n            \"type\": \"PERSON\",\r\n            \"cards\": [],\r\n            \"prmNeeds\": []\r\n        }\r\n  ],\r\n    \"offerSearchCriteria\": {\r\n        \"currency\": \"CZK\",\r\n        \"requestedOfferParts\": [\r\n            \"RESERVATION\"\r\n        ],\r\n        \"serviceClassTypes\": [\r\n            \"STANDARD\"\r\n        ],\r\n        \"comfortClasses\": [\r\n            \"SECOND\"\r\n        ]\r\n    },\r\n    \"requestedFulfillmentOptions\": [\r\n        {\r\n            \"type\": \"ETICKET\",\r\n            \"media\": \"PDF_A4\"\r\n        }\r\n    ],\r\n    \"embed\": [\r\n        \"ALL\"\r\n    ]\r\n}*/",
+					"raw": "{{OfferCollectionRequest}}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -144,9 +173,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -167,7 +193,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -213,21 +239,19 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"pm.globals.set(\"bookingId\", jsonData.booking.id);\r",
-							"pm.globals.set(\"passengerId\", jsonData.booking.passengers[0].id);\r",
-							"\r",
-							"pm.test('Successfully created booking', function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
+							"if (pm.response.code !== 200) {\r",
+							"    pm.execution.setNextRequest(null);\r",
+							"    throw new Error(`Exiting script due to wrong response status`);\r",
+							"}\r",
+							"if (!jsonData.booking || jsonData.booking.length === 0) {\r",
+							"    throw new Error(\"⛔ Exiting script, no booking available in the response\");\r",
+							"}\r",
+							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));\r",
 							"\r",
 							"validateBookingResponse(\r",
-							"JSON.parse(pm.globals.get(OFFER.PASSENGER_SPECIFICATIONS)), \r",
-							"JSON.parse(pm.globals.get(OFFER.SEARCH_CRITERIA)), \r",
-							"pm.globals.get(OFFER.FULFILLMENT_OPTIONS), \r",
 							"pm.globals.get(\"offers\"),\r",
 							"pm.globals.get(\"offerId\"),\r",
-							"jsonData.booking,  \r",
-							"pm.globals.get(\"ScenarioType\"),\r",
+							"jsonData.booking,\r",
 							"\"PREBOOKED\");"
 						],
 						"type": "text/javascript",
@@ -248,9 +272,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "POST",
 				"header": [
 					{
@@ -270,7 +291,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -296,12 +317,140 @@
 			"response": []
 		},
 		{
-			"name": "04. GET Passenger",
+			"name": "05. Multi PATCH Passenger",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"if (pm.response.code !== 200) {\r",
+							"    pm.execution.setNextRequest(null);\r",
+							"    throw new Error(`Exiting script due to wrong response status`);\r",
+							"}\r",
+							"if (!jsonData.passenger || jsonData.passenger.length === 0) {\r",
+							"    throw new Error(\"⛔ Exiting script, no passenger available in the response\");\r",
+							"}\r",
+							"pm.test('Successfully received passenger', () => pm.expect(pm.response.code).to.eql(200));\r",
+							"\r",
+							"let passengerNumber = parseInt(pm.globals.get(\"currentPassengerIndex\"));\r",
+							"\r",
+							"validatePassengerData(jsonData, passengerNumber-1);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+							"\r",
+							"let passengerIdList = pm.globals.get(\"passengerIdList\");\r",
+							"\r",
+							"let passengerAdditionalData = JSON.parse(pm.globals.get(\"passengerAdditionalData\") || \"[]\");\r",
+							"let bookingPassengerSpecifications = JSON.parse(pm.globals.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
+							"let bookingPassengerReferences = JSON.parse(pm.globals.get(\"bookingPassengerReferences\") || \"[]\");\r",
+							"let totalPassengers = parseInt(pm.globals.get(\"offerPassengerNumber\")) || 0;\r",
+							"\r",
+							"let currentIndex = parseInt(pm.globals.get(\"currentPassengerIndex\") || \"0\");\r",
+							"\r",
+							"if (currentIndex < totalPassengers) {\r",
+							"    let passengerId = passengerIdList[currentIndex];\r",
+							"    let data = passengerAdditionalData[currentIndex];\r",
+							"    let passengersRef = bookingPassengerReferences[currentIndex];\r",
+							"    let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
+							"\r",
+							"    pm.globals.set(\"passengerId\", passengerId);\r",
+							"    pm.globals.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
+							"    pm.globals.set(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\r",
+							"    pm.globals.set(\"patchFirstName\", data.updateFirstName || \"\");\r",
+							"    pm.globals.set(\"patchLastName\", data.updateLastName || \"\");\r",
+							"    pm.globals.set(\"patchEmail\", data.updateEmail || \"\");\r",
+							"    pm.globals.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
+							"    pm.globals.set(\"patchGender\", data.updateGender || passengerGender.gender);    \r",
+							"\r",
+							"    currentIndex++;\r",
+							"    pm.globals.set(\"currentPassengerIndex\", currentIndex);\r",
+							"\r",
+							"    if (currentIndex < totalPassengers) {\r",
+							"        postman.setNextRequest(pm.info.requestName);\r",
+							"    } else {\r",
+							"        postman.setNextRequest(\"07. GET Booking before Fulfillments\");\r",
+							"    }\r",
+							"} else {\r",
+							"    pm.globals.unset(\"currentPassengerIndex\");\r",
+							"    postman.setNextRequest(null);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Access-Token",
+						"value": "{{access_token}}",
+						"description": "Legacy Authorization Header; remove for 2.0",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "{{requestor}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"externalRef\": \"{{passengerSpecificationExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth}}\",\r\n  \"type\": \"PERSON\",\r\n  \"gender\": \"{{patchGender}}\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName}}\",\r\n    \"lastName\": \"{{patchLastName}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber}}\"\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}",
+						"passengers",
+						"{{passengerId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "06. GET Passenger (endpoint to adapt)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
 							"pm.test(\"Status code is 200\", function () {\r",
@@ -323,13 +472,7 @@
 					}
 				}
 			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -350,21 +493,12 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId_0}}",
 					"host": [
 						"{{api_base}}"
 					],
@@ -372,166 +506,7 @@
 						"bookings",
 						"{{bookingId}}",
 						"passengers",
-						"{{passengerId}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "05. PATCH Passenger",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
-							"\r",
-							"var jsonData = JSON.parse(responseBody);\r",
-							"\r",
-							"pm.test(\"Status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"validatePassengerData(jsonData, display = false);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "PATCH",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					},
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Access-Token",
-						"value": "{{access_token}}",
-						"description": "Legacy Authorization Header; remove for 2.0",
-						"type": "text"
-					},
-					{
-						"key": "Requestor",
-						"value": "",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"externalRef\": \"{{passengerSpecification1ExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth}}\",\r\n  \"type\": \"PERSON\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName}}\",\r\n    \"lastName\": \"{{patchLastName}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber}}\"\r\n    }\r\n  }\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
-					"host": [
-						"{{api_base}}"
-					],
-					"path": [
-						"bookings",
-						"{{bookingId}}",
-						"passengers",
-						"{{passengerId}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "06. GET Passenger after Patch Passenger",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
-							"\r",
-							"var jsonData = JSON.parse(responseBody);\r",
-							"\r",
-							"pm.test(\"Status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"validatePassengerData(jsonData, display = true);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					},
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Access-Token",
-						"value": "{{access_token}}",
-						"description": "Legacy Authorization Header; remove for 2.0",
-						"type": "text"
-					},
-					{
-						"key": "Requestor",
-						"value": "",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
-					"host": [
-						"{{api_base}}"
-					],
-					"path": [
-						"bookings",
-						"{{bookingId}}",
-						"passengers",
-						"{{passengerId}}"
+						"{{passengerId_0}}"
 					]
 				}
 			},
@@ -548,9 +523,14 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"pm.test(\"Status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
+							"if (pm.response.code !== 200) {\r",
+							"    pm.execution.setNextRequest(null);\r",
+							"    throw new Error(`Exiting script due to wrong response status`);\r",
+							"}\r",
+							"if (!jsonData.booking || jsonData.booking.length === 0) {\r",
+							"    throw new Error(\"⛔ Exiting script, no booking available in the response\");\r",
+							"}\r",
+							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));\r",
 							"\r",
 							"checkFulFilledBooking(\r",
 							"jsonData.booking,\r",
@@ -575,9 +555,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -598,7 +575,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -624,14 +601,23 @@
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"pm.test(\"Status code is 200 or 202\", function () {\r",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 202]);\r",
+							"if (![200, 202].includes(pm.response.code)) {\r",
+							"    pm.execution.setNextRequest(null);\r",
+							"    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+							"}\r",
+							"\r",
+							"pm.test('Successfully received fulfillments with status 200 or 202', () => {\r",
+							"    pm.expect([200, 202]).to.include(pm.response.code);\r",
 							"});\r",
 							"\r",
-							"if(pm.response.code==200){\r",
+							"if (!jsonData.fulfillments || jsonData.fulfillments.length === 0) {\r",
+							"    console.log(\"⛔ Exiting script, no fulfillments available in the response\");\r",
+							"}\r",
+							"else {\r",
+							"    const ids = jsonData.fulfillments.map(f => f.id);\r",
+							"    pm.globals.set(\"fulfillmentsIds\", JSON.stringify(ids));\r",
+							"\r",
 							"    pm.globals.set(\"fulfillmentsId\", jsonData.fulfillments[0].id);\r",
-							"} else {\r",
-							"    pm.globals.unset(\"fulfillmentsId\");\r",
 							"}"
 						],
 						"type": "text/javascript",
@@ -650,9 +636,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "POST",
 				"header": [
 					{
@@ -673,7 +656,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -711,20 +694,20 @@
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
-							"pm.test(\"Status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
+							"if (pm.response.code !== 200) {\r",
+							"    pm.execution.setNextRequest(null);\r",
+							"    throw new Error(`Exiting script due to wrong response status`);\r",
+							"}\r",
+							"if (!jsonData.booking || jsonData.booking.length === 0) {\r",
+							"    throw new Error(\"⛔ Exiting script, no booking available in the response\");\r",
+							"}\r",
+							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));\r",
 							"\r",
 							"checkFulFilledBooking(\r",
 							"jsonData.booking,\r",
 							"pm.globals.get(\"offer\"),\r",
-							"\"CONFIRMED\",\r",
-							"\"FULFILLED\");\r",
-							"\r",
-							"if(pm.globals.get(\"fulfillmentsId\")==undefined) {\r",
-							"    pm.globals.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
-							"    pm.environment.set(\"fulfillmentsId\", jsonData.booking.fulfillments[0].id);\r",
-							"}\r",
+							"\"CONFIRMEDorFULFILLED\",\r",
+							"\"CONFIRMEDorFULFILLED\");\r",
 							"\r",
 							"displayFulFilledBooking(jsonData);"
 						],
@@ -744,9 +727,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -767,7 +747,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -794,6 +774,15 @@
 							"eval(pm.globals.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"if (pm.response.code !== 200) {\r",
+							"    pm.execution.setNextRequest(null);\r",
+							"    throw new Error(`Exiting script due to wrong response status`);\r",
+							"}\r",
+							"if (!jsonData.refundOffers || jsonData.refundOffers.length === 0) {\r",
+							"    throw new Error(\"⛔ Exiting script, no refundOffers available in the response\");\r",
+							"}\r",
+							"pm.test('Successfully received refundOffers', () => pm.expect(pm.response.code).to.eql(200));\r",
 							"\r",
 							"validateRefundOffersResponse(jsonData, isPatchResponse=false);"
 						],
@@ -822,9 +811,6 @@
 				}
 			},
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "POST",
 				"header": [
 					{
@@ -845,7 +831,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -881,6 +867,16 @@
 						"exec": [
 							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"if (pm.response.code !== 200) {",
+							"    pm.execution.setNextRequest(null);",
+							"    throw new Error(`Exiting script due to wrong response status`);",
+							"}",
+							"if (!jsonData.refundOffer || jsonData.refundOffer.length === 0) {",
+							"    throw new Error(\"⛔ Exiting script, no refundOffer available in the response\");",
+							"}",
+							"pm.test('Successfully received refundOffer', () => pm.expect(pm.response.code).to.eql(200));",
+							"",
 							"validateRefundOffer(jsonData.refundOffer, \"PROPOSED\");"
 						],
 						"type": "text/javascript",
@@ -899,9 +895,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -916,7 +909,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -936,7 +929,7 @@
 			"response": []
 		},
 		{
-			"name": "12. Get Booking before Patch Refund",
+			"name": "12. GET Booking before Patch Refund",
 			"event": [
 				{
 					"listen": "test",
@@ -946,9 +939,14 @@
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
-							"pm.test(\"Status code is 202\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
+							"if (pm.response.code !== 200) {",
+							"    pm.execution.setNextRequest(null);",
+							"    throw new Error(`Exiting script due to wrong response status`);",
+							"}",
+							"if (!jsonData.booking || jsonData.booking.length === 0) {",
+							"    throw new Error(\"⛔ Exiting script, no booking available in the response\");",
+							"}",
+							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
 							"validateBookingResponseRefund(jsonData, refundType = \"post\");"
 						],
@@ -968,9 +966,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -985,7 +980,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1018,9 +1013,15 @@
 							"eval(pm.globals.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
+							"",
+							"if (pm.response.code !== 200) {",
+							"    pm.execution.setNextRequest(null);",
+							"    throw new Error(`Exiting script due to wrong response status`);",
+							"}",
+							"if (!jsonData.refundOffer || jsonData.refundOffer.length === 0) {",
+							"    throw new Error(\"⛔ Exiting script, no refundOffer available in the response\");",
+							"}",
+							"pm.test('Successfully received refundOffer', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
 							"validateRefundOffersResponse(jsonData, isPatchResponse=true);"
 						],
@@ -1045,9 +1046,6 @@
 				}
 			},
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "PATCH",
 				"header": [
 					{
@@ -1062,7 +1060,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1101,9 +1099,14 @@
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
-							"pm.test(\"Status code is 202\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
+							"if (pm.response.code !== 200) {",
+							"    pm.execution.setNextRequest(null);",
+							"    throw new Error(`Exiting script due to wrong response status`);",
+							"}",
+							"if (!jsonData.booking || jsonData.booking.length === 0) {",
+							"    throw new Error(\"⛔ Exiting script, no booking available in the response\");",
+							"}",
+							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
 							"validateBookingResponseRefund(jsonData, refundType = \"patch\");",
 							""
@@ -1124,9 +1127,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -1141,7 +1141,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1171,10 +1171,15 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 204\", function () {\r",
-							"    pm.response.to.have.status(204);\r",
-							"});\r",
-							""
+							"if(pm.globals.get(\"isRefundConfirmed\")) {\r",
+							"    pm.test(\"Status code is 404, refund offer has been confirmed\", function () {\r",
+							"        pm.response.to.have.status(404);\r",
+							"    });\r",
+							"} else {\r",
+							"    pm.test(\"Status code is 204, offer is deleted\", function () {\r",
+							"        pm.response.to.have.status(204);\r",
+							"    });\r",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1197,9 +1202,6 @@
 				}
 			},
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "DELETE",
 				"header": [
 					{
@@ -1214,7 +1216,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1253,11 +1255,20 @@
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
-							"pm.test(\"Status code is 202\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
+							"if (pm.response.code !== 200) {",
+							"    pm.execution.setNextRequest(null);",
+							"    throw new Error(`Exiting script due to wrong response status`);",
+							"}",
+							"if (!jsonData.booking || jsonData.booking.length === 0) {",
+							"    throw new Error(\"⛔ Exiting script, no booking available in the response\");",
+							"}",
+							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
-							"validateBookingResponseRefund(jsonData, refundType=\"delete\");"
+							"if(pm.globals.get(\"isRefundConfirmed\")) {",
+							"    validateBookingResponseRefund(jsonData, refundType=\"patch\");",
+							"} else {",
+							"    validateBookingResponseRefund(jsonData, refundType=\"delete\");",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1275,9 +1286,6 @@
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -1292,7 +1300,7 @@
 					},
 					{
 						"key": "Requestor",
-						"value": "",
+						"value": "{{requestor}}",
 						"type": "text"
 					}
 				],
@@ -1317,7 +1325,19 @@
 		}
 	],
 	"auth": {
-		"type": "inherit"
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "{{Ocp-Apim-Subscription-Key}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Ocp-Apim-Subscription-Key",
+				"type": "string"
+			}
+		]
 	},
 	"event": [
 		{
@@ -1341,10 +1361,7 @@
 					"“This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”",
 					"*/",
 					"",
-					"var scenarioType = \"RESERVATION\";",
-					"var scenarioCode = \"OTST_TS_OB_RFND\";",
-					"//var scenarioCode = \"OTST_TS_OB_RFND_5_Multileg\";",
-					"",
+					"var scenarioCode = pm.environment.get(\"scenarioCode\");",
 					"",
 					"function pad(number) {",
 					"    return (number < 10) ? '0' + number : number;",
@@ -1358,7 +1375,8 @@
 					"}",
 					"",
 					"var lib = \"\";",
-					"var jsLibraries = [\"functions\", \"model\"];",
+					"var jsLibraries = [\"validators\", \"bookings\", \"displays\", \"exchanges\", \"fulfillments\", \"model\", \"offers\", \"passengers\", \"refunds\", \"requestsBuilder\", \"scenarioParser\", \"swagger\"];",
+					"//var jsLibraries = [\"functions\", \"model\"];",
 					"",
 					"pm.test(\"API base is available\", function () {",
 					"    pm.expect(pm.environment.get(\"api_base\")).not.null;",
@@ -1376,6 +1394,7 @@
 					"    pm.sendRequest({",
 					"        url: pm.environment.get(\"library_base\") + jsLibraries[0] + \".js\",",
 					"        method: 'GET',",
+					"        proxy: false",
 					"    }, function (err, res) {",
 					"        if (err) {",
 					"            console.log(err);",
@@ -1401,13 +1420,26 @@
 					"# 🛠️  New Collection Execution 🛠️ #",
 					"####################################",
 					"`);",
-					"    console.log(\"Clearing the globals\")",
-					"    ",
+					"    console.log(\"⏳ Clearing the globals\")",
+					"",
+					"    // Clear all global variables",
 					"    pm.globals.clear();",
-					"    ",
+					"",
+					"    // Retrieve all global variables as an object",
+					"    let globals = pm.globals.toObject();",
+					"    Object.keys(pm.globals.toObject()).forEach((key) => pm.globals.unset(key));",
+					"",
+					"    // Check if any global variables remain",
+					"    if (Object.keys(globals).length !== 0) {",
+					"        throw new Error(\"⛔ Global variables were not cleared successfully!\");",
+					"    } else {",
+					"        console.log(\"✅ All global variables have been successfully cleared.\");",
+					"    }",
+					"",
 					"    setTimeout(2000);",
-					"    ",
+					"    pm.globals.unset(\"osdmHelpers\");",
 					"    if (!pm.globals.get(\"osdmHelpers\")) {",
+					"        console.log(\"🛠️ Retrieving external JS scripts libraries and save in globals..\");",
 					"        libGetter();",
 					"    }",
 					"}",

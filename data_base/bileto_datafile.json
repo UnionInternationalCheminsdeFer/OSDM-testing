@@ -2,43 +2,114 @@
     "scenarios": [
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND",
-            "osdmVersion": "3",
-            "desiredType": "ADMISSION",
-            "currency": "CZK",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
         },
         {
 			"loggingType": "INFO",
-            "code": "OTST_TS_OB_RFND_5_Multileg",
-            "osdmVersion": "3",
-            "desiredType": "ADMISSION",
-            "currency": "CZK",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "NON_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 2,
+            "offerSearchCriteriaListId" : 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "NON_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 3,
+            "offerSearchCriteriaListId" : 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
-            "desiredFlexibility": "NON_FLEXIBLE"
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "NON_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 3,
+            "passengersListId": 2,
+            "offerSearchCriteriaListId": 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+			"loggingType": "INFO",
+            "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
         }
     ],
-	"offerSearchCriteria": [
+	"offerSearchCriteriaList": [
         {
-			"requestedOfferParts": ["RESERVATION", "ADMISSION"],
-            "currency": "EUR",
-            "serviceClass": "STANDARD",
-            "travelClass": "SECOND",
-            "requiresPlaceSelection": false,
-            "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
+            "id": 1,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
+                    "currency": "CZK",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "INDIVIDUAL"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "offerSearchCriteria": [
+                {
+                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
+                    "currency": "CZK",
+                    "serviceClass": ["STANDARD"],
+                    "travelClass": ["SECOND"],
+                    "requiresPlaceSelection": false,
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "COLLECTIVE"
+                }
+            ]
         }
     ],
-	"requestedFulfillmentOptions": [
+    "requestedFulfillmentOptionsList": [
         {
-            "fulfillmentMedia": "PDF_A4",
-            "fulfillmentType": "ETICKET"
+            "id": 1,
+            "requestedFulfillmentOptions": [
+                {
+                    "fulfillmentMedia": "PDF_A4",
+                    "fulfillmentType": "ETICKET"
+                }
+            ]
         }
     ],
     "tripRequirements": [
@@ -60,6 +131,22 @@
         },
         {
             "id": 2,
+            "tripType": "SEARCH",
+            "trip": 
+                {
+                    "origin": "urn:uic:stn:5457076",
+                    "destination": "urn:uic:stn:5454212",
+                    "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
+                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
+                    "productCategoryRef": "",
+                    "productCategoryName": "",
+                    "productCategoryShortName": "",
+                    "vehicleNumber": "1140",
+                    "operatorCode": "urn:uic:rics:3189"
+                }
+        },        
+        {
+            "id": 3,
             "tripType": "SPECIFICATION",
             "legs": [
                 {
@@ -72,6 +159,30 @@
                     "productCategoryShortName": "",
                     "vehicleNumber": "1140",
                     "operatorCode": "urn:uic:rics:3189"
+                },
+                {
+                    "origin": "urn:uic:stn:5454300",
+                    "destination": "urn:uic:stn:5454212",
+                    "startDatetime": "%TRIP_DATE%T10:10:00+01:00",
+                    "endDatetime": "%TRIP_DATE%T10:30:00+01:00",
+                    "productCategoryRef": "",
+                    "productCategoryName": "",
+                    "productCategoryShortName": "",
+                    "vehicleNumber": "1062",
+                    "operatorCode": "urn:uic:rics:3189"
+                }
+            ]
+        }
+    ],
+    "purchaserList": [
+        {
+            "id": 1,
+            "purchaser": [
+                {
+                    "purchaserFirstName": "JohnPurchaser",
+                    "purchaserLastName": "DoePurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com"
                 }
             ]
         }
@@ -81,13 +192,97 @@
             "id": 1,
             "passengers": [
                 {
-                    "reference": "12345",
+                    "reference": "00001",
                     "dateOfBirth": "1999-01-01",
-					"patchFirstName": "John",
-					"patchLastName": "Doe",
-                    "patchDateOfBirth": "1999-01-02",
-					"patchPhoneNumber": "+33612345678",
-					"patchEmail": "email@email.com",
+                    "firstName": "John",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "passengers": [
+                {
+                    "reference": "00001",
+                    "dateOfBirth": "1999-01-01",
+                    "firstName": "John",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "00002",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "Marta",
+                    "lastName": "Doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "updateFirstName": "MartaUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "passengers": [
+                {
+                    "reference": "00001",
+                    "dateOfBirth": "1999-01-01",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "JohnUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "00002",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "Marta",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "MartaUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON"
+                },
+                {
+                    "reference": "00003",
+                    "dateOfBirth": "2010-01-01",
+                    "firstName": "Alice",
+                    "lastName": "Doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "updateFirstName": "AliceUpdate",
+                    "updateLastName": "DoeUpdate",
+                    "updateDateOfBirth": "2010-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
