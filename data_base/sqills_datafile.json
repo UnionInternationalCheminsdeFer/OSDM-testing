@@ -3,7 +3,7 @@
         {
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
-            "osdmVersion": "3",
+            "osdmVersion": "3.4",
             "desiredFlexibility": "NON_FLEXIBLE",
             "refundOverruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
@@ -67,7 +67,7 @@
             "offerSearchCriteria": [
                 {
                     "requestedOfferParts": ["RESERVATION", "ADMISSION"],
-                    "currency": "CZK",
+                    "currency": "EUR",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
