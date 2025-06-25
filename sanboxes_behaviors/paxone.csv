@@ -1,6 +1,12 @@
 Last update : 16MAY2025,OTST_RFND_SRCH_CRIT_1ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1LEG,OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG,OTST_RFND_SRCH_CRIT_1ADT_2LEG,OTST_RFND_SRCH_CRIT_2ADT_2LEG
-01. POST Get Offer,,,,,
-03. POST Create a Booking,,,,,
+01. POST Get Offer,"TODO in the code
+
+2 products ids returned in ancillaryOfferParts
+""productId"": ""1"",
+""productId"": ""2"",",,,,
+03. POST Create a Booking,"only 1 product id returned in bookedOffers
+only : 
+""productId"": ""2"",",,,,
 04. GET Passenger,,,,,
 05. PATCH Passenger,,,,,
 06. GET Passenger after Patch Passenger,,,,,
