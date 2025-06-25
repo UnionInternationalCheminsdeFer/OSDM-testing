@@ -100,13 +100,13 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 		validationLogger("[INFO] Checking ancillaries");
 		bookedOffer.ancillaries.forEach(bookedAncillary => {
 			checkGenericBookedOfferPart(bookedAncillary, state, "ancillaries");
-			offer.ancillaryOfferParts.some(offeredancillary => compareancillaries(bookedAncillary, offeredancillary, booking));
+			offer.ancillaryOfferParts.some(offeredAncillary => compareAncillaries(bookedAncillary, offeredAncillary, booking));
 		});
 		pm.test("All booking ancillaries are matched in offer response ancillaries", function () {
 			const unmatched = [];
 			bookedOffer.ancillaries.forEach(bookedAncillary => {
-				const match = offer.ancillaryOfferParts.find(offeredancillary => 
-					offeredancillary.id === bookedAncillary.id
+				const match = offer.ancillaryOfferParts.find(offeredAncillary => 
+					offeredAncillary.id === bookedAncillary.id
 				);
 				if (!match) {
 					unmatched.push(bookedAncillary.id);
@@ -186,8 +186,46 @@ compareAdmissions = function (bookedAdmission, offeredAdmission, booking) {
 };
 
 compareAncillaries = function (bookedAncillary, offeredAncillary, booking) {
-	//TODO : Implement additional checks for ancillary properties
-}
+	pm.test("Price of the ancillary should be set and similar to offer response", () => {
+		pm.expect(bookedAncillary.price.amount).to.equal(offeredAncillary.price.amount);
+		pm.expect(bookedAncillary.price.currency).to.equal(offeredAncillary.price.currency);
+		pm.expect(bookedAncillary.price.scale).to.equal(offeredAncillary.price.scale);
+	});
+
+	//TODO : Work on this part, test below is failed and capture the wrong ancillary product
+
+	/*pm.test("Products of the ancillary should be set and similar to offer response", function () {
+		for (var i = 0; i < bookedAncillary.products.length; i++) {
+			var bookedProduct = bookedAncillary.products[i];
+			var found = false;
+			for (var j = 0; j < offeredAncillary.products.length; j++) {
+				var offeredProduct = offeredAncillary.products[j];
+				if (bookedProduct.productId == offeredProduct.productId) {
+					found = true;
+					break;
+				}
+			}
+			pm.expect(found).to.equal(true);
+		}
+	});*/
+
+	/*["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
+		if (bookedAncillary[prop] !== undefined) {
+			pm.test(`In ancillaries : ${prop} value should be set and similar to offer response`, () => {
+				pm.expect(bookedAncillary[prop]).to.equal(offeredAncillary[prop]);
+			});
+		}
+	});*/
+
+	pm.test("Correct passengers are part of the ancillary", () => {
+		bookedAncillary.passengerIds.forEach(passengerId => {
+			const found = booking.passengers.some(bookedPassenger => passengerId === bookedPassenger.id);
+			pm.expect(found).to.equal(true);
+		});
+	});
+
+	return true;
+};
 
 compareReservations = function (bookedReservation, offeredReservation, booking) {
 	pm.test("Price of the reservation should be set and similar to offer response", () => {

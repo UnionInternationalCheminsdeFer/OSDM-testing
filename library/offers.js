@@ -273,6 +273,35 @@ function selectAndSetOffer(offers) {
 	pm.globals.set("offers", offers);
 	pm.globals.set("offerId", selectedOffer.offerId);
 	pm.globals.set("offer", selectedOffer);
+
+	if(pm.environment.get("scenarioCode").includes("EXCH")) {
+		const admissionOfferParts = selectedOffer.admissionOfferParts || [];
+		admissionOfferParts.forEach((part, index) => {
+			pm.test(`In case of EXCH scenario : Exchangeable status in admissionOfferParts is different from NO`, () => {
+				pm.expect(part.exchangeable, `admissionOfferPart[${index}].exchangeable is 'NO'`).to.not.eql("NO");
+			});
+			if(part.exchangeable === "NO") {
+				pm.execution.setNextRequest(null);
+				throw new Error(`⛔ Exiting script, Exchangeable status is 'NO' for admissionOfferPart[${index}]`);
+			}
+		});
+	}
+
+	if(pm.environment.get("scenarioCode").includes("RFND")) {
+		const admissionOfferParts = selectedOffer.admissionOfferParts || [];
+		admissionOfferParts.forEach((part, index) => {
+			pm.test(`In case of RFND scenario : Refundable status in admissionOfferParts is different from NO`, () => {
+				pm.expect(part.refundable, `admissionOfferPart[${index}].refundable is 'NO'`).to.not.eql("NO");
+			});
+			if(part.refundable === "NO") {
+				pm.execution.setNextRequest(null);
+				throw new Error(`⛔ Exiting script, Refundable status is 'NO' for admissionOfferPart[${index}]`);
+			}
+		});
+	}
+
+	//TODO : Need to implement for Reservation ?
+	
 }
 
 // Helper function to handle place selection

@@ -162,3 +162,38 @@ function requestRefundOffersBody(overruleCode, refundDate) {
 
 	pm.globals.set("requestRefundOffersBodyData", JSON.stringify(body));
 }
+
+// Function to create request body for exchange offers
+function requestExchangeOffersBody(overruleCode) {
+	const fulfillmentId = pm.globals.get('fulfillmentsId');
+	const offerTripSearchCriteria = pm.globals.get('offerTripSearchCriteria');
+	const offerSearchCriteria = pm.globals.get('offerSearchCriteria');
+	const bookingExternalRef = pm.globals.get('bookingExternalRef');
+	const updateDateOfBirth_0 = pm.globals.get('updateDateOfBirth_0');
+	const updateGender_0 = pm.globals.get('updateGender_0');
+
+	console.log("fulfillmentId:", fulfillmentId);
+	console.log("offerTripSearchCriteria:", offerTripSearchCriteria);
+	console.log("offerSearchCriteria:", offerSearchCriteria);
+	console.log("bookingExternalRef:", bookingExternalRef);
+	console.log("updateDateOfBirth_0:", updateDateOfBirth_0);
+	console.log("updateGender_0:", updateGender_0);
+
+	const body = {
+		fulfillmentIds: [fulfillmentId],
+		tripSearchCriteria: JSON.parse(offerTripSearchCriteria),
+		offerSearchCriteria: JSON.parse(offerSearchCriteria),
+		anonymousPassengerSpecifications: [
+			{
+				externalRef: bookingExternalRef,
+				dateOfBirth: updateDateOfBirth_0,
+				age: 0,
+				type: "PERSON",
+				gender: updateGender_0
+			}
+		],
+		...(overruleCode && { overruleCode })
+	};
+	console.log("Request Exchange Offers Body Data:", body);
+	pm.globals.set("requestExchangeOffersBodyData", JSON.stringify(body));
+}
