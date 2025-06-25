@@ -285,7 +285,7 @@ function validateBookingResponseRefund(response, scenarioType) {
 
 			pm.expect(refundOffer).to.have.property('id').that.is.a('string').and.not.empty;
 
-			const expectedStatus = scenarioType === "post" ? 'PROPOSED' : 'CONFIRMED';
+			const expectedStatus = scenarioType === "postRefund" ? 'PROPOSED' : 'CONFIRMED';
 			if(expectedStatus === 'CONFIRMED') {
 				pm.globals.set("isRefundConfirmed", true);
 			}

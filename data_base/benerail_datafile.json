@@ -1,6 +1,7 @@
 {
     "scenarios": [
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "description": "LIEGE-GUILLEMINS(8841004) to BRUXELLES-NORD(8812005) - other possible trip : BRUXELLES-MIDI(8814001) to GENT-SINT-PIETERS(8892007)",
@@ -14,6 +15,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3.4",
@@ -26,6 +28,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
             "osdmVersion": "3.4",
@@ -38,6 +41,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "osdmVersion": "3.4",
@@ -50,6 +54,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "osdmVersion": "3.4",
@@ -62,6 +67,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.4",

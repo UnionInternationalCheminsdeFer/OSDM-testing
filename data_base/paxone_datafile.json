@@ -1,6 +1,7 @@
 {
     "scenarios": [
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
             "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.5",
@@ -12,6 +13,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
             "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3.5",
@@ -23,6 +25,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
             "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -34,6 +37,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
             "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "osdmVersion": "3.5",
@@ -45,6 +49,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
             "loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
             "refundOverruleCode": "PAYMENT_FAILURE",
@@ -56,11 +61,12 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.5",
             "refundOverruleCode": "PAYMENT_FAILURE",
-            "tripRequirementId": 2,
+            "tripRequirementId": 1,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
             "requestedFulfillmentOptionsListId": 1
@@ -142,6 +148,7 @@
                     "lastName": "doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "johnupdate",
                     "updateLastName": "doeupdate",
                     "updateDateOfBirth": "1999-01-02",
