@@ -1,6 +1,7 @@
 {
     "scenarios": [
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3",
@@ -13,6 +14,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "osdmVersion": "3",
@@ -25,6 +27,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
             "osdmVersion": "3",
@@ -37,6 +40,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "osdmVersion": "3",
@@ -49,6 +53,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "osdmVersion": "3",
@@ -58,6 +63,18 @@
             "tripRequirementId": 3,
             "passengersListId": 2,
             "offerSearchCriteriaListId": 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+			"loggingType": "INFO",
+            "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "refundOverruleCode": "PAYMENT_FAILURE",
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId": 1,
             "requestedFulfillmentOptionsListId": 1
         }
     ],

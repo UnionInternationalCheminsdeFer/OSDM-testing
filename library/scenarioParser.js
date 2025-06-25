@@ -19,7 +19,6 @@ getScenarioData = function () {
 				// Validate JSON with template
 				validateJsonWithTemplate(pm.globals.get("data_base_tmp"));
 				validationLogger("[DEBUG] 🪲 DUMMYAA")
-				console.log("DUMMY")
 
 				parseScenarioData(jsonData);
 			}
@@ -202,7 +201,7 @@ parseScenarioData = function(jsonData) {
 							passenger.reference,
 							passenger.type,
 							passenger.dateOfBirth,
-							passenger.gender || "X",
+							passenger.gender || null,
 						));
 						validationLogger("[DEBUG] 🪲 DUMMY1")
 
@@ -210,10 +209,11 @@ parseScenarioData = function(jsonData) {
 						if (osdmVersion == "3.4" || osdmVersion == "3.5") {
 							passengerSpecs.push(new PassengerSpec(
 								//pm.globals.get(passengerKey),
+								//TODO : Remove gender from passenger spec if not set
 								passenger.reference,
 								passenger.type,
 								passenger.dateOfBirth,
-								passenger.gender || "X",
+								passenger.gender || null,
 								new DetailContact(
 									passenger.firstName,
 									passenger.lastName,
@@ -229,7 +229,7 @@ parseScenarioData = function(jsonData) {
 								passenger.reference,
 								passenger.type,
 								passenger.dateOfBirth,
-								passenger.gender || "X",
+								passenger.gender || null,
 								new Detail(
 									passenger.firstName,
 									passenger.lastName,
