@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "ff5bbce9-1574-4df8-b7ae-3d58eec7ca33",
-		"name": "OTST_V1.3.5_RFND_ALL",
+		"name": "OTST_V1.4.1_RFND_EXCH_ALL",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -45,7 +45,10 @@
 							"",
 							"displayOfferResponse(jsonData);",
 							"",
-							"//swaggerSchemaValidatorContent();"
+							"//swaggerSchemaValidatorContent();",
+							"",
+							"var offerId = jsonData.offers[0].offerId",
+							"pm.globals.set(\"offerIdInGlobal\", offerId)"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -709,7 +712,13 @@
 							"\"CONFIRMEDorFULFILLED\",\r",
 							"\"CONFIRMEDorFULFILLED\");\r",
 							"\r",
-							"displayFulFilledBooking(jsonData);"
+							"displayFulFilledBooking(jsonData);\r",
+							"\r",
+							"if(pm.environment.get(\"scenarioCode\").includes(\"RFND\")) {\r",
+							"    pm.execution.setNextRequest(\"10. POST Refund Offer\");\r",
+							"} else if(pm.environment.get(\"scenarioCode\").includes(\"EXCH\")) {\r",
+							"    pm.execution.setNextRequest(\"10. POST Exchange Offer\");\r",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -784,7 +793,11 @@
 							"}\r",
 							"pm.test('Successfully received refundOffers', () => pm.expect(pm.response.code).to.eql(200));\r",
 							"\r",
-							"validateRefundOffersResponse(jsonData, isPatchResponse=false);"
+							"validateRefundOffersResponse(jsonData, isPatchResponse=false);\r",
+							"\r",
+							"if(pm.environment.get(\"scenarioCode\").includes(\"RFND\")) {\r",
+							"    pm.execution.setNextRequest(\"11. GET Refund Offer\");\r",
+							"}"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -859,7 +872,175 @@
 			"response": []
 		},
 		{
+			"name": "10. POST Exchange Offer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"if (pm.response.code !== 200) {\r",
+							"    pm.execution.setNextRequest(null);\r",
+							"    throw new Error(`Exiting script due to wrong response status`);\r",
+							"}\r",
+							"if (!jsonData.exchangeOffers || jsonData.exchangeOffers.length === 0) {\r",
+							"    throw new Error(\"⛔ Exiting script, no exchangeOffers available in the response\");\r",
+							"}\r",
+							"pm.test('Successfully received exchangeOffers', () => pm.expect(pm.response.code).to.eql(200));\r",
+							"\r",
+							"validateExchangeOffersResponse(jsonData, isPatchResponse=false);\r",
+							"\r",
+							"if(pm.environment.get(\"scenarioCode\").includes(\"EXCH\")) {\r",
+							"    pm.execution.setNextRequest(\"11. GET Exchange Offer\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"\r",
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+							"\r",
+							"requestExchangeOffersBody(pm.globals.get(\"refundOverruleCode\"));"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type2",
+						"value": "application/json;version={{osdm-version}}",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "{{requestor}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"fulfillmentIds\": {{fulfillmentsIds}},\r\n  \"tripSearchCriteria\": {{offerTripSearchCriteria}},\r\n  \"offerSearchCriteria\": {{offerSearchCriteria}},\r\n  \"anonymousPassengerSpecifications\": [\r\n    {\r\n      \"externalRef\": \"{{bookingExternalRef}}\",\r\n      \"dateOfBirth\": \"{{updateDateOfBirth_0}}\",\r\n      \"age\": 0,\r\n      \"type\": \"PERSON\",\r\n      \"gender\": \"MALE\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}/exchange-offers",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}",
+						"exchange-offers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "11. GET Refund Offer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"if (pm.response.code !== 200) {",
+							"    pm.execution.setNextRequest(null);",
+							"    throw new Error(`Exiting script due to wrong response status`);",
+							"}",
+							"if (!jsonData.refundOffer || jsonData.refundOffer.length === 0) {",
+							"    throw new Error(\"⛔ Exiting script, no refundOffer available in the response\");",
+							"}",
+							"pm.test('Successfully received refundOffer', () => pm.expect(pm.response.code).to.eql(200));",
+							"",
+							"validateRefundOffer(jsonData.refundOffer, \"PROPOSED\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Requestor",
+						"value": "{{requestor}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundId}}",
+					"host": [
+						"{{api_base}}"
+					],
+					"path": [
+						"bookings",
+						"{{bookingId}}",
+						"refund-offers",
+						"{{refundId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11. GET Exchange Offer",
 			"event": [
 				{
 					"listen": "test",
@@ -948,7 +1129,7 @@
 							"}",
 							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
-							"validateBookingResponseRefund(jsonData, refundType = \"post\");"
+							"validateBookingResponseRefund(jsonData, scenarioType = \"postRefund\");"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -1108,7 +1289,7 @@
 							"}",
 							"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));",
 							"",
-							"validateBookingResponseRefund(jsonData, refundType = \"patch\");",
+							"validateBookingResponseRefund(jsonData, scenarioType = \"patchRefund\");",
 							""
 						],
 						"type": "text/javascript",
@@ -1267,7 +1448,7 @@
 							"if(pm.globals.get(\"isRefundConfirmed\")) {",
 							"    validateBookingResponseRefund(jsonData, refundType=\"patch\");",
 							"} else {",
-							"    validateBookingResponseRefund(jsonData, refundType=\"delete\");",
+							"    validateBookingResponseRefund(jsonData, scenarioType=\"deleteRefund\");",
 							"}"
 						],
 						"type": "text/javascript",

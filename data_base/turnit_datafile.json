@@ -1,6 +1,7 @@
 {
     "scenarios": [
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
             "osdmVersion": "3.0.5",
@@ -12,6 +13,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
             "description": "No offer found with multipax",
@@ -25,6 +27,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_2LEG",
             "description": "No offer found with multipax",
@@ -38,6 +41,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG_Amsterdam_Hannover",
             "osdmVersion": "3.0.5",
@@ -50,6 +54,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "description": "INTERNAL_ERROR 400 Bad request",
@@ -63,6 +68,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
             "osdmVersion": "3.0.5",
