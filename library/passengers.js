@@ -1,5 +1,5 @@
 // Function to validate passenger data
-function validatePassengerData(response, passengerIndex) {
+function patchMultiPassengerResponse(response, passengerIndex) {
     const { firstName, lastName } = response.passenger?.detail || {};
     const dateOfBirth = response.passenger?.dateOfBirth;
     const { phoneNumber, email } = response.passenger?.detail?.contact || {};

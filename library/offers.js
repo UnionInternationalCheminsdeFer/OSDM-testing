@@ -1,5 +1,5 @@
 // Function to validate offer response
-validateOfferResponse = function (passengerSpecifications, searchCriteria, fulfillmentOptions, offers, trips) {
+postGetOfferResponse = function (passengerSpecifications, searchCriteria, fulfillmentOptions, offers, trips) {
 	// Test if offers are returned
 	validationLogger("[INFO] 🔍 There are " + offers.length + " offer(s) available");
 
@@ -136,29 +136,40 @@ function validateReservations(reservationOfferParts, passengerSpecifications, se
 }
 
 function validateScenario(foundAdmissions, foundAncillaries, foundReservations, trips, passengerSpecifications, offer) {
-	const legCount = trips[0].legs.length;
-	const passengerCount = passengerSpecifications.length;
-	const expectedCount = legCount * passengerCount;
-
+	var legCount = trips[0].legs.length;
+	var passengerCount = passengerSpecifications.length;
+	//TODO: Check if condition following sandbox Turnit is correct (only 1 admission for 2 legs and more)
+	var sandbox = pm.environment.get("api_base");
+	if (sandbox.includes("turnit")) {
+		var expectedCountAdmissions = 1 * passengerCount;
+	} else {
+		var expectedCountAdmissions = legCount * passengerCount;
+	}
+	
+	var expectedCountReservations = legCount * passengerCount;
 	let allValid = true;
+	
+	validationLogger("[INFO] 🔍 Leg count : " + legCount);
+	validationLogger("[INFO] 🔍 Passenger count : " + passengerCount);
+	validationLogger("[INFO] 🔍 Calculate number of admissions : legCount * passengerCount");
+	validationLogger(`[INFO] 🔍Correct admissions returned (expected: ${expectedCountAdmissions}, actual: ${foundAdmissions})`);
 
 	if (foundAdmissions !== 0) {
-		pm.test(`Correct admissions returned (expected: ${expectedCount}, actual: ${foundAdmissions})`, () => {
-			pm.expect(foundAdmissions).to.equal(expectedCount);
+		pm.test(`Correct admissions returned (expected: ${expectedCountAdmissions}, actual: ${foundAdmissions})`, () => {
+			pm.expect(foundAdmissions).to.equal(expectedCountAdmissions);
 		});
-		allValid = allValid && (foundAdmissions === expectedCount);
+		allValid = allValid && (foundAdmissions === expectedCountAdmissions);
 	}
-
 	if (foundReservations !== 0) {
-		pm.test(`Correct reservations returned (expected: ${expectedCount}, actual: ${foundReservations})`, () => {
-			pm.expect(foundReservations).to.equal(expectedCount);
+		pm.test(`Correct reservations returned (expected: ${expectedCountReservations}, actual: ${foundReservations})`, () => {
+			pm.expect(foundReservations).to.equal(expectedCountReservations);
 		});
-		allValid = allValid && (foundReservations === expectedCount);
+		allValid = allValid && (foundReservations === expectedCountReservations);
 	}
 
 	const hasAdmissions = offer.admissionOfferParts && offer.admissionOfferParts.length > 0;
 	const hasReservations = offer.reservationOfferParts && offer.reservationOfferParts.length > 0;
-	const expectedAncillaries = (hasAdmissions && hasReservations) ? expectedCount * 2 : expectedCount;
+	const expectedAncillaries = (hasAdmissions && hasReservations) ? expectedCountReservations * 2 : expectedCountReservations;
 
 	if (foundAncillaries !== 0) {
 		pm.test(`Correct ancillaries returned (expected: ${expectedAncillaries}, actual: ${foundAncillaries})`, () => {
@@ -274,7 +285,7 @@ function selectAndSetOffer(offers) {
 	pm.globals.set("offerId", selectedOffer.offerId);
 	pm.globals.set("offer", selectedOffer);
 
-	if(pm.environment.get("scenarioCode").includes("EXCH")) {
+	if(pm.globals.get("scenarioType").includes("EXCHANGE")) {
 		const admissionOfferParts = selectedOffer.admissionOfferParts || [];
 		admissionOfferParts.forEach((part, index) => {
 			pm.test(`In case of EXCH scenario : Exchangeable status in admissionOfferParts is different from NO`, () => {
@@ -287,7 +298,7 @@ function selectAndSetOffer(offers) {
 		});
 	}
 
-	if(pm.environment.get("scenarioCode").includes("RFND")) {
+	if(pm.globals.get("scenarioType").includes("REFUND")) {
 		const admissionOfferParts = selectedOffer.admissionOfferParts || [];
 		admissionOfferParts.forEach((part, index) => {
 			pm.test(`In case of RFND scenario : Refundable status in admissionOfferParts is different from NO`, () => {
@@ -311,6 +322,6 @@ function handlePlaceSelection() {
 		pm.globals.set("reservationId", reservationOfferPart.id);
 	} else {
 		validationLogger("skipping Get Place Maps for Reservation of Offer");
-		pm.execution.setNextRequest("03. POST Create a Booking");
+		pm.execution.setNextRequest("03. POST Create Booking");
 	}
 }

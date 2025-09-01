@@ -3,11 +3,29 @@
         {
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_1ADT_1LEG",
-            "description": "LIEGE-GUILLEMINS(8841004) to BRUXELLES-NORD(8812005) - other possible trip : BRUXELLES-MIDI(8814001) to GENT-SINT-PIETERS(8892007)",
+            "code": "OTST_RFND_PATCH_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "PATCH",
+            "description": "Possible trips : LIEGE-GUILLEMINS(8841004) to BRUXELLES-NORD(8812005) || BRUXELLES-MIDI(8814001) to GENT-SINT-PIETERS(8892007)",
             "osdmVersion": "3.4",
             "desiredFlexibility": "FULL_FLEXIBLE",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "overruleCode": "PAYMENT_FAILURE",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+			"loggingType": "INFO",
+            "code": "OTST_RFND_DEL_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "DELETE",
+            "description": "Possible trips : LIEGE-GUILLEMINS(8841004) to BRUXELLES-NORD(8812005) || BRUXELLES-MIDI(8814001) to GENT-SINT-PIETERS(8892007)",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 1,
@@ -18,9 +36,11 @@
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
             "osdmVersion": "3.4",
             "desiredFlexibility": "FULL_FLEXIBLE",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 2,
@@ -31,9 +51,11 @@
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
             "osdmVersion": "3.4",
             "desiredFlexibility": "FULL_FLEXIBLE",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
             "passengersListId": 3,
@@ -44,9 +66,11 @@
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
             "osdmVersion": "3.4",
             "desiredFlexibility": "FULL_FLEXIBLE",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
             "passengersListId": 1,
@@ -57,9 +81,11 @@
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
             "osdmVersion": "3.4",
             "desiredFlexibility": "FULL_FLEXIBLE",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
             "passengersListId": 2,
@@ -70,9 +96,11 @@
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "EXCHANGE",
+            "scenarioAction": "",
             "osdmVersion": "3.4",
             "desiredFlexibility": "FULL_FLEXIBLE",
-            "refundOverruleCode": "PAYMENT_FAILURE",
+            "overruleCode": "PAYMENT_FAILURE",
             "tripRequirementId": 1,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
@@ -89,7 +117,8 @@
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
                     "requiresPlaceSelection": false,
-                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"]
+                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
+                    "offerMode": "INDIVIDUAL"
                 }
             ]
         },
@@ -125,8 +154,8 @@
             "tripType": "SEARCH",
             "trip": 
                 {
-                    "origin": "urn:uic:stn:8841004",
-                    "destination": "urn:uic:stn:8812005",
+                    "origin": "urn:uic:stn:8814001",
+                    "destination": "urn:uic:stn:8892007",
                     "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
                     "endDatetime": "%TRIP_DATE%T10:20:00+02:00",
                     "productCategoryRef": "",
@@ -203,12 +232,14 @@
                     "lastName": "Doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "updateGender": "MALE"
                 }
             ]
         },
@@ -222,12 +253,15 @@
                     "lastName": "Doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "updateGender": "MALE"
+
                 },
                 {
                     "reference": "00002",
@@ -236,12 +270,14 @@
                     "lastName": "Doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "MartaUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-04",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "updateGender": "FEMALE"
                 }
             ]
         },
@@ -255,12 +291,14 @@
                     "lastName": "Doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "updateGender": "MALE"
                 },
                 {
                     "reference": "00002",
@@ -269,12 +307,14 @@
                     "lastName": "Doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "MartaUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-04",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "updateGender": "FEMALE"
                 },
                 {
                     "reference": "00003",
@@ -283,12 +323,14 @@
                     "lastName": "Doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "AliceUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "2010-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON"
+                    "type": "PERSON",
+                    "updateGender": "FEMALE"
                 }
             ]
         }

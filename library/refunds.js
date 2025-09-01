@@ -50,7 +50,6 @@ function validateRefundFee(refundFee) {
 function validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice) {
 	validationLogger(`[INFO] BookingConfirmedPrice: ${bookingConfirmedPrice}`);
 	validationLogger(`[INFO] RefundOffer.refundableAmount.amount: ${refundOffer.refundableAmount.amount}`);
-	validationLogger(`[INFO] RefundOffer.refundFee.amount: ${refundOffer.refundFee.amount}`);
 	validationLogger(`[INFO] OverruleCode: ${overruleCode}`);
 
 	if (!overruleCode || overruleCode === "CODE_DOES_NOT_EXIST") {
@@ -75,7 +74,7 @@ function validateAppliedOverruleCode(appliedOverruleCode, expectedOverruleCode) 
 }
 
 // Function to validate refund offer
-function validateRefundOffer(refundOffer, expectedStatus) {
+function getRefundOfferResponse(refundOffer, expectedStatus) {
 	const currentDate = new Date();
 	const validUntilRefundOffers = new Date(refundOffer.validUntil);
 	logRefundDetails(refundOffer);
@@ -107,8 +106,13 @@ function validateRefundOffer(refundOffer, expectedStatus) {
 	
 	validateFulfillments(refundOffer.fulfillments, expectedStatus);
 
-	const overruleCode = pm.globals.get("refundOverruleCode");
+	const overruleCode = pm.globals.get("overruleCode");
 	validateAppliedOverruleCode(refundOffer.appliedOverruleCode, overruleCode);
+
+	pm.test("RefundableAmount and RefundFee exist", function () {
+		pm.expect(refundOffer.refundableAmount.amount).to.not.be.undefined;
+		pm.expect(refundOffer.refundFee.amount).to.not.be.null;
+	});
 
 	if ((expectedStatus === "CONFIRMED") || (expectedStatus === "FULFILLED")) {
 		const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
@@ -118,53 +122,6 @@ function validateRefundOffer(refundOffer, expectedStatus) {
 		//TODO : Check if price comparison must be done here
 		pm.globals.set("refundRefundAmount", refundOffer.refundableAmount.amount);
 		pm.globals.set("refundFee", refundOffer.refundFee.amount);
-	}
-}
-
-// Function to validate exchange offer
-function validateExchangeOffer(exchangeOffer, expectedStatus) {
-	const currentDate = new Date();
-	const validUntilExchangeOffers = new Date(exchangeOffer.validUntil);
-	logExchangeDetails(exchangeOffer);
-
-	pm.test("Valid until is set and still valid for the ExchangeOffers", () => {
-		pm.expect(exchangeOffer.validUntil).to.exist;
-		pm.expect(validUntilExchangeOffers.getTime()).to.be.above(currentDate.getTime());
-	});
-
-	//TODO : Check if getting fulfillments ids is correct and compare it to bookedAdmissions/Reservations ids
-	// idsAdmissionAncillariesReservationReferenceDummy is dummy variable
-	const partRefs = [];
-	exchangeOffer.fulfillments.forEach(f => {
-		f.bookingParts.forEach(bp => {
-			partRefs.push(bp.id);
-		});
-	});
-	pm.globals.set("idsAdmissionAncillariesReservationReferenceDummy", JSON.stringify(partRefs));
-
-
-	pm.test("Exchange offer has a valid ID", () => {
-		pm.expect(exchangeOffer.id).to.exist;
-		pm.globals.set("exchangeId", exchangeOffer.id);
-	});
-
-	pm.test(`Correct status is returned on exchange | Expected: ${expectedStatus} | Actual: ${exchangeOffer.status}`, () => {
-		pm.expect(exchangeOffer.status).to.equal(expectedStatus);
-	});
-
-	validateFulfillments(exchangeOffer.fulfillments, expectedStatus);
-
-	const overruleCode = pm.globals.get("exchangeOverruleCode");
-	validateAppliedOverruleCode(exchangeOffer.appliedOverruleCode, overruleCode);
-
-	if ((expectedStatus === "CONFIRMED") || (expectedStatus === "FULFILLED")) {
-		const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
-		validateExchangeAmount(exchangeOffer, overruleCode, bookingConfirmedPrice);
-		validateExchangeFee(exchangeOffer.refundFee);
-	} else if (expectedStatus === "PROPOSED") {
-		//TODO : Check if price comparison must be done here
-		pm.globals.set("exchangeRefundAmount", exchangeOffer.exchangeRefundAmount.amount);
-		pm.globals.set("exchangeFee", exchangeOffer.exchangeFee.amount);
 	}
 }
 
@@ -203,7 +160,7 @@ function checkWarningsAndProblems(response) {
 }
 
 // Function to validate refund offers response
-function validateRefundOffersResponse(response, isPatchResponse = false) {
+function postPatchRefundOfferResponse(response, isPatchResponse = false) {
 	checkWarningsAndProblems(response);
 
 	const refundOffers = isPatchResponse ? [response.refundOffer] : response.refundOffers;
@@ -214,28 +171,12 @@ function validateRefundOffersResponse(response, isPatchResponse = false) {
 
 	const expectedStatus = isPatchResponse ? 'CONFIRMED' : 'PROPOSED';
 	refundOffers.forEach(refundOffer => {
-		validateRefundOffer(refundOffer, expectedStatus);
-	});
-}
-
-// Function to validate exchange offers response
-function validateExchangeOffersResponse(response, isPatchResponse = false) {
-	checkWarningsAndProblems(response);
-
-	const exchangeOffers = isPatchResponse ? [response.exchangeOffer] : response.exchangeOffers;
-
-	pm.test(isPatchResponse ? "Patch exchange response contains exchangeOffer" : "Exchange response contains exchangeOffers", () => {
-		pm.expect(exchangeOffers).to.be.an('array').that.is.not.empty;
-	});
-
-	const expectedStatus = isPatchResponse ? 'CONFIRMED' : 'PROPOSED';
-	exchangeOffers.forEach(exchangeOffer => {
-		validateExchangeOffer(exchangeOffer, expectedStatus);
+		getRefundOfferResponse(refundOffer, expectedStatus);
 	});
 }
 
 // Function to validate booking response for refund
-function validateBookingResponseRefund(response, scenarioType) {
+function getBookingRefundResponse(response, scenarioType) {
 	const booking = response.booking;
 
 	if (["postRefund", "patchRefund"].includes(scenarioType)) {
@@ -245,26 +186,47 @@ function validateBookingResponseRefund(response, scenarioType) {
 		idsAdmissionAncillariesReservationReference.forEach(refId => {
 			const admissions = booking.bookedOffers[0].admissions || [];
 			const reservations = booking.bookedOffers[0].reservations || [];
-		
+			const ancillaries = booking.bookedOffers[0].ancillaries || [];
+
 			const matchedAdmission = admissions.find(admission => admission.id === refId);
 			const matchedReservation = reservations.find(reservation => reservation.id === refId);
-		
-			// TODO : implement for ancillaries ?
-			if (matchedAdmission || matchedReservation) {
+			const matchedAncillary = ancillaries.find(ancillary => ancillary.id === refId);
+
+			if (matchedAdmission || matchedReservation || matchedAncillary) {
 				pm.test(`RefundOfferPart '${refId}' found in booking`, () => {
 					pm.expect(true).to.be.true;
 				});
 			} else {
 				pm.test(`RefundOfferPart '${refId}' NOT found in booking`, () => {
-					pm.expect.fail(`[ERROR] ID '${refId}' not found in admissions or reservations`);
+					pm.expect.fail(`[ERROR] ID '${refId}' not found in admissions or reservations or ancillaries`);
 				});
 			}
-		});		
+		});
 
-		pm.globals.set("admissionsRefundAmount", booking.bookedOffers[0].admissions?.refundAmount);
-		if (booking.bookedOffers[0].reservations) {
-			pm.globals.set("reservationsRefundAmount", booking.bookedOffers[0].reservations.refundAmount);
-		}
+        // partRefs.forEach(refId => {
+        //     const admissions = booking.bookedOffers[0].admissions || [];
+        //     const reservations = booking.bookedOffers[0].reservations || [];
+        
+        //     const matchedAdmission = admissions.find(admission => admission.id === refId);
+        //     const matchedReservation = reservations.find(reservation => reservation.id === refId);
+        
+        //     // TODO : implement for ancillaries ?
+        //     if (matchedAdmission || matchedReservation) {
+        //         pm.test(`RefundOfferPart '${refId}' found in booking`, () => {
+        //             pm.expect(true).to.be.true;
+        //         });
+        //     } else {
+        //         pm.test(`RefundOfferPart '${refId}' NOT found in booking`, () => {
+        //             pm.expect.fail(`[ERROR] ID '${refId}' not found in admissions or reservations`);
+        //         });
+        //     }
+        // });
+
+		//TODO Delete ?
+		// pm.globals.set("admissionsRefundAmount", booking.bookedOffers[0].admissions?.refundAmount);
+		// if (booking.bookedOffers[0].reservations) {
+		// 	pm.globals.set("reservationsRefundAmount", booking.bookedOffers[0].reservations.refundAmount);
+		// }
 
 		pm.test("Booking is present and Booking ID is valid", () => {
 			pm.expect(response).to.have.property('booking');
@@ -292,7 +254,7 @@ function validateBookingResponseRefund(response, scenarioType) {
 			validateFulfillments(refundOffer.fulfillments, expectedStatus);
 			validateRefundFee(refundOffer.refundFee);
 
-			const overruleCode = pm.globals.get("refundOverruleCode");
+			const overruleCode = pm.globals.get("overruleCode");
 			const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
 			validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
 		});

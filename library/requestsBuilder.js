@@ -68,10 +68,6 @@ function buildOfferCollectionRequest() {
 
 // Function to build the booking request
 function buildBookingRequest() {
-	// Generate a unique identifier for the booking external reference
-	var uuid = require('uuid');
-	pm.globals.set("bookingExternalRef", uuid.v4());
-
 	// Call the placeSelections function
 	placeSelections();
 
@@ -85,7 +81,7 @@ function buildBookingRequest() {
 	} else {
 		bookingPassengerSpecificationsContent = pm.globals.get("offerPassengerSpecifications");
 	}
-	validationLogger("[DEBUG] 🪲 DUMMY9")
+	validationLogger("[DEBUG] 🪲 buildBookingRequest")
 	// Check if the sandbox includes "paxone"
 	var sandbox = pm.environment.get("api_base");
 	if (sandbox.includes("paxone")) {
@@ -116,7 +112,9 @@ function buildBookingRequest() {
 			"\"purchaser\": "+pm.globals.get("bookingPurchaserSpecifications")+"," +
 			"\"passengerSpecifications\" : "+bookingPassengerSpecificationsContent+"," +
 			//TODO : Condition externalRef to remove for PAXONE ?
-			"\"externalRef\":\""+pm.globals.get("bookingExternalRef")+"\"" +
+			//TODO : bookingExternalRef or just 00001 as first passenger ?
+			//"\"externalRef\":\""+pm.globals.get("bookingExternalRef")+"\"" +
+			"\"externalRef\":\"00001\""+
 			"}");
 	}
 }
@@ -155,32 +153,31 @@ function requestRefundOffersBody(overruleCode, refundDate) {
 	const fulfillmentId = pm.globals.get('fulfillmentsId');
 
 	const body = {
-		fulfillmentIds: [fulfillmentId],
-		...(overruleCode && { overruleCode }),
-		...(refundDate && { refundDate })
+		fulfillmentIds: [fulfillmentId]
 	};
+
+	if (overruleCode !== null && overruleCode !== undefined) {
+		body.overruleCode = overruleCode;
+	}
+
+	if (refundDate) {
+		body.refundDate = refundDate;
+	}
 
 	pm.globals.set("requestRefundOffersBodyData", JSON.stringify(body));
 }
 
 // Function to create request body for exchange offers
 function requestExchangeOffersBody(overruleCode) {
-	const fulfillmentId = pm.globals.get('fulfillmentsId');
+	const fulfillmentIdsRaw = pm.globals.get('fulfillmentsIds'); // <-- note le 's'
 	const offerTripSearchCriteria = pm.globals.get('offerTripSearchCriteria');
 	const offerSearchCriteria = pm.globals.get('offerSearchCriteria');
-	const bookingExternalRef = pm.globals.get('bookingExternalRef');
+	const bookingExternalRef = "00001";
 	const updateDateOfBirth_0 = pm.globals.get('updateDateOfBirth_0');
 	const updateGender_0 = pm.globals.get('updateGender_0');
 
-	console.log("fulfillmentId:", fulfillmentId);
-	console.log("offerTripSearchCriteria:", offerTripSearchCriteria);
-	console.log("offerSearchCriteria:", offerSearchCriteria);
-	console.log("bookingExternalRef:", bookingExternalRef);
-	console.log("updateDateOfBirth_0:", updateDateOfBirth_0);
-	console.log("updateGender_0:", updateGender_0);
-
 	const body = {
-		fulfillmentIds: [fulfillmentId],
+		fulfillmentIds: JSON.parse(fulfillmentIdsRaw), // <- assure-toi que c’est un tableau JSON (ex: ["abc123"])
 		tripSearchCriteria: JSON.parse(offerTripSearchCriteria),
 		offerSearchCriteria: JSON.parse(offerSearchCriteria),
 		anonymousPassengerSpecifications: [
@@ -189,11 +186,12 @@ function requestExchangeOffersBody(overruleCode) {
 				dateOfBirth: updateDateOfBirth_0,
 				age: 0,
 				type: "PERSON",
-				gender: updateGender_0
+				...(updateGender_0 !== null && { gender: updateGender_0 })
 			}
 		],
-		...(overruleCode && { overruleCode })
+		...(overruleCode !== null && overruleCode !== undefined && { overruleCode })
 	};
+
 	console.log("Request Exchange Offers Body Data:", body);
 	pm.globals.set("requestExchangeOffersBodyData", JSON.stringify(body));
 }

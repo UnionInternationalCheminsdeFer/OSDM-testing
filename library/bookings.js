@@ -1,6 +1,6 @@
 let totalProvisionalOrBookingPrice = 0;
 
-validateBookingResponse = function (offers, offerId, booking, state) {
+postCreateBookingResponse = function (offers, offerId, booking, state) {
 	const currentDate = new Date();
 	const bookingId = booking.id;
 	const createdOn = new Date(booking.createdOn);
@@ -110,6 +110,9 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 				);
 				if (!match) {
 					unmatched.push(bookedAncillary.id);
+					partRefs.push(bookedAncillary.id);
+				} else {
+					partRefs.push(bookedAncillary.id);
 				}
 			});
 			pm.expect(unmatched, `Unmatched ancillary IDs: ${unmatched.join(", ")}`).to.be.empty;
@@ -281,6 +284,7 @@ checkGenericBookedOfferPart = function (offerPart, state, textDescription) {
 	});
 
 	totalProvisionalOrBookingPrice += calculateTotalAmount(offerPart);
+	extractAfterSaleFees(offerPart, textDescription);
 
 	if (state === "PREBOOKED") {
 		pm.test(`ConfirmableUntil is returned on bookedofferpart ${textDescription}`, () => {
@@ -296,9 +300,88 @@ checkGenericBookedOfferPart = function (offerPart, state, textDescription) {
 	}
 };
 
-function calculateTotalAmount(offerPart) {
-	const objectTypes = ['Reservation', 'Admission', 'Fees', 'Fares', 'Ancillaries'];
-	const getPriceAmount = obj => (objectTypes.includes(obj.objectType) && obj.price?.amount) || 0;
+function extractAfterSaleFees(offerPart, textDescription) {
+	const conditions = offerPart.afterSalesConditions;
+	let result = [];
+	let index = 0;
 
-	return Array.isArray(offerPart) ? offerPart.reduce((sum, item) => sum + getPriceAmount(item), 0) : getPriceAmount(offerPart);
+	if (!Array.isArray(conditions)) {
+		validationLogger("[INFO] No afterSalesConditions found. Stop execution scenario");
+		return;
+	}
+	if(pm.globals.get("scenarioType").includes("EXCHANGE")) {
+		var cond = "EXCHANGE";
+	}
+	if(pm.globals.get("scenarioType").includes("REFUND")) {
+		var cond = "REFUND";
+	}
+	for (let condition of conditions) {
+		if (condition.condition === cond) {
+			const fee = condition.afterSaleFee;
+			if (fee && typeof fee.amount === "number" && fee.currency) {
+				const conditionData = {
+					condition: condition.condition,
+					amount: fee.amount,
+					currency: fee.currency
+				};
+				pm.globals.set(`afterSaleCondition_${textDescription}_amount`, fee.amount);
+				pm.globals.set(`afterSaleCondition_${textDescription}_currency`, fee.currency);
+				result.push(conditionData);
+				index++;
+			}
+		}
+	}
+}
+
+
+
+// function calculateTotalAmount(offerPart) {
+// 	// List of object types to include
+// 	const objectTypes = ['Reservation', 'Admission', 'Fees', 'Fares', 'Ancillary'];
+
+// 	// Function to get the amount if the object is of an allowed type
+// 	function getPriceAmount(obj) {
+// 		// Check if the object's type is in the allowed list
+// 		if (objectTypes.includes(obj.objectType)) {
+// 			const amount = obj.price?.amount || 0; // Ensure price exists before accessing amount
+// 			console.log(`Type: ${obj.objectType} → Amount: ${amount}`);
+// 			return amount;
+// 		} else {
+// 			console.log(`Type: ${obj.objectType} not included → Amount: 0`);
+// 			return 0;
+// 		}
+// 	}
+
+// 	// If offerPart is an array, calculate the sum of the amounts
+// 	if (Array.isArray(offerPart)) {
+// 		let total = 0;
+// 		for (let item of offerPart) {
+// 			total += getPriceAmount(item);
+// 		}
+// 		console.log(`Final total: ${total}`);
+// 		return total;
+// 	} else {
+// 		// If it's not an array, handle it as a single object
+// 		const amount = getPriceAmount(offerPart);
+// 		console.log(`Total for a single object: ${amount}`);
+// 		return amount;
+// 	}
+// }
+
+function calculateTotalAmount(offerPart) {
+	const allowedTypes = ['Reservation', 'Admission', 'Fees', 'Fares', 'Ancillary'];
+	let total = 0;
+
+	const items = Array.isArray(offerPart) ? offerPart : [offerPart];
+
+	for (let i = 0; i < items.length; i++) {
+		const item = items[i];
+
+		if (allowedTypes.includes(item.objectType)) {
+			const amount = item.price && item.price.amount ? item.price.amount : 0;
+			total += amount;
+		}
+	}
+
+	return total;
 }

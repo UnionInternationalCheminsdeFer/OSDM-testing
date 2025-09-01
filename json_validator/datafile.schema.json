@@ -1,202 +1,174 @@
 {
-	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"$id": "https://testing.osdm.io/datafile.schema.json",
-	"title": "OTST Datafile",
-	"description": "Schema for OTST datafiles",
-	"type": "object",
-	"properties": {
-		"scenarios": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"loggingType": {
-						"type": "string",
-						"enum": ["FULL", "INFO", "DEBUG", "ERROR"]
-					},
-					"code": {
-						"type": "string"
-					},
-					"osdmVersion": {
-						"type": "string"
-					},
-					"currency": {
-						"type": "string",
-						"minLength": 3,
-						"maxLength": 3
-					},
-					"refundOverruleCode": {
-						"type": "string"
-					},
-					"refundDate": {
-						"type": "string",
-						"enum": ["null"]
-					},
-					"tripRequirementId": {
-						"type": "integer"
-					},
-					"passengersListId": {
-						"type": "integer"
-					},
-					"requestedFulfillmentOptionsListId": {
-						"type": "integer"
-					},
-					"desiredFlexibility": {
-						"type": "string",
-						"enum": ["NON_FLEXIBLE", "SEMI_FLEXIBLE", "FULL_FLEXIBLE"]
-					}
-				},
-				"required": [
-					"loggingType",
-					"code",
-					"osdmVersion",
-					"tripRequirementId",
-					"passengersListId",
-					"requestedFulfillmentOptionsListId"
-				]
-			}
-		},
-		"offerSearchCriteria": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"requestedOfferParts": {
-						"type": "array",
-						"items": {
-							"type": "string",
-							"enum": ["RESERVATION", "ADMISSION"]
-						}
-					},
-					"currency": {
-						"type": "string",
-						"minLength": 3,
-						"maxLength": 3
-					},
-					"serviceClass": {
-						"type": "array",
-						"items": {
-							"type": "string",
-							"enum": ["STANDARD"]
-						}
-					},
-					"travelClass": {
-						"type": "array",
-						"items": {
-							"type": "string",
-							"enum": ["SECOND"]
-						}
-					},
-					"requiresPlaceSelection": {
-						"type": "boolean"
-					},
-					"flexibilities": {
-						"type": "array",
-						"items": {
-							"type": "string",
-							"enum": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
-						}
-					},
-					"offerMode": {
-						"type": "string",
-						"enum": ["INDIVIDUAL", "COLLECTIVE"]
-					}
-				},
-				"required": ["currency"]
-			}
-		},
-		"requestedFulfillmentOptions": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"fulfillmentMedia": {
-						"type": "string",
-						"enum": ["PDF_A4", "UIC_PDF"]
-					},
-					"fulfillmentType": {
-						"type": "string",
-						"enum": ["ETICKET"]
-					}
-				}
-			}
-		},
-		"tripRequirements": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "integer"
-					},
-					"tripType": {
-						"type": "string",
-						"enum": ["SEARCH", "SPECIFICATION"]
-					},
-					"trip": {
-						"type": "object"
-					},
-					"legs": {
-						"type": "array",
-						"items": {
-							"type": "object"
-						}
-					}
-				},
-				"required": ["id", "tripType"]
-			}
-		},
-		"passengersList": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"type": "integer"
-					},
-					"passengers": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"reference": {
-									"type": "string"
-								},
-								"dateOfBirth": {
-									"type": "string"
-								},
-								"updateFirstName": {
-									"type": "string"
-								},
-								"updateLastName": {
-									"type": "string"
-								},
-								"updateDateOfBirth": {
-									"type": "string"
-								},
-								"updatePhoneNumber": {
-									"type": "string"
-								},
-								"updateEmail": {
-									"type": "string"
-								},
-								"type": {
-									"type": "string",
-									"enum": ["PERSON"]
-								}
-							}
-						}
-					}
-				},
-				"required": ["id", "passengers"]
-			}
-		}
-	},
-	"required": [
-		"scenarios",
-		"offerSearchCriteriaList",
-		"requestedFulfillmentOptionsList",
-		"tripRequirements",
-		"passengersList"
-	]
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://testing.osdm.io/datafile.schema.json",
+  "title": "OTST Datafile",
+  "description": "Schema for OTST datafiles",
+  "type": "object",
+  "properties": {
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "collection": { "type": "string" },
+          "loggingType": {
+            "type": "string",
+            "enum": ["FULL", "INFO", "DEBUG", "ERROR"]
+          },
+          "code": { "type": "string" },
+          "scenarioType": { "type": "string" },
+          "scenarioAction": { "type": "string" },
+          "osdmVersion": { "type": "string" },
+          "overruleCode": { "type": "string" },
+          "tripRequirementId": { "type": "integer" },
+          "passengersListId": { "type": "integer" },
+          "offerSearchCriteriaListId": { "type": "integer" },
+          "requestedFulfillmentOptionsListId": { "type": "integer" }
+        },
+        "required": [
+          "collection",
+          "loggingType",
+          "code",
+          "scenarioType",
+          "scenarioAction",
+          "osdmVersion",
+          "overruleCode",
+          "tripRequirementId",
+          "passengersListId",
+          "offerSearchCriteriaListId",
+          "requestedFulfillmentOptionsListId"
+        ]
+      }
+    },
+    "offerSearchCriteriaList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "offerSearchCriteria": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "currency": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3
+                },
+                "requiresPlaceSelection": { "type": "boolean" },
+                "offerMode": {
+                  "type": "string",
+                  "enum": ["INDIVIDUAL", "COLLECTIVE"]
+                }
+              },
+              "required": [
+				"currency",
+                "requiresPlaceSelection",
+                "offerMode"
+              ]
+            }
+          }
+        },
+        "required": ["id", "offerSearchCriteria"]
+      }
+    },
+    "requestedFulfillmentOptionsList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "requestedFulfillmentOptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fulfillmentMedia": {
+                  "type": "string",
+                  "enum": ["PDF_A4", "UIC_PDF"]
+                },
+                "fulfillmentType": {
+                  "type": "string",
+                  "enum": ["ETICKET"]
+                }
+              },
+              "required": ["fulfillmentMedia", "fulfillmentType"]
+            }
+          }
+        },
+        "required": ["id", "requestedFulfillmentOptions"]
+      }
+    },
+    "tripRequirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "tripType": {
+            "type": "string",
+            "enum": ["SEARCH", "SPECIFICATION"]
+          }
+        },
+        "required": ["id", "tripType"]
+      }
+    },
+    "passengersList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "passengers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "reference": { "type": "string" },
+                "dateOfBirth": { "type": "string" },
+                "firstName": { "type": "string" },
+                "lastName": { "type": "string" },
+                "phoneNumber": { "type": "string" },
+                "email": { "type": "string" },
+                "updateFirstName": { "type": "string" },
+                "updateLastName": { "type": "string" },
+                "updateDateOfBirth": { "type": "string" },
+                "updatePhoneNumber": { "type": "string" },
+                "updateEmail": { "type": "string" },
+				"updateGender": { "type": "string" },
+                "type": {
+                  "type": "string",
+                  "enum": ["PERSON"]
+                }
+              },
+              "required": [
+                "reference",
+                "dateOfBirth",
+                "firstName",
+                "lastName",
+                "phoneNumber",
+                "email",
+                "updateFirstName",
+                "updateLastName",
+                "updateDateOfBirth",
+                "updatePhoneNumber",
+                "updateEmail",
+                "type",
+				"updateGender"
+              ]
+            }
+          }
+        },
+        "required": ["id", "passengers"]
+      }
+    }
+  },
+  "required": [
+    "scenarios",
+    "offerSearchCriteriaList",
+    "requestedFulfillmentOptionsList",
+    "tripRequirements",
+    "passengersList"
+  ]
 }

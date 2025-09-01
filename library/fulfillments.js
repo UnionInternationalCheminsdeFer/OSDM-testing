@@ -107,7 +107,7 @@ function checkFulfillment(booking, fulfillment) {
 }
 
 // Main function to check fulfilled booking
-function checkFulFilledBooking(booking, offer, bookingState, fulfillmentState = undefined) {
+function getBookingFulfillmentResponse(booking, offer, bookingState, fulfillmentState = undefined) {
     booking.bookedOffers.forEach(bookedOffer => {
         validationLogger(`[INFO] Checking bookedOffer ${bookedOffer.offerId}`);
 

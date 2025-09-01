@@ -1,6 +1,7 @@
 // Function to get scenario data
 getScenarioData = function () {
-	validationLogger("[INFO] ⏳ Getting scenario data");
+	validationLogger("[INFO] 🪲 getScenarioData")
+	validationLogger("[INFO] ⏳ Getting scenario dataaa");
 	if (!pm.environment.has('data_file')) {
 		// If data file is not set, get data from the base URL in the environment
 		validationLogger("[INFO] 🌐 Data file was not set, grabbing data base url from environment : " + pm.environment.get("data_base"));
@@ -14,11 +15,10 @@ getScenarioData = function () {
 			} else {
 				var jsonData = JSON.parse(res.text());
 				pm.globals.set("data_base_tmp", jsonData);
-				validationLogger("[DEBUG] 🪲 DUMMYAA")
 
 				// Validate JSON with template
 				validateJsonWithTemplate(pm.globals.get("data_base_tmp"));
-				validationLogger("[DEBUG] 🪲 DUMMYAA")
+				validationLogger("[INFO] 🪲 getScenarioData")
 
 				parseScenarioData(jsonData);
 			}
@@ -49,7 +49,7 @@ parseScenarioData = function(jsonData) {
 
 	// Loop through the scenarios to find the correct data set
 	while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {
-		validationLogger("[DEBUG] 🪲 DUMMYA")
+		validationLogger("[INFO] 🪲 parseScenarioData0");
 
 		// Check if the scenario code matches
 		if(jsonData.scenarios[dataFileIndex].code==scenarioCode) {
@@ -61,7 +61,6 @@ parseScenarioData = function(jsonData) {
 
 					// Set the trip type in global variables
 					pm.globals.set("TripType",tripRequirement.tripType);
-					validationLogger("[DEBUG] 🪲 DUMMYAA")
 
 					// Process the trip type
 					switch(tripRequirement.tripType) {
@@ -84,7 +83,7 @@ parseScenarioData = function(jsonData) {
 							pm.globals.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
 							pm.globals.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
 							pm.globals.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
-							validationLogger("[DEBUG] 🪲 DUMMYBB")
+							validationLogger("[INFO] 🪲 parseScenarioData1")
 
 							// Add the leg definition to the array
 							legDefinitions.push(new TripLegDefinition(
@@ -138,19 +137,19 @@ parseScenarioData = function(jsonData) {
 			// Set global variables for the scenario
 			pm.globals.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
 			pm.globals.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
-			pm.globals.set("refundOverruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundOverruleCode) ? null : jsonData.scenarios[dataFileIndex].refundOverruleCode);
+			pm.globals.set("scenarioType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioType) ? null : jsonData.scenarios[dataFileIndex].scenarioType);
+			pm.globals.set("scenarioAction", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioAction) ? null : jsonData.scenarios[dataFileIndex].scenarioAction);
+			pm.globals.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
 			pm.globals.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
 			pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
-			pm.globals.set("ScenarioCode", jsonData.scenarios[dataFileIndex].code);
-			validationLogger("[DEBUG] 🪲 DUMMY0")
+			pm.globals.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
+			validationLogger("[INFO] 🪲 parseScenarioData2")
 
 			// Purchaser details
 			jsonData.purchaserList.some(function(purchaserList){
 				validationLogger('[INFO] Found number of purchaser: '+purchaserList.purchaser.length);
 				var purchaserSpecs = [];
 				purchaserList.purchaser.forEach(function(purchaser){
-					validationLogger("[DEBUG] 🪲 DUMMY1")
-
 					var osdmVersion = pm.globals.get("osdmVersion");
 					if (osdmVersion == "3.4" || osdmVersion == "3.5") {
 						purchaserSpecs.push(new PurchaserContact(
@@ -175,7 +174,6 @@ parseScenarioData = function(jsonData) {
 					}
 
 				});
-				validationLogger("[DEBUG] 🪲 DUMMY4")
 
 				validationLogger('[INFO] Pushed purchaserSpec to globals: '+JSON.stringify(purchaserSpecs));
 				pm.globals.set("bookingPurchaserSpecifications", JSON.stringify(purchaserSpecs[0]));
@@ -203,7 +201,6 @@ parseScenarioData = function(jsonData) {
 							passenger.dateOfBirth,
 							passenger.gender || null,
 						));
-						validationLogger("[DEBUG] 🪲 DUMMY1")
 
 						var osdmVersion = pm.globals.get("osdmVersion");
 						if (osdmVersion == "3.4" || osdmVersion == "3.5") {
@@ -238,7 +235,6 @@ parseScenarioData = function(jsonData) {
 								)
 							));
 						}
-						validationLogger("[DEBUG] 🪲 DUMMY3")
 						passengerReferences.push(passenger.reference);
 						//passengerReferences.push(pm.globals.get(passengerKey));
 
@@ -253,7 +249,6 @@ parseScenarioData = function(jsonData) {
 						passengerAdditionalData.push(passengerAdditionalDataStruct);
 						passengerIndex++;
 					});
-					validationLogger("[DEBUG] 🪲 DUMMY4")
 
 					validationLogger('[INFO] Pushed passengerSpec to globals: '+JSON.stringify(passengerSpecs));
 					pm.globals.set("offerPassengerSpecifications", JSON.stringify(offerPassengerSpecs));
@@ -317,7 +312,9 @@ parseScenarioData = function(jsonData) {
 		dataFileIndex++;
 	}
 	if(foundCorrectDataSet==false) {
-		throw new Error("[ERROR] ⛔ Wrong scenario code. No data set found for this scenario : "+scenarioCode);
+		validationLogger("[ERROR] ⛔ Wrong scenario code. No data set found for this scenario : "+scenarioCode);
+		validationLogger("[INFO] Stop execution");
+		pm.setNextRequest(null);
 	}
 }
 

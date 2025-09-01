@@ -57,14 +57,12 @@ function swaggerSchemaValidatorContent() {
                 console.log("✅ AJV script successfully loaded");
                 const scriptContent = res.text();
 				pm.globals.set("scriptContent", scriptContent)
-                // Injection de la lib AJV dans le scope global
+                //AJV injection
 
 
-                // Lecture et parsing du Swagger
                 const swaggerJsonString = pm.globals.get("swaggerJson");
                 const swaggerSchema = JSON.parse(swaggerJsonString);
 
-                // Appel à la fonction de validation
                 swaggerSchemaValidator({
                     schema: swaggerSchema,
                     requestHeaders: pm.globals.get("requestHeaders"),
@@ -118,7 +116,7 @@ function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHe
         return;
     }
 
-    // ✅ Validation du body de la requête
+    // Request body validation
     if (pathSchema.requestBody?.content?.["application/json"]) {
         let bodySchema = pathSchema.requestBody.content["application/json"].schema;
         if (bodySchema.$ref) {
@@ -165,16 +163,7 @@ function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHe
     }
 }
 
-
-
-
-  
-
-
-
-
-
-// Function to validate JSON with a template
+// Function to validate JSON with a template schema manually
 function validateJsonWithTemplate(jsonData) {
     pm.sendRequest({
         url: pm.environment.get("json_schema"),
@@ -190,89 +179,123 @@ function validateJsonWithTemplate(jsonData) {
         }
 
         const schema = res.json();
+        let validationErrors = [];
 
         function validateType(type, value) {
             if (type === "string") return typeof value === "string";
             if (type === "integer") return Number.isInteger(value);
             if (type === "boolean") return typeof value === "boolean";
-            if (type === "object") return value !== null && typeof value === "object";
+            if (type === "object") return value !== null && typeof value === "object" && !Array.isArray(value);
             if (type === "array") return Array.isArray(value);
             if (type === "null") return value === null;
             return false;
         }
 
-        function validateJson(jsonData, schema) {
-            const requiredFields = schema.required || [];
+        function validateValueAgainstSchema(key, value, propertySchema, path = "") {
+            const fullPath = path ? `${path}.${key}` : key;
 
-            for (let key in schema.properties) {
-                const propertySchema = schema.properties[key];
+            // Check required
+            if (value === undefined || value === null) {
+                validationErrors.push(`❌ Required property '${fullPath}' is missing.`);
+                return;
+            }
 
-                if (!(key in jsonData)) {
-                    if (!requiredFields.includes(key)) {
-                        continue;
-                    }
-                    console.error(`The property '${key}' is required.`);
-                    pm.test(`Validation of '${key}' failed`, function () {
-                        throw new Error(`The property '${key}' is required.`);
-                    });
-                    return false;
+            // Type check
+            const expectedTypes = Array.isArray(propertySchema.type)
+                ? propertySchema.type
+                : [propertySchema.type];
+
+            const typeIsValid = expectedTypes.some(t => validateType(t, value));
+            if (!typeIsValid) {
+                validationErrors.push(`❌ '${fullPath}' has invalid type. Expected: ${expectedTypes.join(", ")}.`);
+                return;
+            }
+
+            // Enum check
+            if (propertySchema.enum && !propertySchema.enum.includes(value)) {
+                validationErrors.push(`❌ '${fullPath}' has value '${value}' not in enum: ${propertySchema.enum.join(", ")}.`);
+            }
+
+            // String length
+            if (typeof value === "string") {
+                if (propertySchema.minLength && value.length < propertySchema.minLength) {
+                    validationErrors.push(`❌ '${fullPath}' is too short (minLength: ${propertySchema.minLength}).`);
+                }
+                if (propertySchema.maxLength && value.length > propertySchema.maxLength) {
+                    validationErrors.push(`❌ '${fullPath}' is too long (maxLength: ${propertySchema.maxLength}).`);
+                }
+            }
+
+            // Recursive validation for objects
+            if (propertySchema.type === "object" && propertySchema.properties) {
+                const requiredFields = propertySchema.required || [];
+                for (let subKey in propertySchema.properties) {
+                    validateValueAgainstSchema(
+                        subKey,
+                        value[subKey],
+                        propertySchema.properties[subKey],
+                        fullPath
+                    );
                 }
 
-                const value = jsonData[key];
-                const expectedTypes = Array.isArray(propertySchema.type) ? propertySchema.type : [propertySchema.type];
-                if (propertySchema.nullable && !expectedTypes.includes("null")) {
-                    expectedTypes.push("null");
-                }
-
-                const isValidType = expectedTypes.some(type => validateType(type, value));
-                if (!isValidType) {
-                    console.error(`The type of '${key}' is invalid. Expected: ${expectedTypes.join(', ')}.`);
-                    pm.test(`Validation of '${key}' failed`, function () {
-                        throw new Error(`The type of '${key}' is invalid. Expected: ${expectedTypes.join(', ')}.`);
-                    });
-                    return false;
-                }
-
-                if (propertySchema.type === "object" && value !== null && typeof value === "object" && propertySchema.properties) {
-                    if (!validateJson(value, propertySchema)) {
-                        console.error(`The object '${key}' is invalid.`);
-                        pm.test(`Validation of '${key}' failed`, function () {
-                            throw new Error(`The object '${key}' is invalid.`);
-                        });
-                        return false;
-                    }
-                }
-
-                if (propertySchema.type === "array" && Array.isArray(value) && propertySchema.items) {
-                    for (let item of value) {
-                        if (!validateJson(item, propertySchema.items)) {
-                            console.error(`The item in '${key}' is invalid.`);
-                            pm.test(`Item in '${key}' failed`, function () {
-                                throw new Error(`The item in '${key}' is invalid.`);
-                            });
-                            return false;
-                        }
+                for (let reqKey of requiredFields) {
+                    if (!(reqKey in value)) {
+                        validationErrors.push(`❌ Required field '${fullPath}.${reqKey}' is missing.`);
                     }
                 }
             }
-            return true;
+
+            // Arrays
+            if (propertySchema.type === "array" && propertySchema.items) {
+                if (!Array.isArray(value)) {
+                    validationErrors.push(`❌ '${fullPath}' should be an array.`);
+                } else {
+                    value.forEach((item, index) => {
+                        validateValueAgainstSchema(
+                            `[${index}]`,
+                            item,
+                            propertySchema.items,
+                            fullPath
+                        );
+                    });
+                }
+            }
         }
 
-        const isValid = validateJson(jsonData, schema);
-        if (isValid) {
-            validationLogger("[INFO] ✅ Valid JSON Datafile structure !");
-            pm.test("JSON validation passed", function () {
+        function validateJsonObject(json, schema, path = "") {
+            const requiredFields = schema.required || [];
+            for (let key of requiredFields) {
+                if (!(key in json)) {
+                    validationErrors.push(`❌ Required property '${path ? path + '.' : ''}${key}' is missing.`);
+                }
+            }
+
+            for (let key in schema.properties) {
+                if (json.hasOwnProperty(key)) {
+                    validateValueAgainstSchema(key, json[key], schema.properties[key], path);
+                }
+            }
+        }
+
+        // Json validation
+        validateJsonObject(jsonData, schema);
+
+        // Results
+        if (validationErrors.length === 0) {
+            validationLogger("[INFO] ✅ JSON Data file structure validation passed !");
+            pm.test("✅ JSON Data file structure validation passed", function () {
                 pm.expect(true).to.eql(true);
             });
         } else {
-            pm.globals.set("loggingType", "ERROR");
-            validationLogger("[INFO] ⛔ Invalid JSON Datafile structure !");
-            pm.test("JSON validation failed", function () {
-                throw new Error("The provided JSON is invalid");
+            validationLogger("[INFO] ⛔ Invalid JSON Data file structure !");
+            validationErrors.forEach(err => console.error(err));
+            pm.test("⛔ Invalid JSON Data file structure", function () {
+                throw new Error("Validation errors:\n" + validationErrors.join("\n"));
             });
         }
     });
 }
+
 
 
 
