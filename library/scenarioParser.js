@@ -26,18 +26,26 @@ getScenarioData = function () {
 	} else if (pm.environment.has('data_file')) {
 
 		// Validate JSON with template
+		pm.environment.set("data_base_tmp", JSON.parse(pm.environment.get("data_file")));
 		validateJsonWithTemplate(JSON.parse(pm.environment.get("data_file")));
 
 		// If data file is set, parse the scenario data from the file
 		validationLogger("[INFO] Data file was set, expecting running in postman");
+
+		
 		parseScenarioData(JSON.parse(pm.environment.get("data_file")));
+		
 	} else {
 		validationLogger("[INFO] Please specify using a data_file or data_base parameter in the environment used.");
 	}
+	
 }
 
 // Function to parse scenario data from JSON
 parseScenarioData = function(jsonData) {
+
+	scenarioCode = pm.environment.get("scenarioCode");
+	
 	// Get the next weekday date
 	var nextWeekday = get_next_weekday(new Date());
 	var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth()+1) + "-" + pad(nextWeekday.getUTCDate()+1);
