@@ -11,7 +11,8 @@
             "tripRequirementId": 1,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
-            "requestedFulfillmentOptionsListId": 1
+            "requestedFulfillmentOptionsListId": 1,
+            "scenarioType": "REFUND"
         },
         {
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
@@ -24,7 +25,8 @@
             "tripRequirementId": 1,
             "passengersListId": 2,
             "offerSearchCriteriaListId" : 2,
-            "requestedFulfillmentOptionsListId": 1
+            "requestedFulfillmentOptionsListId": 1,
+            "scenarioType": "REFUND"
         },
         {
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
@@ -37,7 +39,8 @@
             "tripRequirementId": 1,
             "passengersListId": 3,
             "offerSearchCriteriaListId" : 2,
-            "requestedFulfillmentOptionsListId": 1
+            "requestedFulfillmentOptionsListId": 1,
+            "scenarioType": "REFUND"
         },
         {
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
@@ -50,7 +53,8 @@
             "tripRequirementId": 2,
             "passengersListId": 1,
             "offerSearchCriteriaListId" : 1,
-            "requestedFulfillmentOptionsListId": 1
+            "requestedFulfillmentOptionsListId": 1,
+            "scenarioType": "REFUND"
         },
         {
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
@@ -63,7 +67,8 @@
             "tripRequirementId": 3,
             "passengersListId": 2,
             "offerSearchCriteriaListId": 2,
-            "requestedFulfillmentOptionsListId": 1
+            "requestedFulfillmentOptionsListId": 1,
+            "scenarioType": "REFUND"
         },
         {
             "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
@@ -75,7 +80,8 @@
             "tripRequirementId": 1,
             "passengersListId": 1,
             "offerSearchCriteriaListId": 1,
-            "requestedFulfillmentOptionsListId": 1
+            "requestedFulfillmentOptionsListId": 1,
+            "scenarioType": "REFUND"
         }
     ],
 	"offerSearchCriteriaList": [

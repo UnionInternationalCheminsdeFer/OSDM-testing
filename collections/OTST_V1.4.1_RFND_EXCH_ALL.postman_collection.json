@@ -13,7 +13,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"eval(pm.environment.get(\"osdmHelpers\"));",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
 							"if (pm.response.code !== 200) {",
@@ -58,11 +58,11 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"// If the scenario is not found throw an error\r",
 							"const scenarioCode = pm.environment.get(\"scenarioCode\");\r",
-							"const data_base_tmp = pm.globals.get(\"data_base_tmp\");\r",
+							"const data_base_tmp = pm.environment.get(\"data_base_tmp\");\r",
 							"const found = data_base_tmp.scenarios.some(s => s.code === scenarioCode);\r",
 							"if (!found) {\r",
 							"    throw new Error(`⛔ The scenario \"${scenarioCode}\" does not exist in data file scenarios list`);\r",
@@ -238,7 +238,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -265,7 +265,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 							"buildBookingRequest();"
 						],
@@ -326,7 +326,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -452,7 +452,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -522,7 +522,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -693,7 +693,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -780,7 +780,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -807,7 +807,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 							"\r",
@@ -878,7 +878,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -905,7 +905,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));\r",
+							"eval(pm.environment.get(\"osdmHelpers\"));\r",
 							"\r",
 							"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 							"\r",
@@ -976,7 +976,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"eval(pm.environment.get(\"osdmHelpers\"));",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
 							"if (pm.response.code !== 200) {",
@@ -1046,7 +1046,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"eval(pm.environment.get(\"osdmHelpers\"));",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
 							"if (pm.response.code !== 200) {",
@@ -1116,7 +1116,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"eval(pm.environment.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -1191,7 +1191,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"eval(pm.environment.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -1276,7 +1276,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"eval(pm.environment.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -1432,7 +1432,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"eval(pm.globals.get(\"osdmHelpers\"));",
+							"eval(pm.environment.get(\"osdmHelpers\"));",
 							"",
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -1586,8 +1586,8 @@
 					"                libGetter();",
 					"            }",
 					"            else {",
-					"                pm.globals.set(\"osdmHelpers\", lib);",
-					"                eval(globals.osdmHelpers);",
+					"                pm.environment.set(\"osdmHelpers\", lib);",
+					"                eval(pm.environment.get(\"osdmHelpers\"));",
 					"                getScenarioData();",
 					"            }",
 					"        }",
@@ -1618,9 +1618,9 @@
 					"    }",
 					"",
 					"    setTimeout(2000);",
-					"    pm.globals.unset(\"osdmHelpers\");",
-					"    if (!pm.globals.get(\"osdmHelpers\")) {",
-					"        console.log(\"🛠️ Retrieving external JS scripts libraries and save in globals..\");",
+					"    pm.environment.unset(\"osdmHelpers\");",
+					"    if (!pm.environment.get(\"osdmHelpers\")) {",
+					"        console.log(\"🛠️ Retrieving external JS scripts libraries and save in environment..\");",
 					"        libGetter();",
 					"    }",
 					"}",
