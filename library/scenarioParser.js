@@ -1,7 +1,7 @@
 // Function to get scenario data
 getScenarioData = function () {
-	validationLogger("[INFO] 🪲 getScenarioData")
-	validationLogger("[INFO] ⏳ Getting scenario dataaa");
+	validationLogger("[DEBUG] 🪲 getScenarioData")
+	validationLogger("[INFO] ⏳ Getting scenario data");
 	if (!pm.environment.has('data_file')) {
 		// If data file is not set, get data from the base URL in the environment
 		validationLogger("[INFO] 🌐 Data file was not set, grabbing data base url from environment : " + pm.environment.get("data_base"));
@@ -17,8 +17,9 @@ getScenarioData = function () {
 				pm.globals.set("data_base_tmp", jsonData);
 
 				// Validate JSON with template
-				validateJsonWithTemplate(pm.globals.get("data_base_tmp"));
-				validationLogger("[INFO] 🪲 getScenarioData")
+				validationLogger(`[INFO] 🛠️ Check data file structure schema`);
+				validateDataFileJsonWithTemplate(pm.globals.get("data_base_tmp"));
+				validationLogger("[DEBUG] 🪲 getScenarioData")
 
 				parseScenarioData(jsonData);
 			}
@@ -26,7 +27,7 @@ getScenarioData = function () {
 	} else if (pm.environment.has('data_file')) {
 
 		// Validate JSON with template
-		validateJsonWithTemplate(JSON.parse(pm.environment.get("data_file")));
+		validateDataFileJsonWithTemplate(JSON.parse(pm.environment.get("data_file")));
 
 		// If data file is set, parse the scenario data from the file
 		validationLogger("[INFO] Data file was set, expecting running in postman");
@@ -38,9 +39,26 @@ getScenarioData = function () {
 
 // Function to parse scenario data from JSON
 parseScenarioData = function(jsonData) {
-	// Get the next weekday date
-	var nextWeekday = get_next_weekday(new Date());
-	var nextWeekdayString = "" + nextWeekday.getUTCFullYear() + "-" + pad(nextWeekday.getUTCMonth()+1) + "-" + pad(nextWeekday.getUTCDate()+1);
+
+	//TODO implement data file date in scenario structure with departureDateFromToday ?
+	//TODO implement data file date in scenario structure with departureTimeFromToday ?
+	//const plusDays = parseInt(pm.globals.get("departureDateFromToday")) || 0;
+
+	const plusDays = 2;
+	const today = new Date();
+
+	today.setDate(today.getDate() + plusDays);
+
+	function pad(n) {
+		return n.toString().padStart(2, '0');
+	}
+
+	const nextWeekdayString = today.getFullYear() + "-" +
+						pad(today.getMonth() + 1) + "-" +
+						pad(today.getDate());
+
+	//TODO Keeper in globals ?					
+	//pm.globals.set("calculated_date", nextWeekdayString);
 
 	var dataFileIndex = 0;
 	var dataFileLength = jsonData.scenarios.length;
@@ -49,12 +67,25 @@ parseScenarioData = function(jsonData) {
 
 	// Loop through the scenarios to find the correct data set
 	while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {
-		validationLogger("[INFO] 🪲 parseScenarioData0");
+		validationLogger("[DEBUG] 🪲 parseScenarioData0");
 
 		// Check if the scenario code matches
 		if(jsonData.scenarios[dataFileIndex].code==scenarioCode) {
 			scenarioCodes.push(jsonData.scenarios[dataFileIndex].code);
 
+			// Set global variables for the scenario
+			pm.globals.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
+			pm.globals.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
+			pm.globals.set("scenarioType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioType) ? null : jsonData.scenarios[dataFileIndex].scenarioType);
+			pm.globals.set("scenarioAction", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioAction) ? null : jsonData.scenarios[dataFileIndex].scenarioAction);
+			pm.globals.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
+			pm.globals.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
+			pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
+			pm.globals.set("accommodationTypeSelected", ["", "null"].includes(jsonData.scenarios[dataFileIndex].accommodationTypeSelected) ? null : jsonData.scenarios[dataFileIndex].accommodationTypeSelected);
+			pm.globals.set("requiresPlaceSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].requiresPlaceSelection) ? null : jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
+			pm.globals.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
+			validationLogger("[DEBUG] 🪲 parseScenarioData2")
+			
 			// Loop through trip requirements to find the matching trip requirement ID
 			jsonData.tripRequirements.some(function(tripRequirement){
 				if(tripRequirement.id==jsonData.scenarios[dataFileIndex].tripRequirementId){
@@ -83,7 +114,7 @@ parseScenarioData = function(jsonData) {
 							pm.globals.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
 							pm.globals.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
 							pm.globals.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
-							validationLogger("[INFO] 🪲 parseScenarioData1")
+							validationLogger("[DEBUG] 🪲 parseScenarioData1")
 
 							// Add the leg definition to the array
 							legDefinitions.push(new TripLegDefinition(
@@ -133,17 +164,6 @@ parseScenarioData = function(jsonData) {
 					return true;
 				}
 			});
-
-			// Set global variables for the scenario
-			pm.globals.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
-			pm.globals.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
-			pm.globals.set("scenarioType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioType) ? null : jsonData.scenarios[dataFileIndex].scenarioType);
-			pm.globals.set("scenarioAction", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioAction) ? null : jsonData.scenarios[dataFileIndex].scenarioAction);
-			pm.globals.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
-			pm.globals.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
-			pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
-			pm.globals.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
-			validationLogger("[INFO] 🪲 parseScenarioData2")
 
 			// Purchaser details
 			jsonData.purchaserList.some(function(purchaserList){
@@ -269,20 +289,37 @@ parseScenarioData = function(jsonData) {
 			// Loop through the offer search criteria list to find the matching offer search criteria ID
 			if (Array.isArray(jsonData.offerSearchCriteriaList) && jsonData.offerSearchCriteriaList.length > 0) {
 				jsonData.offerSearchCriteriaList.some(function (offerSearchCriteriaItem) {
-					if (offerSearchCriteriaItem.id == jsonData.scenarios[dataFileIndex].offerSearchCriteriaListId) {
-						osdmOfferSearchCriteria(
-							offerSearchCriteriaItem.offerSearchCriteria[0].currency || null,
-							offerSearchCriteriaItem.offerSearchCriteria[0].offerMode || null,
-							offerSearchCriteriaItem.offerSearchCriteria[0].requestedOfferParts,
-							offerSearchCriteriaItem.offerSearchCriteria[0].flexibilities || null,
-							offerSearchCriteriaItem.offerSearchCriteria[0].serviceClass || null,
-							offerSearchCriteriaItem.offerSearchCriteria[0].travelClass || null,
-							null
-						);
-						return true;
+					if (offerSearchCriteriaItem.id === jsonData.scenarios[dataFileIndex].offerSearchCriteriaListId) {
+
+						// Use the first offerSearchCriteria if the array exists and is not empty
+						const criteriaList = offerSearchCriteriaItem.offerSearchCriteria;
+						if (Array.isArray(criteriaList) && criteriaList.length > 0) {
+							const criteria = criteriaList.find(c =>
+								// Optional: refine condition to match a specific scenario if needed
+								true // or some matching condition
+							);
+
+							if (criteria) {
+								osdmOfferSearchCriteria(
+									criteria.currency || null,
+									criteria.offerMode || null,
+									criteria.requestedOfferParts,
+									criteria.flexibilities || null,
+									criteria.serviceClass || null,
+									criteria.travelClass || null,
+									null
+								);
+							} else {
+								validationLogger(`[WARN] No matching offerSearchCriteria found in list for ID '${offerSearchCriteriaItem.id}'`);
+							}
+						} else {
+							validationLogger(`[WARN] No offerSearchCriteria array found or it's empty in offerSearchCriteriaItem with ID '${offerSearchCriteriaItem.id}'`);
+						}
+
+						return true; // break the .some() loop
 					}
 				});
-			} else {
+			} else {	
 				validationLogger("[ERROR] offerSearchCriteriaList is empty or not an array.");
 			}
 			// Loop through the requested fulfillment options list to find the matching fulfillment options ID

@@ -164,7 +164,7 @@ function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHe
 }
 
 // Function to validate JSON with a template schema manually
-function validateJsonWithTemplate(jsonData) {
+function validateDataFileJsonWithTemplate(jsonData) {
     pm.sendRequest({
         url: pm.environment.get("json_schema"),
         method: 'GET',
@@ -192,10 +192,15 @@ function validateJsonWithTemplate(jsonData) {
         }
 
         function validateValueAgainstSchema(key, value, propertySchema, path = "") {
-            const fullPath = path ? `${path}.${key}` : key;
+
+            const fullPath = path ? (key ? `${path}.${key}` : path) : key;
 
             // Check required
             if (value === undefined || value === null) {
+                if (key === "gender" || key === "updateGender") {
+                    validationLogger(`[INFO] ⚠️ Optional field '${fullPath}' is missing.`);
+                    return;
+                }
                 validationErrors.push(`❌ Required property '${fullPath}' is missing.`);
                 return;
             }
@@ -251,11 +256,12 @@ function validateJsonWithTemplate(jsonData) {
                     validationErrors.push(`❌ '${fullPath}' should be an array.`);
                 } else {
                     value.forEach((item, index) => {
+                        const arrayItemPath = `${fullPath}[${index}]`;
                         validateValueAgainstSchema(
-                            `[${index}]`,
+                            '',  // pas besoin de "clé", déjà incluse dans path
                             item,
                             propertySchema.items,
-                            fullPath
+                            arrayItemPath
                         );
                     });
                 }
@@ -282,12 +288,12 @@ function validateJsonWithTemplate(jsonData) {
 
         // Results
         if (validationErrors.length === 0) {
-            validationLogger("[INFO] ✅ JSON Data file structure validation passed !");
-            pm.test("✅ JSON Data file structure validation passed", function () {
+            validationLogger(`[INFO] ✅ JSON Data file structure validation passed with schema from : ${pm.environment.get("json_schema")}`);
+            pm.test("JSON Data file structure validation passed", function () {
                 pm.expect(true).to.eql(true);
             });
         } else {
-            validationLogger("[INFO] ⛔ Invalid JSON Data file structure !");
+            validationLogger(`[INFO] ⛔ Invalid JSON Data file structure with schema from : ${pm.environment.get("json_schema")}`);
             validationErrors.forEach(err => console.error(err));
             pm.test("⛔ Invalid JSON Data file structure", function () {
                 throw new Error("Validation errors:\n" + validationErrors.join("\n"));

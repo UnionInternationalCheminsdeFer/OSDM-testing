@@ -6,12 +6,12 @@ validationLogger = function (message) {
 			console.log(message);
 			break;
 		case "INFO":
-			if (message.includes("[INFO]") || message.includes("[WARNING]") || message.includes("[ERROR]")) {
+			if (message.includes("[INFO]") || message.includes("[WARN]") || message.includes("[ERROR]")) {
 				console.log(message);
 			}
 			break;
-		case "WARNING":
-			if (message.includes("[WARNING]") || message.includes("[ERROR]")) {
+		case "WARN":
+			if (message.includes("[WARN]") || message.includes("[ERROR]")) {
 				console.log(message);
 			}
 			break;

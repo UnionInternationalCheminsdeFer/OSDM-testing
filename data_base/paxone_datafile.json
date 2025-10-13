@@ -134,8 +134,8 @@
                 {
                     "origin": "urn:uic:stn:0088140010",
                     "destination": "urn:uic:stn:0070154005",
-                    "startDatetime": "%TRIP_DATE%T07:00:00Z+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00Z+02:00"
+                    "startDatetime": "%TRIP_DATE%T11:00:00Z+02:00",
+                    "endDatetime": "%TRIP_DATE%T15:20:00Z+02:00"
                 }
         },
         {
@@ -145,8 +145,8 @@
                 {
                     "origin": "urn:uic:stn:0080334524",
                     "destination": "urn:uic:stn:0071718010",
-                    "startDatetime": "%TRIP_DATE%T07:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T10:20:00+02:00"
+                    "startDatetime": "%TRIP_DATE%T11:00:00Z+02:00",
+                    "endDatetime": "%TRIP_DATE%T15:20:00Z+02:00"
                 }
         }
     ],
@@ -195,6 +195,7 @@
                     "lastName": "doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "johnupdate",
                     "updateLastName": "doeupdate",
                     "updateDateOfBirth": "1999-01-02",
@@ -210,6 +211,7 @@
                     "lastName": "doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "martaupdate",
                     "updateLastName": "doeupdate",
                     "updateDateOfBirth": "1999-01-04",
@@ -230,6 +232,7 @@
                     "lastName": "doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "johnupdate",
                     "updateLastName": "doeupdate",
                     "updateDateOfBirth": "1999-01-02",
@@ -245,6 +248,7 @@
                     "lastName": "doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "martaupdate",
                     "updateLastName": "doeupdate",
                     "updateDateOfBirth": "1999-01-04",
@@ -260,6 +264,7 @@
                     "lastName": "doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
+                    "gender" : "X",
                     "updateFirstName": "aliceupdate",
                     "updateLastName": "doeupdate",
                     "updateDateOfBirth": "2010-01-02",

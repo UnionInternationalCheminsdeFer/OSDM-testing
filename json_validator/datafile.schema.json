@@ -10,20 +10,45 @@
       "items": {
         "type": "object",
         "properties": {
-          "collection": { "type": "string" },
+          "collection": {
+            "type": "string"
+          },
           "loggingType": {
             "type": "string",
-            "enum": ["FULL", "INFO", "DEBUG", "ERROR"]
+            "enum": [
+              "FULL",
+              "INFO",
+              "DEBUG",
+              "ERROR"
+            ]
           },
-          "code": { "type": "string" },
-          "scenarioType": { "type": "string" },
-          "scenarioAction": { "type": "string" },
-          "osdmVersion": { "type": "string" },
-          "overruleCode": { "type": "string" },
-          "tripRequirementId": { "type": "integer" },
-          "passengersListId": { "type": "integer" },
-          "offerSearchCriteriaListId": { "type": "integer" },
-          "requestedFulfillmentOptionsListId": { "type": "integer" }
+          "code": {
+            "type": "string"
+          },
+          "scenarioType": {
+            "type": "string"
+          },
+          "scenarioAction": {
+            "type": "string"
+          },
+          "osdmVersion": {
+            "type": "string"
+          },
+          "overruleCode": {
+            "type": "string"
+          },
+          "tripRequirementId": {
+            "type": "integer"
+          },
+          "passengersListId": {
+            "type": "integer"
+          },
+          "offerSearchCriteriaListId": {
+            "type": "integer"
+          },
+          "requestedFulfillmentOptionsListId": {
+            "type": "integer"
+          }
         },
         "required": [
           "collection",
@@ -45,7 +70,9 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
+          "id": {
+            "type": "integer"
+          },
           "offerSearchCriteria": {
             "type": "array",
             "items": {
@@ -56,21 +83,29 @@
                   "minLength": 3,
                   "maxLength": 3
                 },
-                "requiresPlaceSelection": { "type": "boolean" },
+                "requiresPlaceSelection": {
+                  "type": "boolean"
+                },
                 "offerMode": {
                   "type": "string",
-                  "enum": ["INDIVIDUAL", "COLLECTIVE"]
+                  "enum": [
+                    "INDIVIDUAL",
+                    "COLLECTIVE"
+                  ]
                 }
               },
               "required": [
-				"currency",
+                "currency",
                 "requiresPlaceSelection",
                 "offerMode"
               ]
             }
           }
         },
-        "required": ["id", "offerSearchCriteria"]
+        "required": [
+          "id",
+          "offerSearchCriteria"
+        ]
       }
     },
     "requestedFulfillmentOptionsList": {
@@ -78,7 +113,9 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
+          "id": {
+            "type": "integer"
+          },
           "requestedFulfillmentOptions": {
             "type": "array",
             "items": {
@@ -86,18 +123,29 @@
               "properties": {
                 "fulfillmentMedia": {
                   "type": "string",
-                  "enum": ["PDF_A4", "UIC_PDF"]
+                  "enum": [
+                    "PDF_A4",
+                    "UIC_PDF"
+                  ]
                 },
                 "fulfillmentType": {
                   "type": "string",
-                  "enum": ["ETICKET"]
+                  "enum": [
+                    "ETICKET"
+                  ]
                 }
               },
-              "required": ["fulfillmentMedia", "fulfillmentType"]
+              "required": [
+                "fulfillmentMedia",
+                "fulfillmentType"
+              ]
             }
           }
         },
-        "required": ["id", "requestedFulfillmentOptions"]
+        "required": [
+          "id",
+          "requestedFulfillmentOptions"
+        ]
       }
     },
     "tripRequirements": {
@@ -105,13 +153,21 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
+          "id": {
+            "type": "integer"
+          },
           "tripType": {
             "type": "string",
-            "enum": ["SEARCH", "SPECIFICATION"]
+            "enum": [
+              "SEARCH",
+              "SPECIFICATION"
+            ]
           }
         },
-        "required": ["id", "tripType"]
+        "required": [
+          "id",
+          "tripType"
+        ]
       }
     },
     "passengersList": {
@@ -119,27 +175,58 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
+          "id": {
+            "type": "integer"
+          },
           "passengers": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "reference": { "type": "string" },
-                "dateOfBirth": { "type": "string" },
-                "firstName": { "type": "string" },
-                "lastName": { "type": "string" },
-                "phoneNumber": { "type": "string" },
-                "email": { "type": "string" },
-                "updateFirstName": { "type": "string" },
-                "updateLastName": { "type": "string" },
-                "updateDateOfBirth": { "type": "string" },
-                "updatePhoneNumber": { "type": "string" },
-                "updateEmail": { "type": "string" },
-				"updateGender": { "type": "string" },
+                "reference": {
+                  "type": "string"
+                },
+                "dateOfBirth": {
+                  "type": "string"
+                },
+                "firstName": {
+                  "type": "string"
+                },
+                "lastName": {
+                  "type": "string"
+                },
+                "phoneNumber": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "gender": {
+                  "type": "string"
+                },
+                "updateFirstName": {
+                  "type": "string"
+                },
+                "updateLastName": {
+                  "type": "string"
+                },
+                "updateDateOfBirth": {
+                  "type": "string"
+                },
+                "updatePhoneNumber": {
+                  "type": "string"
+                },
+                "updateEmail": {
+                  "type": "string"
+                },
+                "updateGender": {
+                  "type": "string"
+                },
                 "type": {
                   "type": "string",
-                  "enum": ["PERSON"]
+                  "enum": [
+                    "PERSON"
+                  ]
                 }
               },
               "required": [
@@ -154,13 +241,15 @@
                 "updateDateOfBirth",
                 "updatePhoneNumber",
                 "updateEmail",
-                "type",
-				"updateGender"
+                "type"
               ]
             }
           }
         },
-        "required": ["id", "passengers"]
+        "required": [
+          "id",
+          "passengers"
+        ]
       }
     }
   },

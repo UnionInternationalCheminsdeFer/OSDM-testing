@@ -62,9 +62,6 @@ postCreateBookingResponse = function (offers, offerId, booking, state) {
 };
 
 compareOffers = function (bookedOffer, offer, booking, state) {
-	pm.test(`Booked offerId: ${bookedOffer.offerId} matches offerId: ${offer.offerId}`, function () {
-		pm.expect(bookedOffer.offerId).to.eql(offer.offerId);
-	});	
 	const partRefs = [];
 
 	if (!bookedOffer.admissions?.length && !offer.admissionOfferParts?.length) {

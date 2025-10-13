@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "ff5bbce9-1574-4df8-b7ae-3d58eec7ca33",
-		"name": "OTST_V1.4.2_RFND_EXCH_ALL",
+		"_postman_id": "75a35343-b23f-40bb-a338-ad670407ca51",
+		"name": "OTST_V1.4.3_RFND_EXCH_ALL",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -39,12 +39,13 @@
 									"}",
 									"pm.test('Successfully received offers', () => pm.expect(pm.response.code).to.eql(200));",
 									"",
-									"postGetOfferResponse(",
-									"JSON.parse(pm.globals.get(\"offerPassengerSpecifications\")), ",
-									"JSON.parse(pm.globals.get(\"offerSearchCriteria\")), ",
-									"pm.globals.get(\"offerFulfillmentOptions\"), ",
-									"jsonData.offers, ",
-									"jsonData.trips);",
+									"postGetOfferResponse(jsonData);",
+									"// postGetOfferResponse(",
+									"// JSON.parse(pm.globals.get(\"offerPassengerSpecifications\")), ",
+									"// JSON.parse(pm.globals.get(\"offerSearchCriteria\")), ",
+									"// pm.globals.get(\"offerFulfillmentOptions\"), ",
+									"// jsonData.offers, ",
+									"// jsonData.trips);",
 									"",
 									"displayOfferResponse(jsonData);",
 									"",
@@ -157,11 +158,11 @@
 							"script": {
 								"exec": [
 									"var jsonData = JSON.parse(responseBody);\r",
-									"var preSelection = jsonData.vehicleAvailability.preSelections[0];\r",
-									"var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
-									"pm.globals.set(\"preselectedCoach\", preSelection.coach);\r",
-									"pm.globals.set(\"preselectedPlace\", preSelection.place);\r",
-									"pm.globals.set(\"layoutId\", coach.layoutId)"
+									"// var preSelection = jsonData.vehicleAvailability.preSelections[0];\r",
+									"// var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
+									"// pm.globals.set(\"preselectedCoach\", preSelection.coach);\r",
+									"// pm.globals.set(\"preselectedPlace\", preSelection.place);\r",
+									"// pm.globals.set(\"layoutId\", coach.layoutId)"
 								],
 								"type": "text/javascript",
 								"packages": {}

@@ -6,8 +6,10 @@
             "code": "OTST_RFND_PATCH_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
             "scenarioType": "REFUND",
             "scenarioAction": "PATCH",
-            "osdmVersion": "3.4",
+            "osdmVersion": "3.0.5",
             "desiredFlexibility": "FULL_FLEXIBLE",
+            "accommodationTypeSelected": "a",
+            "requiresPlaceSelection": true,
             "overruleCode": "PAYMENT_FAILURE",
             "tripRequirementId": 1,
             "passengersListId": 1,
@@ -115,7 +117,6 @@
                     "currency": "EUR",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
-                    "requiresPlaceSelection": false,
                     "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "INDIVIDUAL"
                 }
@@ -129,7 +130,6 @@
                     "currency": "EUR",
                     "serviceClass": ["STANDARD"],
                     "travelClass": ["SECOND"],
-                    "requiresPlaceSelection": false,
                     "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "COLLECTIVE"
                 }
@@ -225,14 +225,14 @@
                     "lastName": "Doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
-                    "gender" : "X",
+                    "gender": "MALE",
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
                     "type": "PERSON",
-                    "updateGender": "MALE"
+                                        "updateGender": "MALE"
                 }
             ]
         },
@@ -246,14 +246,12 @@
                     "lastName": "Doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
-                    "gender" : "X",
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON",
-                    "updateGender": "MALE"
+                    "type": "PERSON"
                 },
                 {
                     "reference": "00002",
@@ -262,14 +260,12 @@
                     "lastName": "Doe",
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
-                    "gender" : "X",
                     "updateFirstName": "MartaUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-04",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON",
-                    "updateGender": "FEMALE"
+                    "type": "PERSON"
                 }
             ]
         },
@@ -283,14 +279,12 @@
                     "lastName": "Doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
-                    "gender" : "X",
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON",
-                    "updateGender": "MALE"
+                    "type": "PERSON"
                 },
                 {
                     "reference": "00002",
@@ -299,14 +293,12 @@
                     "lastName": "Doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
-                    "gender" : "X",
                     "updateFirstName": "MartaUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-04",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON",
-                    "updateGender": "FEMALE"
+                    "type": "PERSON"
                 },
                 {
                     "reference": "00003",
@@ -315,14 +307,12 @@
                     "lastName": "Doe",
                     "phoneNumber": "+33612345678",
                     "email": "email@email.com",
-                    "gender" : "X",
                     "updateFirstName": "AliceUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "2010-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON",
-                    "updateGender": "FEMALE"
+                    "type": "PERSON"
                 }
             ]
         }
