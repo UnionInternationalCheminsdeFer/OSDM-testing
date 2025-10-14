@@ -18,7 +18,7 @@ var uuid = require('uuid');
 // Function to set the authentication token
 setAuthToken = function () {
 	let jsonData = JSON.parse(responseBody);
-	pm.globals.set(GV.ACCESS_TOKEN, jsonData.access_token);
+	pm.environment.set(GV.ACCESS_TOKEN, jsonData.access_token);
 }
 
 function captureSwaggerSchemaValidator() {
@@ -37,7 +37,7 @@ function captureSwaggerSchemaValidator() {
 
         // Convert the response JSON to a string and store it in the global variable
         const swaggerJsonString = JSON.stringify(res.json());
-        pm.globals.set("swaggerJson", swaggerJsonString);
+        pm.environment.set("swaggerJson", swaggerJsonString);
     });
 }
 
@@ -56,21 +56,21 @@ function swaggerSchemaValidatorContent() {
             try {
                 console.log("✅ AJV script successfully loaded");
                 const scriptContent = res.text();
-				pm.globals.set("scriptContent", scriptContent)
+				pm.environment.set("scriptContent", scriptContent)
                 //AJV injection
 
 
-                const swaggerJsonString = pm.globals.get("swaggerJson");
+                const swaggerJsonString = pm.environment.get("swaggerJson");
                 const swaggerSchema = JSON.parse(swaggerJsonString);
 
                 swaggerSchemaValidator({
                     schema: swaggerSchema,
-                    requestHeaders: pm.globals.get("requestHeaders"),
-                    requestBody: pm.globals.get("OfferCollectionRequest"),
-                    responseHeaders: pm.globals.get("responseHeaders"),
-                    responseBody: pm.globals.get("responseBody"),
-                    method: pm.globals.get("method"),
-                    url: pm.globals.get("url")
+                    requestHeaders: pm.environment.get("requestHeaders"),
+                    requestBody: pm.environment.get("OfferCollectionRequest"),
+                    responseHeaders: pm.environment.get("responseHeaders"),
+                    responseBody: pm.environment.get("responseBody"),
+                    method: pm.environment.get("method"),
+                    url: pm.environment.get("url")
                 });
 
             } catch (e) {
@@ -124,7 +124,7 @@ function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHe
         }
 
         try {
-			scriptContent = pm.globals.get("scriptContent")
+			scriptContent = pm.environment.get("scriptContent")
 			eval(scriptContent);
 			const ajv = new Ajv();
             const validateBody = ajv.compile(bodySchema);
@@ -147,7 +147,7 @@ function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHe
         }
 
         try {
-			scriptContent = pm.globals.get("scriptContent")
+			scriptContent = pm.environment.get("scriptContent")
 			eval(scriptContent);
 			const ajv = new Ajv();			
             const validateResponse = ajv.compile(responseSchema);

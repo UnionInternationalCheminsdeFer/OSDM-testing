@@ -17,7 +17,7 @@ function validateFulfillmentsExchange(fulfillments, expectedStatus) {
 			pm.expect(fulfillment).to.have.property('bookingParts').that.is.an('array').and.is.not.empty;
 		});
 	});
-	const fulfillmentsIdRaw = pm.globals.get("fulfillmentsIds");
+	const fulfillmentsIdRaw = pm.environment.get("fulfillmentsIds");
 	if (fulfillmentsIdRaw) {
 		const expectedIds = JSON.parse(fulfillmentsIdRaw);
 		const actualIds = fulfillments.map(f => f.id);
@@ -28,7 +28,7 @@ function validateFulfillmentsExchange(fulfillments, expectedStatus) {
 		});
 	}
 
-    const exchangePartRefs = JSON.parse(pm.globals.get("idsAdmissionAncillariesReservationReference") || "[]");
+    const exchangePartRefs = JSON.parse(pm.environment.get("idsAdmissionAncillariesReservationReference") || "[]");
     const bookingPartIds = fulfillments.flatMap(f => f.bookingParts.map(bp => bp.id));
 
 	pm.test(`Each bookingPart id is included in idsAdmissionAncillariesReservationReference: ${exchangePartRefs}`, () => {
@@ -43,7 +43,7 @@ function validateExchangeFee(exchangeFee) {
 	validationLogger(`[INFO] Validating exchange fee: ${exchangeFee.amount}`);
 	pm.expect(exchangeFee.amount).to.be.at.least(0, "Exchange fee should be non-negative");
 
-	let expectedFee = pm.globals.get("afterSaleCondition_admission_amount");
+	let expectedFee = pm.environment.get("afterSaleCondition_admission_amount");
 
     validationLogger(`[INFO] Comparing with expected after sale fee: ${expectedFee}`);
 
@@ -90,22 +90,22 @@ function getExchangeOfferResponse(exchangeOffer, expectedStatus) {
 			partRefs.push(bp.id);
 		});
 	});
-	pm.globals.set("idsAdmissionAncillariesReservationReferenceDummy", JSON.stringify(partRefs));
+	pm.environment.set("idsAdmissionAncillariesReservationReferenceDummy", JSON.stringify(partRefs));
 
 	validateFulfillmentsExchange(exchangeOffer.fulfillments, expectedStatus);
 
-	const overruleCode = pm.globals.get("overruleCode");
+	const overruleCode = pm.environment.get("overruleCode");
 	validateAppliedOverruleCode(exchangeOffer.appliedOverruleCode, overruleCode);
 
 	//TODO Check the code here
 	// if ((expectedStatus === "CONFIRMED") || (expectedStatus === "FULFILLED")) {
-	const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
+	const bookingConfirmedPrice = pm.environment.get("bookingConfirmedPrice");
 	validateExchangeAmount(exchangeOffer, overruleCode, bookingConfirmedPrice);
 	validateExchangeFee(exchangeOffer.exchangeFee);
 	// } else if (expectedStatus === "PREBOOKED") {
 	// 	//TODO : Check if price comparison must be done here
-	// 	pm.globals.set("exchangePriceAmount", exchangeOffer.exchangePrice.amount);
-	// 	pm.globals.set("exchangeFee", exchangeOffer.exchangeFee.amount);
+	// 	pm.environment.set("exchangePriceAmount", exchangeOffer.exchangePrice.amount);
+	// 	pm.environment.set("exchangeFee", exchangeOffer.exchangeFee.amount);
 	// }
 }
 
@@ -155,7 +155,7 @@ function postPatchExchangeOffersResponse(response, isPatchResponse = false) {
 	
 	pm.test("Exchange offer has a valid Offer Id", () => {
 		pm.expect(jsonData.exchangeOffers[0].offerId).to.exist;
-		pm.globals.set("exchangeOffersOfferId", jsonData.exchangeOffers[0].offerId);
+		pm.environment.set("exchangeOffersOfferId", jsonData.exchangeOffers[0].offerId);
 	});
 
 	const expectedStatus = isPatchResponse ? 'CONFIRMED' : 'PREBOOKED';
@@ -173,7 +173,7 @@ function postPatchExchangeOperationsResponse(response, isPatchResponse = false) 
 
 	pm.test("Exchange operation has a valid ID", () => {
 		pm.expect(exchangeOperation.id).to.exist;
-		pm.globals.set("exchangeOperationId", exchangeOperation.id);
+		pm.environment.set("exchangeOperationId", exchangeOperation.id);
 	});
 
 	pm.test("Exchange response contains exchangeOffers", () => {
@@ -231,7 +231,7 @@ function getBookingFulfillmentExchangeResponse(response, scenarioType) {
 
 				// Adapted: Loop through exchangeOffers in the operation
 				const exchangeOffers = exchangeOperation.exchangeOffers || [];
-				pm.globals.set("afterSaleCondition_admission_amount", 0);
+				pm.environment.set("afterSaleCondition_admission_amount", 0);
 				exchangeOffers.forEach(exchangeOffer => {
 					pm.expect(exchangeOffer).to.have.property('offerId').that.is.a('string').and.not.empty;
 					getExchangeOfferResponse(exchangeOffer, 'PREBOOKED');
@@ -265,7 +265,7 @@ function getBookingFulfillmentExchangeResponse(response, scenarioType) {
 
 				// Adapted: Loop through exchangeOffers in the operation
 				const exchangeOffers = exchangeOperation.exchangeOffers || [];
-				pm.globals.set("afterSaleCondition_admission_amount", 0);
+				pm.environment.set("afterSaleCondition_admission_amount", 0);
 				exchangeOffers.forEach(exchangeOffer => {
 					pm.expect(exchangeOffer).to.have.property('offerId').that.is.a('string').and.not.empty;
 					getExchangeOfferResponse(exchangeOffer, 'FULFILLED');
@@ -303,9 +303,9 @@ function getBookingFulfillmentExchangeResponse(response, scenarioType) {
         });
 
 		//TODO Delete ?
-        // pm.globals.set("admissionsExchangeAmount", booking.bookedOffers[0].admissions?.refundAmount);
+        // pm.environment.set("admissionsExchangeAmount", booking.bookedOffers[0].admissions?.refundAmount);
         // if (booking.bookedOffers[0].reservations) {
-        //     pm.globals.set("reservationsRefundAmount", booking.bookedOffers[0].reservations.refundAmount);
+        //     pm.environment.set("reservationsRefundAmount", booking.bookedOffers[0].reservations.refundAmount);
         // }
 
         pm.test("Booking is present and Booking ID is valid", () => {

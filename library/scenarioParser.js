@@ -14,11 +14,11 @@ getScenarioData = function () {
 				validationLogger(err);
 			} else {
 				var jsonData = JSON.parse(res.text());
-				pm.globals.set("data_base_tmp", jsonData);
+				pm.environment.set("data_base_tmp", jsonData);
 
 				// Validate JSON with template
 				validationLogger(`[INFO] 🛠️ Check data file structure schema`);
-				validateDataFileJsonWithTemplate(pm.globals.get("data_base_tmp"));
+				validateDataFileJsonWithTemplate(pm.environment.get("data_base_tmp"));
 				validationLogger("[DEBUG] 🪲 getScenarioData")
 
 				parseScenarioData(jsonData);
@@ -42,7 +42,7 @@ parseScenarioData = function(jsonData) {
 
 	//TODO implement data file date in scenario structure with departureDateFromToday ?
 	//TODO implement data file date in scenario structure with departureTimeFromToday ?
-	//const plusDays = parseInt(pm.globals.get("departureDateFromToday")) || 0;
+	//const plusDays = parseInt(pm.environment.get("departureDateFromToday")) || 0;
 
 	const plusDays = 2;
 	const today = new Date();
@@ -57,8 +57,8 @@ parseScenarioData = function(jsonData) {
 						pad(today.getMonth() + 1) + "-" +
 						pad(today.getDate());
 
-	//TODO Keeper in globals ?					
-	//pm.globals.set("calculated_date", nextWeekdayString);
+	//TODO Keeper in environment ?					
+	//pm.environment.set("calculated_date", nextWeekdayString);
 
 	var dataFileIndex = 0;
 	var dataFileLength = jsonData.scenarios.length;
@@ -67,23 +67,24 @@ parseScenarioData = function(jsonData) {
 
 	// Loop through the scenarios to find the correct data set
 	while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {
-		validationLogger("[DEBUG] 🪲 parseScenarioData0");
+		validationLogger("[DEBUG] 🪲 DUMMYA "+jsonData.scenarios[dataFileIndex].code+" "+scenarioCode)
+
 
 		// Check if the scenario code matches
 		if(jsonData.scenarios[dataFileIndex].code==scenarioCode) {
 			scenarioCodes.push(jsonData.scenarios[dataFileIndex].code);
 
 			// Set global variables for the scenario
-			pm.globals.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
-			pm.globals.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
-			pm.globals.set("scenarioType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioType) ? null : jsonData.scenarios[dataFileIndex].scenarioType);
-			pm.globals.set("scenarioAction", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioAction) ? null : jsonData.scenarios[dataFileIndex].scenarioAction);
-			pm.globals.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
-			pm.globals.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
-			pm.globals.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
-			pm.globals.set("accommodationTypeSelected", ["", "null"].includes(jsonData.scenarios[dataFileIndex].accommodationTypeSelected) ? null : jsonData.scenarios[dataFileIndex].accommodationTypeSelected);
-			pm.globals.set("requiresPlaceSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].requiresPlaceSelection) ? null : jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
-			pm.globals.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
+			pm.environment.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
+			pm.environment.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
+			pm.environment.set("scenarioType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioType) ? null : jsonData.scenarios[dataFileIndex].scenarioType);
+			pm.environment.set("scenarioAction", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioAction) ? null : jsonData.scenarios[dataFileIndex].scenarioAction);
+			pm.environment.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
+			pm.environment.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
+			pm.environment.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
+			pm.environment.set("accommodationTypeSelected", ["", "null"].includes(jsonData.scenarios[dataFileIndex].accommodationTypeSelected) ? null : jsonData.scenarios[dataFileIndex].accommodationTypeSelected);
+			pm.environment.set("requiresPlaceSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].requiresPlaceSelection) ? null : jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
+			pm.environment.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
 			validationLogger("[DEBUG] 🪲 parseScenarioData2")
 			
 			// Loop through trip requirements to find the matching trip requirement ID
@@ -91,7 +92,7 @@ parseScenarioData = function(jsonData) {
 				if(tripRequirement.id==jsonData.scenarios[dataFileIndex].tripRequirementId){
 
 					// Set the trip type in global variables
-					pm.globals.set("TripType",tripRequirement.tripType);
+					pm.environment.set("TripType",tripRequirement.tripType);
 
 					// Process the trip type
 					switch(tripRequirement.tripType) {
@@ -105,15 +106,15 @@ parseScenarioData = function(jsonData) {
 							const startDatetime = leg.startDatetime.replace("%TRIP_DATE%", nextWeekdayString);
 							const endDatetime = leg.endDatetime.replace("%TRIP_DATE%", nextWeekdayString);
 
-							pm.globals.set(`${legPrefix}StartStopPlaceRef`, leg.origin);
-							pm.globals.set(`${legPrefix}EndStopPlaceRef`, leg.destination);
-							pm.globals.set(`${legPrefix}StartDatetime`, startDatetime);
-							pm.globals.set(`${legPrefix}EndDatetime`, endDatetime);
-							pm.globals.set(`${legPrefix}VehicleNumber`, leg.vehicleNumber);
-							pm.globals.set(`${legPrefix}OperatorCode`, leg.operatorCode);
-							pm.globals.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
-							pm.globals.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
-							pm.globals.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
+							pm.environment.set(`${legPrefix}StartStopPlaceRef`, leg.origin);
+							pm.environment.set(`${legPrefix}EndStopPlaceRef`, leg.destination);
+							pm.environment.set(`${legPrefix}StartDatetime`, startDatetime);
+							pm.environment.set(`${legPrefix}EndDatetime`, endDatetime);
+							pm.environment.set(`${legPrefix}VehicleNumber`, leg.vehicleNumber);
+							pm.environment.set(`${legPrefix}OperatorCode`, leg.operatorCode);
+							pm.environment.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
+							pm.environment.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
+							pm.environment.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
 							validationLogger("[DEBUG] 🪲 parseScenarioData1")
 
 							// Add the leg definition to the array
@@ -136,15 +137,15 @@ parseScenarioData = function(jsonData) {
 					  case "SEARCH":
 						validationLogger('[INFO] ⏳ processing a search');
 						// Set global variables for the trip search criteria
-						pm.globals.set("tripStartStopPlaceRef", tripRequirement.trip.origin);
-						pm.globals.set("tripEndStopPlaceRef", tripRequirement.trip.destination);
-						pm.globals.set("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-						pm.globals.set("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-						pm.globals.set("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
-						pm.globals.set("tripOperatorCode", tripRequirement.trip.operatorCode);
-						pm.globals.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef || null);
-						pm.globals.set("tripProductCategoryName", tripRequirement.trip.productCategoryName || null);
-						pm.globals.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName || null);
+						pm.environment.set("tripStartStopPlaceRef", tripRequirement.trip.origin);
+						pm.environment.set("tripEndStopPlaceRef", tripRequirement.trip.destination);
+						pm.environment.set("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+						pm.environment.set("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+						pm.environment.set("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
+						pm.environment.set("tripOperatorCode", tripRequirement.trip.operatorCode);
+						pm.environment.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef || null);
+						pm.environment.set("tripProductCategoryName", tripRequirement.trip.productCategoryName || null);
+						pm.environment.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName || null);
 						// Call the function to set trip search criteria
 						osdmTripSearchCriteria([
 							new TripLegDefinition(
@@ -170,7 +171,7 @@ parseScenarioData = function(jsonData) {
 				validationLogger('[INFO] Found number of purchaser: '+purchaserList.purchaser.length);
 				var purchaserSpecs = [];
 				purchaserList.purchaser.forEach(function(purchaser){
-					var osdmVersion = pm.globals.get("osdmVersion");
+					var osdmVersion = pm.environment.get("osdmVersion");
 					if (osdmVersion == "3.4" || osdmVersion == "3.5") {
 						purchaserSpecs.push(new PurchaserContact(
 							new DetailContact(
@@ -195,8 +196,8 @@ parseScenarioData = function(jsonData) {
 
 				});
 
-				validationLogger('[INFO] Pushed purchaserSpec to globals: '+JSON.stringify(purchaserSpecs));
-				pm.globals.set("bookingPurchaserSpecifications", JSON.stringify(purchaserSpecs[0]));
+				validationLogger('[INFO] Pushed purchaserSpec to environment: '+JSON.stringify(purchaserSpecs));
+				pm.environment.set("bookingPurchaserSpecifications", JSON.stringify(purchaserSpecs[0]));
 				return true;
 			});
 
@@ -204,7 +205,7 @@ parseScenarioData = function(jsonData) {
 			jsonData.passengersList.some(function(passengersList){
 				if(passengersList.id==jsonData.scenarios[dataFileIndex].passengersListId){
 					validationLogger('[INFO] Found number of passengers: '+passengersList.passengers.length);
-					pm.globals.set("offerPassengerNumber", passengersList.passengers.length);
+					pm.environment.set("offerPassengerNumber", passengersList.passengers.length);
 					var offerPassengerSpecs = [];
 					var passengerSpecs = [];
 					var passengerReferences = [];
@@ -213,19 +214,19 @@ parseScenarioData = function(jsonData) {
 					// Loop through the passengers and set global variables for each passenger
 					passengersList.passengers.forEach(function(passenger){
 						var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", (passengerIndex+1));
-						pm.globals.set(passengerKey, uuid.v4());
+						pm.environment.set(passengerKey, uuid.v4());
 						offerPassengerSpecs.push(new AnonymousPassengerSpec(
-							//pm.globals.get(passengerKey),
+							//pm.environment.get(passengerKey),
 							passenger.reference,
 							passenger.type,
 							passenger.dateOfBirth,
 							passenger.gender || null,
 						));
 
-						var osdmVersion = pm.globals.get("osdmVersion");
+						var osdmVersion = pm.environment.get("osdmVersion");
 						if (osdmVersion == "3.4" || osdmVersion == "3.5") {
 							passengerSpecs.push(new PassengerSpec(
-								//pm.globals.get(passengerKey),
+								//pm.environment.get(passengerKey),
 								//TODO : Remove gender from passenger spec if not set
 								passenger.reference,
 								passenger.type,
@@ -242,7 +243,7 @@ parseScenarioData = function(jsonData) {
 							));
 						} else {							
 							passengerSpecs.push(new PassengerSpec(
-								//pm.globals.get(passengerKey),
+								//pm.environment.get(passengerKey),
 								passenger.reference,
 								passenger.type,
 								passenger.dateOfBirth,
@@ -256,7 +257,7 @@ parseScenarioData = function(jsonData) {
 							));
 						}
 						passengerReferences.push(passenger.reference);
-						//passengerReferences.push(pm.globals.get(passengerKey));
+						//passengerReferences.push(pm.environment.get(passengerKey));
 
 						let passengerAdditionalDataStruct = {
 							updateFirstName: passenger.updateFirstName,
@@ -270,16 +271,16 @@ parseScenarioData = function(jsonData) {
 						passengerIndex++;
 					});
 
-					validationLogger('[INFO] Pushed passengerSpec to globals: '+JSON.stringify(passengerSpecs));
-					pm.globals.set("offerPassengerSpecifications", JSON.stringify(offerPassengerSpecs));
-					pm.globals.set("bookingPassengerSpecifications", JSON.stringify(passengerSpecs));
-					pm.globals.set("bookingPassengerReferences", JSON.stringify(passengerReferences));
-					pm.globals.set("passengerAdditionalData", JSON.stringify(passengerAdditionalData));
-					let passengerData = pm.globals.get("passengerAdditionalData");
+					validationLogger('[INFO] Pushed passengerSpec to environment: '+JSON.stringify(passengerSpecs));
+					pm.environment.set("offerPassengerSpecifications", JSON.stringify(offerPassengerSpecs));
+					pm.environment.set("bookingPassengerSpecifications", JSON.stringify(passengerSpecs));
+					pm.environment.set("bookingPassengerReferences", JSON.stringify(passengerReferences));
+					pm.environment.set("passengerAdditionalData", JSON.stringify(passengerAdditionalData));
+					let passengerData = pm.environment.get("passengerAdditionalData");
 					passengerData = JSON.parse(passengerData);
 					passengerData.forEach((data, index) => {
 						Object.entries(data).forEach(([key, value]) => {
-							pm.globals.set(`${key}_${index}`, value);
+							pm.environment.set(`${key}_${index}`, value);
 						});
 					});
 					return true;
@@ -398,7 +399,7 @@ osdmTripSearchCriteria = function (legDefinitions) {
 	}
 	
 	// Set trip search criteria in global variables
-	pm.globals.set("offerTripSearchCriteria", JSON.stringify(tripSearchCriteria));
+	pm.environment.set("offerTripSearchCriteria", JSON.stringify(tripSearchCriteria));
 };
 
 // Function to set trip specifications
@@ -412,7 +413,7 @@ osdmTripSpecification = function (legDefinitions) {
 	});
 
 	// Set trip external reference in global variables
-	pm.globals.set(TRIP.EXTERNAL_REF, uuid.v4());
+	pm.environment.set(TRIP.EXTERNAL_REF, uuid.v4());
 
 	var legSpecs = [];
 
@@ -436,22 +437,22 @@ osdmTripSpecification = function (legDefinitions) {
 			datedJourney
 		);
 
-		pm.globals.set(legKey, uuid.v4());
+		pm.environment.set(legKey, uuid.v4());
 
 		// Add the leg specification to the array
 		legSpecs.push(new TripLegSpecification(
-			pm.globals.get(legKey),
+			pm.environment.get(legKey),
 			timedLegSpec
 		));
 	}
 
 	var tripSpecification = new TripSpecification(
-		pm.globals.get(TRIP.EXTERNAL_REF),
+		pm.environment.get(TRIP.EXTERNAL_REF),
 		legSpecs
 	);
 
 	// Set trip specifications in global variables
-	pm.globals.set("offerTripSpecifications", JSON.stringify([tripSpecification]));
+	pm.environment.set("offerTripSpecifications", JSON.stringify([tripSpecification]));
 };
 
 // Function to set offer search criteria
@@ -497,13 +498,13 @@ osdmOfferSearchCriteria = function (
 	}
 
 	// Set offer search criteria in global variables
-	pm.globals.set("offerSearchCriteria", JSON.stringify(offerSearchCriteria));
+	pm.environment.set("offerSearchCriteria", JSON.stringify(offerSearchCriteria));
 };
 
 // Function to set fulfillment options
 osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
 	// Set fulfillment options in global variables if provided
 	if (Array.isArray(requestedFulfillmentOptions) && requestedFulfillmentOptions.length > 0) {
-		pm.globals.set("offerFulfillmentOptions", JSON.stringify(requestedFulfillmentOptions));
+		pm.environment.set("offerFulfillmentOptions", JSON.stringify(requestedFulfillmentOptions));
 	}
 };

@@ -35,15 +35,15 @@ In both cases, **data file** must be provided in the format below and `osdmSpeci
 ```javascript
 osdmTripSpecification([
     new TripLegDefinition(
-        pm.globals.get("leg_1_start_stop_place_ref"),
-        pm.globals.get("leg_1_start_datetime"),
-        pm.globals.get("leg_1_end_stop_place_ref"),
-        pm.globals.get("leg_1_end_datetime"),
-        pm.globals.get("leg_1_product_category_ref"),
-        pm.globals.get("leg_1_product_category_name"),
-        pm.globals.get("leg_1_product_category_short_name"),
-        pm.globals.get("leg_1_vehicle_number"),
-        pm.globals.get("leg_1_operator_code"),
+        pm.environment.get("leg_1_start_stop_place_ref"),
+        pm.environment.get("leg_1_start_datetime"),
+        pm.environment.get("leg_1_end_stop_place_ref"),
+        pm.environment.get("leg_1_end_datetime"),
+        pm.environment.get("leg_1_product_category_ref"),
+        pm.environment.get("leg_1_product_category_name"),
+        pm.environment.get("leg_1_product_category_short_name"),
+        pm.environment.get("leg_1_vehicle_number"),
+        pm.environment.get("leg_1_operator_code"),
     ),
 ]);
 ```

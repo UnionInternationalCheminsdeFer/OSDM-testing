@@ -4,7 +4,7 @@ function patchMultiPassengerResponse(response, passengerIndex) {
     const dateOfBirth = response.passenger?.dateOfBirth;
     const { phoneNumber, email } = response.passenger?.detail?.contact || {};
 
-    const passengerDataString = pm.globals.get("passengerAdditionalData");
+    const passengerDataString = pm.environment.get("passengerAdditionalData");
     const passengerDataArray = JSON.parse(passengerDataString);
     const passenger = passengerDataArray[passengerIndex];
 

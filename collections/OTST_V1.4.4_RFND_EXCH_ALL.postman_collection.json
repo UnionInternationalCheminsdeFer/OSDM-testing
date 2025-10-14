@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "75a35343-b23f-40bb-a338-ad670407ca51",
-		"name": "OTST_V1.4.3_RFND_EXCH_ALL",
+		"_postman_id": "12efbceb-c6b7-4d5b-8440-eb1b86036489",
+		"name": "OTST_V1.4.4_RFND_EXCH_ALL",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -16,7 +16,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
 									"if (pm.response.code !== 200) {",
@@ -41,9 +41,9 @@
 									"",
 									"postGetOfferResponse(jsonData);",
 									"// postGetOfferResponse(",
-									"// JSON.parse(pm.globals.get(\"offerPassengerSpecifications\")), ",
-									"// JSON.parse(pm.globals.get(\"offerSearchCriteria\")), ",
-									"// pm.globals.get(\"offerFulfillmentOptions\"), ",
+									"// JSON.parse(pm.environment.get(\"offerPassengerSpecifications\")), ",
+									"// JSON.parse(pm.environment.get(\"offerSearchCriteria\")), ",
+									"// pm.environment.get(\"offerFulfillmentOptions\"), ",
 									"// jsonData.offers, ",
 									"// jsonData.trips);",
 									"",
@@ -52,7 +52,7 @@
 									"//swaggerSchemaValidatorContent();",
 									"",
 									"var offerId = jsonData.offers[0].offerId",
-									"pm.globals.set(\"offerIdInGlobal\", offerId)"
+									"pm.environment.set(\"offerIdInGlobal\", offerId)"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -62,11 +62,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"// If the scenario is not found throw an error\r",
 									"const scenarioCode = pm.environment.get(\"scenarioCode\");\r",
-									"const data_base_tmp = pm.globals.get(\"data_base_tmp\");\r",
+									"const data_base_tmp = pm.environment.get(\"data_base_tmp\");\r",
 									"const found = data_base_tmp.scenarios.some(s => s.code === scenarioCode);\r",
 									"if (!found) {\r",
 									"    throw new Error(`⛔ The scenario \"${scenarioCode}\" does not exist in data file scenarios list`);\r",
@@ -83,10 +83,10 @@
 									"        reqHeaders[header.key] = header.value;\r",
 									"    });\r",
 									"}\r",
-									"pm.globals.set(\"requestHeaders\", JSON.stringify(reqHeaders));\r",
+									"pm.environment.set(\"requestHeaders\", JSON.stringify(reqHeaders));\r",
 									"\r",
-									"pm.globals.set(\"method\", pm.request?.method || '');\r",
-									"pm.globals.set(\"url\", pm.request?.url?.toString() || '');\r",
+									"pm.environment.set(\"method\", pm.request?.method || '');\r",
+									"pm.environment.set(\"url\", pm.request?.url?.toString() || '');\r",
 									"\r",
 									"let resHeaders = {};\r",
 									"if (pm.response?.headers) {\r",
@@ -94,9 +94,9 @@
 									"        resHeaders[header.key] = header.value;\r",
 									"    });\r",
 									"}\r",
-									"pm.globals.set(\"responseHeaders\", JSON.stringify(resHeaders));\r",
+									"pm.environment.set(\"responseHeaders\", JSON.stringify(resHeaders));\r",
 									"\r",
-									"pm.globals.set(\"responseBody\", pm.response?.text() || '');\r",
+									"pm.environment.set(\"responseBody\", pm.response?.text() || '');\r",
 									"\r",
 									"//swaggerSchemaValidatorContent();"
 								],
@@ -160,9 +160,9 @@
 									"var jsonData = JSON.parse(responseBody);\r",
 									"// var preSelection = jsonData.vehicleAvailability.preSelections[0];\r",
 									"// var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
-									"// pm.globals.set(\"preselectedCoach\", preSelection.coach);\r",
-									"// pm.globals.set(\"preselectedPlace\", preSelection.place);\r",
-									"// pm.globals.set(\"layoutId\", coach.layoutId)"
+									"// pm.environment.set(\"preselectedCoach\", preSelection.coach);\r",
+									"// pm.environment.set(\"preselectedPlace\", preSelection.place);\r",
+									"// pm.environment.set(\"layoutId\", coach.layoutId)"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -242,7 +242,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -256,25 +256,30 @@
 									"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));\r",
 									"\r",
 									"postCreateBookingResponse(\r",
-									"pm.globals.get(\"offers\"),\r",
-									"pm.globals.get(\"offerId\"),\r",
+									"pm.environment.get(\"offers\"),\r",
+									"pm.environment.get(\"offerId\"),\r",
 									"jsonData.booking,\r",
-									"\"PREBOOKED\");"
+									"\"PREBOOKED\");\r",
+									"\r",
+									"console.log(\"Waiting 2 secs before executing 15. GET Booking after Fulfillment....\");\r",
+									"setTimeout(() => {}, 2000);"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 									"buildBookingRequest();"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -330,7 +335,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -343,13 +348,14 @@
 									"}\r",
 									"pm.test('Successfully received passenger', () => pm.expect(pm.response.code).to.eql(200));\r",
 									"\r",
-									"let passengerNumber = parseInt(pm.globals.get(\"currentPassengerIndex\"));\r",
+									"let passengerNumber = parseInt(pm.environment.get(\"currentPassengerIndex\"));\r",
 									"\r",
 									"patchMultiPassengerResponse(jsonData, passengerNumber-1);\r",
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						},
 						{
@@ -358,14 +364,14 @@
 								"exec": [
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 									"\r",
-									"let passengerIdList = pm.globals.get(\"passengerIdList\");\r",
+									"let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
 									"\r",
-									"let passengerAdditionalData = JSON.parse(pm.globals.get(\"passengerAdditionalData\") || \"[]\");\r",
-									"let bookingPassengerSpecifications = JSON.parse(pm.globals.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
-									"let bookingPassengerReferences = JSON.parse(pm.globals.get(\"bookingPassengerReferences\") || \"[]\");\r",
-									"let totalPassengers = parseInt(pm.globals.get(\"offerPassengerNumber\")) || 0;\r",
+									"let passengerAdditionalData = JSON.parse(pm.environment.get(\"passengerAdditionalData\") || \"[]\");\r",
+									"let bookingPassengerSpecifications = JSON.parse(pm.environment.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
+									"let bookingPassengerReferences = JSON.parse(pm.environment.get(\"bookingPassengerReferences\") || \"[]\");\r",
+									"let totalPassengers = parseInt(pm.environment.get(\"offerPassengerNumber\")) || 0;\r",
 									"\r",
-									"let currentIndex = parseInt(pm.globals.get(\"currentPassengerIndex\") || \"0\");\r",
+									"let currentIndex = parseInt(pm.environment.get(\"currentPassengerIndex\") || \"0\");\r",
 									"\r",
 									"if (currentIndex < totalPassengers) {\r",
 									"    let passengerId = passengerIdList[currentIndex];\r",
@@ -373,30 +379,31 @@
 									"    let passengersRef = bookingPassengerReferences[currentIndex];\r",
 									"    let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
 									"\r",
-									"    pm.globals.set(\"passengerId\", passengerId);\r",
-									"    pm.globals.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
-									"    pm.globals.set(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\r",
-									"    pm.globals.set(\"patchFirstName\", data.updateFirstName || \"\");\r",
-									"    pm.globals.set(\"patchLastName\", data.updateLastName || \"\");\r",
-									"    pm.globals.set(\"patchEmail\", data.updateEmail || \"\");\r",
-									"    pm.globals.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
-									"    pm.globals.set(\"patchGender\", data.updateGender || passengerGender.gender);    \r",
+									"    pm.environment.set(\"passengerId\", passengerId);\r",
+									"    pm.environment.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
+									"    pm.environment.set(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\r",
+									"    pm.environment.set(\"patchFirstName\", data.updateFirstName || \"\");\r",
+									"    pm.environment.set(\"patchLastName\", data.updateLastName || \"\");\r",
+									"    pm.environment.set(\"patchEmail\", data.updateEmail || \"\");\r",
+									"    pm.environment.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
+									"    pm.environment.set(\"patchGender\", data.updateGender || passengerGender.gender);    \r",
 									"\r",
 									"    currentIndex++;\r",
-									"    pm.globals.set(\"currentPassengerIndex\", currentIndex);\r",
+									"    pm.environment.set(\"currentPassengerIndex\", currentIndex);\r",
 									"\r",
 									"    if (currentIndex < totalPassengers) {\r",
-									"        postman.setNextRequest(pm.info.requestName);\r",
+									"        pm.execution.setNextRequest(pm.info.requestName);\r",
 									"    } else {\r",
-									"        postman.setNextRequest(\"07. GET Booking before Fulfillments\");\r",
+									"        pm.execution.setNextRequest(\"07. GET Booking before Fulfillments\");\r",
 									"    }\r",
 									"} else {\r",
-									"    pm.globals.unset(\"currentPassengerIndex\");\r",
-									"    postman.setNextRequest(null);\r",
+									"    pm.environment.unset(\"currentPassengerIndex\");\r",
+									"    pm.execution.setNextRequest(null);\r",
 									"}"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -456,7 +463,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -526,7 +533,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -541,7 +548,7 @@
 									"\r",
 									"getBookingFulfillmentResponse(\r",
 									"jsonData.booking,\r",
-									"pm.globals.get(\"offer\"),\r",
+									"pm.environment.get(\"offer\"),\r",
 									"\"PREBOOKED\");\r",
 									"\r",
 									"displayFulFilledBooking(jsonData);"
@@ -622,9 +629,9 @@
 									"}\r",
 									"else {\r",
 									"    const ids = jsonData.fulfillments.map(f => f.id);\r",
-									"    pm.globals.set(\"fulfillmentsIds\", JSON.stringify(ids));\r",
+									"    pm.environment.set(\"fulfillmentsIds\", JSON.stringify(ids));\r",
 									"\r",
-									"    pm.globals.set(\"fulfillmentsId\", jsonData.fulfillments[0].id);\r",
+									"    pm.environment.set(\"fulfillmentsId\", jsonData.fulfillments[0].id);\r",
 									"}"
 								],
 								"type": "text/javascript",
@@ -697,7 +704,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -712,16 +719,16 @@
 									"\r",
 									"getBookingFulfillmentResponse(\r",
 									"jsonData.booking,\r",
-									"pm.globals.get(\"offer\"),\r",
+									"pm.environment.get(\"offer\"),\r",
 									"\"CONFIRMEDorFULFILLED\",\r",
 									"\"CONFIRMEDorFULFILLED\");\r",
 									"\r",
 									"displayFulFilledBooking(jsonData);\r",
 									"\r",
-									"if(pm.globals.get(\"scenarioType\").includes(\"REFUND\")) {\r",
+									"if(pm.environment.get(\"scenarioType\").includes(\"REFUND\")) {\r",
 									"    pm.execution.setNextRequest(\"10. POST Refund Offers\");\r",
 									"    console.log(\"scenarioType in data file contains 'REFUND' keyword, executing 10. POST Refund Offers\")\r",
-									"} else if(pm.globals.get(\"scenarioType\").includes(\"EXCHANGE\")) {\r",
+									"} else if(pm.environment.get(\"scenarioType\").includes(\"EXCHANGE\")) {\r",
 									"    pm.execution.setNextRequest(\"10. POST Exchange Offers\");\r",
 									"    console.log(\"scenarioType in data file contains 'EXCHANGE' keyword, executing 10. POST Exchange Offers\")    \r",
 									"} else{\r",
@@ -794,7 +801,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -817,11 +824,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 									"\r",
-									"requestRefundOffersBody(pm.globals.get(\"refundOverruleCode\"), pm.globals.get(\"refundDate\"));"
+									"requestRefundOffersBody(pm.environment.get(\"refundOverruleCode\"), pm.environment.get(\"refundDate\"));"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -888,7 +895,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
 									"if (pm.response.code !== 200) {",
@@ -959,7 +966,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
@@ -974,10 +981,10 @@
 									"",
 									"getBookingRefundResponse(jsonData, scenarioType = \"postRefund\");",
 									"",
-									"if(pm.globals.get(\"scenarioAction\").includes(\"PATCH\")) {",
+									"if(pm.environment.get(\"scenarioAction\").includes(\"PATCH\")) {",
 									"    console.log(\"scenarioAction in data file contains 'PATCH' keyword, executing 13. PATCH Refund Offer request\")",
 									"    pm.execution.setNextRequest(\"13. PATCH Refund Offer\");",
-									"} else if(pm.globals.get(\"scenarioAction\").includes(\"DELETE\")) {",
+									"} else if(pm.environment.get(\"scenarioAction\").includes(\"DELETE\")) {",
 									"    console.log(\"scenarioAction in data file contains 'DELETE' keyword, executing 15. DEL Refund Offers\")",
 									"    pm.execution.setNextRequest(\"15. DEL Refund Offers\");",
 									"} else{",
@@ -1045,7 +1052,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
@@ -1130,7 +1137,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
@@ -1208,7 +1215,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"if(pm.globals.get(\"isRefundConfirmed\")) {\r",
+									"if(pm.environment.get(\"isRefundConfirmed\")) {\r",
 									"    pm.test(\"Status code is 404, refund offer has been confirmed\", function () {\r",
 									"        pm.response.to.have.status(404);\r",
 									"    });\r",
@@ -1288,7 +1295,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
@@ -1301,7 +1308,7 @@
 									"}",
 									"pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));",
 									"",
-									"if(pm.globals.get(\"isRefundConfirmed\")) {",
+									"if(pm.environment.get(\"isRefundConfirmed\")) {",
 									"    getBookingRefundResponse(jsonData, scenarioType=\"patchRefund\");",
 									"} else {",
 									"    getBookingRefundResponse(jsonData, scenarioType=\"deleteRefund\");",
@@ -1375,7 +1382,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -1398,11 +1405,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 									"\r",
-									"requestExchangeOffersBody(pm.globals.get(\"overruleCode\"));"
+									"requestExchangeOffersBody(pm.environment.get(\"overruleCode\"));"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1469,7 +1476,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
@@ -1492,11 +1499,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));\r",
+									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
 									"\r",
-									"requestExchangeOffersBody(pm.globals.get(\"exchangeOverruleCode\"));"
+									"requestExchangeOffersBody(pm.environment.get(\"exchangeOverruleCode\"));"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1563,7 +1570,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
 									"if (pm.response.code !== 200) {",
@@ -1634,7 +1641,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
@@ -1793,7 +1800,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"eval(pm.globals.get(\"osdmHelpers\"));",
+									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
 									"",
@@ -1884,6 +1891,7 @@
 			"listen": "prerequest",
 			"script": {
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					"/*",
 					"Copyright UIC, Union Internationale des Chemins de fer",
@@ -1945,8 +1953,8 @@
 					"                libGetter();",
 					"            }",
 					"            else {",
-					"                pm.globals.set(\"osdmHelpers\", lib);",
-					"                eval(globals.osdmHelpers);",
+					"                pm.environment.set(\"osdmHelpers\", lib);",
+					"                eval(pm.environment.get(\"osdmHelpers\"));",
 					"                getScenarioData();",
 					"            }",
 					"        }",
@@ -1977,9 +1985,9 @@
 					"    }",
 					"",
 					"    setTimeout(2000);",
-					"    pm.globals.unset(\"osdmHelpers\");",
-					"    if (!pm.globals.get(\"osdmHelpers\")) {",
-					"        console.log(\"🛠️ Retrieving external JS scripts libraries and save in globals..\");",
+					"    pm.environment.unset(\"osdmHelpers\");",
+					"    if (!pm.environment.get(\"osdmHelpers\")) {",
+					"        console.log(\"🛠️ Retrieving external JS scripts libraries and save in environment..\");",
 					"        libGetter();",
 					"    }",
 					"}",
@@ -1991,6 +1999,7 @@
 			"listen": "test",
 			"script": {
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					""
 				]
@@ -2000,13 +2009,11 @@
 	"variable": [
 		{
 			"key": "client_id",
-			"value": "b9004d5e-8503-4bbb-9e79-aa1e8d2cfcc4",
-			"type": "string"
+			"value": "b9004d5e-8503-4bbb-9e79-aa1e8d2cfcc4"
 		},
 		{
 			"key": "client_secret",
-			"value": "a23a0024-8d4f-4b97-a8e4-e475e7ce2380",
-			"type": "string"
+			"value": "a23a0024-8d4f-4b97-a8e4-e475e7ce2380"
 		}
 	]
 }

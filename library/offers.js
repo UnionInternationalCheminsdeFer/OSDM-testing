@@ -34,12 +34,12 @@ postGetOfferResponse = function (jsonData) {
 
 // --- Below are the helper validation functions ---
 
-// Select and set the offer based on desired flexibility; set globals
+// Select and set the offer based on desired flexibility; set environment
 function selectAndSetOffer(data) {
     validationLogger("[INFO] ➤ selectAndSetOffer");
-    const desiredFlexibility = pm.globals.get("desiredFlexibility");
+    const desiredFlexibility = pm.environment.get("desiredFlexibility");
 	//TODO Implement accommodationTypeSelected handling
-	const accommodationTypeSelected = pm.globals.get("accommodationTypeSelected");
+	const accommodationTypeSelected = pm.environment.get("accommodationTypeSelected");
 
 	if (!desiredFlexibility) {
 		validationLogger("[INFO] DesiredFlexibility is not set, taking the 1st offer in the list");
@@ -49,16 +49,22 @@ function selectAndSetOffer(data) {
 
 	// Function to check if ALL availablePlaces have accommodationType equal to accommodationTypeSelected
 	function allAccommodationType(offer, type) {
-		return offer.reservationOfferParts.every(part =>
-			part.availablePlaces.every(place => place.accommodationType === type)
-		);
+		return offer.reservationOfferParts.every(part => {
+			if (!Array.isArray(part.availablePlaces)) {
+				return true;
+			}
+			return part.availablePlaces.every(place => place.accommodationType === type);
+		});
 	}
 
 	// Function to check if there is at least one availablePlace with accommodationType equal to accommodationTypeSelected
 	function hasAccommodationType(offer, type) {
-		return offer.reservationOfferParts.some(part =>
-			part.availablePlaces.some(place => place.accommodationType === type)
-		);
+		return offer.reservationOfferParts.some(part => {
+			if (!Array.isArray(part.availablePlaces)) {
+				return true;
+			}
+			return part.availablePlaces.some(place => place.accommodationType === type);
+		});
 	}
 
 	let accommodationFilter;
@@ -74,7 +80,7 @@ function selectAndSetOffer(data) {
 		accommodationFilter = (offer) => hasAccommodationType(offer, "BERTH");
 	} else {
 		validationLogger("[INFO] Accommodation type selected is unknown or not set - no filtering on accommodation type, only on desiredFlexibility");
-		accommodationFilter = () => true;
+		accommodationFilter = (offer) => allAccommodationType(offer, "SEAT");
 	}
 
 	// Filter offers based on desired flexibility and accommodation type
@@ -95,9 +101,9 @@ function selectAndSetOffer(data) {
 	console.log("[INFO] 🔍 Selected Offer:", selectedOffer);
 
 	// Store only the selected offer, not all offers
-	pm.globals.set("offers", data.offers);
-	pm.globals.set("offer", JSON.stringify(selectedOffer));
-	pm.globals.set("offerId", selectedOffer.offerId);
+	pm.environment.set("offers", data.offers);
+	pm.environment.set("offer", JSON.stringify(selectedOffer));
+	pm.environment.set("offerId", selectedOffer.offerId);
 
 
 	if (desiredFlexibility) {
@@ -124,7 +130,7 @@ function selectAndSetOffer(data) {
 	}
 
 	// In EXCHANGE scenarios, verify that all admissionOfferParts are refundable
-	if (pm.globals.get("scenarioType")?.includes("EXCHANGE")) {
+	if (pm.environment.get("scenarioType")?.includes("EXCHANGE")) {
 		const admissionOfferParts = selectedOffer.admissionOfferParts || [];
 
 		let allExchangeable = true;
@@ -144,7 +150,7 @@ function selectAndSetOffer(data) {
 	}
 
 	// In REFUND scenarios, verify that all admissionOfferParts are refundable
-	if (pm.globals.get("scenarioType")?.includes("REFUND")) {
+	if (pm.environment.get("scenarioType")?.includes("REFUND")) {
 		const admissionOfferParts = selectedOffer.admissionOfferParts || [];
 
 		let allRefundable = true;
@@ -168,7 +174,7 @@ function selectAndSetOffer(data) {
 	return selectedOffer;
 }
 
-// Validate required fields in offer summary and set globals
+// Validate required fields in offer summary and set environment
 function validateOfferSummary(summary) {
 	validationLogger("[INFO] ➤ validateOfferSummary");
     const requiredFields = ["minimalPrice", "overallFlexibility", "overallServiceClass", "overallTravelClass"]; //TODO implement overallTravellClass when implemented
@@ -182,7 +188,7 @@ function validateOfferSummary(summary) {
         });
 
         // Set global for reuse
-        pm.globals.set(`offerSummary_${field}`, JSON.stringify(actual));
+        pm.environment.set(`offerSummary_${field}`, JSON.stringify(actual));
 
         // Log detailed info using validationLogger
         if (field === "minimalPrice") {
@@ -199,11 +205,11 @@ function validateOfferSummary(summary) {
     });
 }
 
-// Validate passengers count, types, and reduction cards; set globals
+// Validate passengers count, types, and reduction cards; set environment
 function validatePassengers(data, offer) {
 	validationLogger("[INFO] ➤ validatePassengers");
 	const passengers = data.anonymousPassengerSpecifications || [];
-	const expectedCount = pm.globals.get("offerPassengerNumber");
+	const expectedCount = pm.environment.get("offerPassengerNumber");
 
 	validationLogger(`[INFO] Validating passengers (expected count: ${expectedCount}) found in data file`);
 	validationLogger(`[INFO] Found ${passengers.length} anonymous passenger(s)`);
@@ -212,14 +218,14 @@ function validatePassengers(data, offer) {
 		const actual = passengers.length;
 		pm.expect(actual, `Expected ${expectedCount} passenger(s), got ${actual}`).to.equal(expectedCount);
 	});
-	pm.globals.set("passengerCount", passengers.length);
+	pm.environment.set("passengerCount", passengers.length);
 
 	passengers.forEach((p, index) => {
 		validationLogger(`[INFO] Passenger ${index + 1} type: ${p.type}`);
 		pm.test(`Passenger ${index + 1} has a defined type`, function () {
 			pm.expect(p.type, `Expected type for passenger ${index + 1}`).to.not.be.undefined;
 		});
-		pm.globals.set(`passenger_${index + 1}_type`, p.type);
+		pm.environment.set(`passenger_${index + 1}_type`, p.type);
 	});
 
 	const admissionParts = offer.admissionOfferParts || [];
@@ -242,7 +248,7 @@ function validatePassengers(data, offer) {
 			allHaveCoveredTripId = false;
 			validationLogger(`[ERROR] AdmissionOfferPart ${i + 1} is missing coveredTripId`);
 		} else {
-			pm.globals.set(`admissionPart_coveredTripId`, coveredTripId);
+			pm.environment.set(`admissionPart_coveredTripId`, coveredTripId);
 		}
 
 		// Check for missing passengerRefs
@@ -250,7 +256,7 @@ function validatePassengers(data, offer) {
 			allHavePassengerRefs = false;
 			validationLogger(`[ERROR] AdmissionOfferPart ${i + 1} is missing or has empty passengerRefs`);
 		} else {
-			pm.globals.set(`admissionPart_${i + 1}_passengerRefs`, JSON.stringify(passengerRefs));
+			pm.environment.set(`admissionPart_${i + 1}_passengerRefs`, JSON.stringify(passengerRefs));
 		}
 
 		// Optional: Reduction cards test (if present)
@@ -282,7 +288,7 @@ function validatePassengers(data, offer) {
 }
 
 
-// Validate presence of offer part types and set globals
+// Validate presence of offer part types and set environment
 function validateOfferPartsAndReservationRefs(offer) {
 	validationLogger("[INFO] ➤ validateOfferPartsAndReservationRefs");
 
@@ -296,7 +302,7 @@ function validateOfferPartsAndReservationRefs(offer) {
 		pm.test(`Offer contains '${part}'`, function () {
 			pm.expect(isPresent, `Expected '${part}' to be present`).to.be.true;
 		});
-		pm.globals.set(`offer_has_${part}`, isPresent);
+		pm.environment.set(`offer_has_${part}`, isPresent);
 	});
 
 	// Compare reservationRefs in admissionOfferParts with reservationOfferParts IDs
@@ -372,8 +378,8 @@ function validateOverallContent(offer, data) {
     pm.test(`Overall price (${overallPrice}) should be greater or equal to sum of offer parts (${totalPartsPrice})`, () => {
         pm.expect(overallPrice, `Overall price (${overallPrice}) is less than sum of offer parts (${totalPartsPrice})`).to.be.at.least(totalPartsPrice);
     });
-    pm.globals.set("overallPrice", overallPrice);
-    pm.globals.set("totalPartsPrice", totalPartsPrice);
+    pm.environment.set("overallPrice", overallPrice);
+    pm.environment.set("totalPartsPrice", totalPartsPrice);
 
 	//TODO Business type for Admission
 	// NRT (Non Reserved Ticket) : Open ticket that can be used on any trains at any dates/hour for the trip. We can consider that an ADMISSION is an NRT if the parameter isTrainBound and the parameter includedReservation are not used.
@@ -393,7 +399,7 @@ function validateOverallContent(offer, data) {
     // pm.test(`Product IDs used in offer`, () => {
     //     pm.expect(productIDs.size, "Expected at least one product ID").to.be.greaterThan(0);
     // });
-    // pm.globals.set("productIDs", JSON.stringify(Array.from(productIDs)));
+    // pm.environment.set("productIDs", JSON.stringify(Array.from(productIDs)));
 
     // // Trip legs linked to admission parts (at least one)
     // admissionParts.forEach((part, i) => {
@@ -410,7 +416,7 @@ function validateOverallContent(offer, data) {
     });
 }
 
-// Validate trips and legs and set globals
+// Validate trips and legs and set environment
 function validateTripsAndLegs(data) {
 	validationLogger("[INFO] ➤ validateTripsAndLegs");
 	const trips = data.trips || [];
@@ -422,14 +428,14 @@ function validateTripsAndLegs(data) {
 		const actual = trips.length;
 		pm.expect(actual, `Expected at least 1 trip, got ${actual}`).to.be.greaterThan(0);
 	});
-	pm.globals.set("tripCount", trips.length);
+	pm.environment.set("tripCount", trips.length);
 
 	let totalLegs = 0;
 	let allLegsHaveTrainId = true;
 	let allLegsHaveOrigin = true;
 	let allLegsHaveDestination = true;
 
-	const coveredTripId = pm.globals.get("admissionPart_coveredTripId");
+	const coveredTripId = pm.environment.get("admissionPart_coveredTripId");
 	const targetTrip = (data.trips || []).find(trip => trip.id === coveredTripId);
 
 	if (!targetTrip) {
@@ -458,7 +464,7 @@ function validateTripsAndLegs(data) {
 	pm.test("Total number of legs is greater than 0", function () {
 		pm.expect(totalLegs, `Expected at least 1 leg, got ${totalLegs}`).to.be.greaterThan(0);
 	});
-	pm.globals.set("totalLegs", totalLegs);
+	pm.environment.set("totalLegs", totalLegs);
 
 	pm.test("All legs have defined train IDs, origins, and destinations", function () {
 		pm.expect(allLegsHaveTrainId, "Not all legs have a train ID").to.be.true;
@@ -654,7 +660,7 @@ function validateReservationOfferPartsDetails(offer) {
 // Helper function to handle place selection
 function handlePlaceSelection(offer) {
 	validationLogger("[INFO] ➤ handlePlaceSelection");
-	if (pm.globals.get("requiresPlaceSelection") === true) {
+	if (pm.environment.get("requiresPlaceSelection") === true) {
 		const reservationParts = offer.reservationOfferParts || [];
 		validationLogger("[INFO] Reservation Offer Parts:", reservationParts);
 		//TODO Implement for "SEAT","COUCHETTE","BERTH","VEHICLE","STORAGE"
@@ -672,7 +678,7 @@ function handlePlaceSelection(offer) {
 		});
 
 		// Set global for further use if needed
-		pm.globals.set("reservationId", partIds[0]);
+		pm.environment.set("reservationId", partIds[0]);
 
 		// Optional test
 		pm.test("At least one reservationOfferPart has accommodationType: COUCHETTE/ (if present)", function () {

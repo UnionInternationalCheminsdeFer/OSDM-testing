@@ -35,7 +35,7 @@ function validatePurchaserDetails(purchaserDetail) {
 
 // Function to validate fulfillment IDs
 function validateFulfillmentId(booking) {
-    const fulfillmentsIdRaw = pm.globals.get("fulfillmentsIds");
+    const fulfillmentsIdRaw = pm.environment.get("fulfillmentsIds");
     if (fulfillmentsIdRaw) {
         const expectedIds = JSON.parse(fulfillmentsIdRaw);
         let actualIds = [];
@@ -54,9 +54,9 @@ function validateFulfillmentId(booking) {
 // Function to validate prices
 function validatePrices(booking, fulfillmentState, totalPrice) {
     if (fulfillmentState !== undefined) {
-        pm.globals.set("bookingConfirmedPrice", booking.confirmedPrice.amount);
-        const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
-        const provisionalPrice = pm.globals.get("provisionalPrice");
+        pm.environment.set("bookingConfirmedPrice", booking.confirmedPrice.amount);
+        const bookingConfirmedPrice = pm.environment.get("bookingConfirmedPrice");
+        const provisionalPrice = pm.environment.get("provisionalPrice");
 
         pm.test(`Compare provisionalPrice = ${provisionalPrice} with bookingConfirmedPrice = ${bookingConfirmedPrice}`, () => {
             pm.expect(provisionalPrice).to.eql(bookingConfirmedPrice);
@@ -65,8 +65,8 @@ function validatePrices(booking, fulfillmentState, totalPrice) {
             pm.expect(bookingConfirmedPrice).to.eql(totalPrice);
         });
     } else {
-        pm.globals.set("provisionalPrice", booking.provisionalPrice.amount);
-        const provisionalPrice = pm.globals.get("provisionalPrice");
+        pm.environment.set("provisionalPrice", booking.provisionalPrice.amount);
+        const provisionalPrice = pm.environment.get("provisionalPrice");
 
         pm.test(`Compare provisionalPrice = ${provisionalPrice} with Booking Admission + Reservation + Ancillaries + Fees + Fares = ${totalPrice}`, () => {
             pm.expect(provisionalPrice).to.eql(totalPrice);
@@ -91,7 +91,7 @@ function checkFulfillment(booking, fulfillment) {
         pm.expect(["FULFILLED", "CONFIRMED", "ON_HOLD"]).to.include(fulfillment.status);
     });
 
-    const refundPartRefs = JSON.parse(pm.globals.get("idsAdmissionAncillariesReservationReference") || "[]");
+    const refundPartRefs = JSON.parse(pm.environment.get("idsAdmissionAncillariesReservationReference") || "[]");
     let bookingPartIds = [];
 
     if (fulfillment.bookingParts && fulfillment.bookingParts.length > 0) {
@@ -142,6 +142,6 @@ function getBookingFulfillmentResponse(booking, offer, bookingState, fulfillment
     validateFulfillmentId(booking);
 
     // Validate prices
-    const totalPrice = totalProvisionalOrBookingPrice;
+    const totalPrice = pm.environment.get("totalProvisionalOrBookingPrice") || 0;
     validatePrices(booking, fulfillmentState, totalPrice);
 }

@@ -19,7 +19,7 @@ function validateFulfillments(fulfillments, expectedStatus) {
 			pm.expect(fulfillment).to.have.property('bookingParts').that.is.an('array').and.is.not.empty;
 		});
 	});
-	const fulfillmentsIdRaw = pm.globals.get("fulfillmentsIds");
+	const fulfillmentsIdRaw = pm.environment.get("fulfillmentsIds");
 	if (fulfillmentsIdRaw) {
 		const expectedIds = JSON.parse(fulfillmentsIdRaw);
 		const actualIds = fulfillments.map(f => f.id);
@@ -30,7 +30,7 @@ function validateFulfillments(fulfillments, expectedStatus) {
 		});
 	}
 
-    const refundPartRefs = JSON.parse(pm.globals.get("idsAdmissionAncillariesReservationReference") || "[]");
+    const refundPartRefs = JSON.parse(pm.environment.get("idsAdmissionAncillariesReservationReference") || "[]");
     const bookingPartIds = fulfillments.flatMap(f => f.bookingParts.map(bp => bp.id));
 
 	pm.test(`Each bookingPart id is included in idsAdmissionAncillariesReservationReference: ${refundPartRefs}`, () => {
@@ -92,12 +92,12 @@ function getRefundOfferResponse(refundOffer, expectedStatus) {
 			partRefs.push(bp.id);
 		});
 	});
-	pm.globals.set("idsAdmissionAncillariesReservationReferenceDummy", JSON.stringify(partRefs));
+	pm.environment.set("idsAdmissionAncillariesReservationReferenceDummy", JSON.stringify(partRefs));
 
 
 	pm.test("Refund offer has a valid ID", () => {
 		pm.expect(refundOffer.id).to.exist;
-		pm.globals.set("refundId", refundOffer.id);
+		pm.environment.set("refundId", refundOffer.id);
 	});
 
 	pm.test(`Correct status is returned on refund | Expected: ${expectedStatus} | Actual: ${refundOffer.status}`, () => {
@@ -106,7 +106,7 @@ function getRefundOfferResponse(refundOffer, expectedStatus) {
 	
 	validateFulfillments(refundOffer.fulfillments, expectedStatus);
 
-	const overruleCode = pm.globals.get("overruleCode");
+	const overruleCode = pm.environment.get("overruleCode");
 	validateAppliedOverruleCode(refundOffer.appliedOverruleCode, overruleCode);
 
 	pm.test("RefundableAmount and RefundFee exist", function () {
@@ -115,13 +115,13 @@ function getRefundOfferResponse(refundOffer, expectedStatus) {
 	});
 
 	if ((expectedStatus === "CONFIRMED") || (expectedStatus === "FULFILLED")) {
-		const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
+		const bookingConfirmedPrice = pm.environment.get("bookingConfirmedPrice");
 		validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
 		validateRefundFee(refundOffer.refundFee);
 	} else if (expectedStatus === "PROPOSED") {
 		//TODO : Check if price comparison must be done here
-		pm.globals.set("refundRefundAmount", refundOffer.refundableAmount.amount);
-		pm.globals.set("refundFee", refundOffer.refundFee.amount);
+		pm.environment.set("refundRefundAmount", refundOffer.refundableAmount.amount);
+		pm.environment.set("refundFee", refundOffer.refundFee.amount);
 	}
 }
 
@@ -180,7 +180,7 @@ function getBookingRefundResponse(response, scenarioType) {
 	const booking = response.booking;
 
 	if (["postRefund", "patchRefund"].includes(scenarioType)) {
-		const idsAdmissionAncillariesReservationReference = JSON.parse(pm.globals.get("idsAdmissionAncillariesReservationReferenceDummy"));
+		const idsAdmissionAncillariesReservationReference = JSON.parse(pm.environment.get("idsAdmissionAncillariesReservationReferenceDummy"));
 		validationLogger(`[INFO] Reference for admissions, ancillaries and reservations: ${idsAdmissionAncillariesReservationReference}`);
 
 		idsAdmissionAncillariesReservationReference.forEach(refId => {
@@ -223,9 +223,9 @@ function getBookingRefundResponse(response, scenarioType) {
         // });
 
 		//TODO Delete ?
-		// pm.globals.set("admissionsRefundAmount", booking.bookedOffers[0].admissions?.refundAmount);
+		// pm.environment.set("admissionsRefundAmount", booking.bookedOffers[0].admissions?.refundAmount);
 		// if (booking.bookedOffers[0].reservations) {
-		// 	pm.globals.set("reservationsRefundAmount", booking.bookedOffers[0].reservations.refundAmount);
+		// 	pm.environment.set("reservationsRefundAmount", booking.bookedOffers[0].reservations.refundAmount);
 		// }
 
 		pm.test("Booking is present and Booking ID is valid", () => {
@@ -249,13 +249,13 @@ function getBookingRefundResponse(response, scenarioType) {
 
 			const expectedStatus = scenarioType === "postRefund" ? 'PROPOSED' : 'CONFIRMED';
 			if(expectedStatus === 'CONFIRMED') {
-				pm.globals.set("isRefundConfirmed", true);
+				pm.environment.set("isRefundConfirmed", true);
 			}
 			validateFulfillments(refundOffer.fulfillments, expectedStatus);
 			validateRefundFee(refundOffer.refundFee);
 
-			const overruleCode = pm.globals.get("overruleCode");
-			const bookingConfirmedPrice = pm.globals.get("bookingConfirmedPrice");
+			const overruleCode = pm.environment.get("overruleCode");
+			const bookingConfirmedPrice = pm.environment.get("bookingConfirmedPrice");
 			validateRefundableAmount(refundOffer, overruleCode, bookingConfirmedPrice);
 		});
 	} else if (scenarioType === "deleteRefund") {

@@ -1,6 +1,6 @@
 // Function to log validation messages based on logging type
 validationLogger = function (message) {
-	var loggingType = pm.globals.get("loggingType") || "INFO"; 
+	var loggingType = pm.environment.get("loggingType") || "INFO"; 
 	switch (loggingType) {
 		case "FULL":
 			console.log(message);
