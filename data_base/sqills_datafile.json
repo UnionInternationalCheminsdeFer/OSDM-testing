@@ -113,7 +113,7 @@
                     "requestedOfferParts": ["RESERVATION", "ADMISSION"],
                     "currency": "EUR",
                     "serviceClass": ["STANDARD"],
-                    "travelClass": ["SECOND"],
+                    "travelClass": ["FIRST"],
                     "requiresPlaceSelection": false,
                     "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"]
                 }
@@ -126,7 +126,7 @@
                     "requestedOfferParts": ["RESERVATION", "ADMISSION"],
                     "currency": "EUR",
                     "serviceClass": ["STANDARD"],
-                    "travelClass": ["SECOND"],
+                    "travelClass": ["FIRST"],
                     "requiresPlaceSelection": false,
                     "flexibilities": ["FULL_FLEXIBLE", "NON_FLEXIBLE"],
                     "offerMode": "COLLECTIVE"
