@@ -67,7 +67,7 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 
 	const partRefs = [];
 
-	if (!bookedOffer.admissions?.length && !offer.admissionOfferParts?.length) {
+	if (!bookedOffer?.admissions || !offer?.admissionOfferParts || !bookedOffer.admissions.length || !offer.admissionOfferParts.length) {
 		validationLogger("[INFO] Skipping admissions");
 	} else {
 		bookedOffer.admissions.forEach(bookedAdmission => {
@@ -76,7 +76,7 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 		});
 	}
 
-	if (!bookedOffer.ancillaries?.length && !offer.ancillaryOfferParts?.length) {
+	if (!bookedOffer?.ancillaries || !offer?.ancillaryOfferParts || !bookedOffer.ancillaries.length || !offer.ancillaryOfferParts.length) {
 		validationLogger("[INFO] Skipping ancillaries");
 	} else {
 		bookedOffer.ancillaries.forEach(bookedAncillary => {
@@ -85,7 +85,7 @@ compareOffers = function (bookedOffer, offer, booking, state) {
 		});
 	}
 
-	if (!bookedOffer.reservations?.length && !offer.reservationOfferParts?.length) {
+	if (!bookedOffer?.reservations || !offer?.reservationOfferParts || !bookedOffer.reservations.length || !offer.reservationOfferParts.length) {
 		validationLogger("[INFO] Skipping reservations");
 	} else {
 		bookedOffer.reservations.forEach(bookedReservation => {

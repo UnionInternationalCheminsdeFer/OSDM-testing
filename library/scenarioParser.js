@@ -38,7 +38,7 @@ getScenarioData = function () {
 }
 
 // Function to parse scenario data from JSON
-parseScenarioData = function(jsonData) {
+parseScenarioData = function (jsonData) {
 
 	//TODO implement data file date in scenario structure with departureDateFromToday ?
 	//TODO implement data file date in scenario structure with departureTimeFromToday ?
@@ -54,8 +54,8 @@ parseScenarioData = function(jsonData) {
 	}
 
 	const nextWeekdayString = today.getFullYear() + "-" +
-						pad(today.getMonth() + 1) + "-" +
-						pad(today.getDate());
+		pad(today.getMonth() + 1) + "-" +
+		pad(today.getDate());
 
 	//TODO Keeper in environment ?					
 	//pm.environment.set("calculated_date", nextWeekdayString);
@@ -66,12 +66,12 @@ parseScenarioData = function(jsonData) {
 	var scenarioCodes = [];
 
 	// Loop through the scenarios to find the correct data set
-	while(foundCorrectDataSet==false && dataFileIndex<dataFileLength) {
-		validationLogger("[DEBUG] 🪲 DUMMYA "+jsonData.scenarios[dataFileIndex].code+" "+scenarioCode)
+	while (foundCorrectDataSet == false && dataFileIndex < dataFileLength) {
+		validationLogger("[DEBUG] 🪲 DUMMYA " + jsonData.scenarios[dataFileIndex].code + " " + scenarioCode)
 
 
 		// Check if the scenario code matches
-		if(jsonData.scenarios[dataFileIndex].code==scenarioCode) {
+		if (jsonData.scenarios[dataFileIndex].code == scenarioCode) {
 			scenarioCodes.push(jsonData.scenarios[dataFileIndex].code);
 
 			// Set global variables for the scenario
@@ -86,93 +86,93 @@ parseScenarioData = function(jsonData) {
 			pm.environment.set("requiresPlaceSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].requiresPlaceSelection) ? null : jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
 			pm.environment.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
 			validationLogger("[DEBUG] 🪲 parseScenarioData2")
-			
+
 			// Loop through trip requirements to find the matching trip requirement ID
-			jsonData.tripRequirements.some(function(tripRequirement){
-				if(tripRequirement.id==jsonData.scenarios[dataFileIndex].tripRequirementId){
+			jsonData.tripRequirements.some(function (tripRequirement) {
+				if (tripRequirement.id == jsonData.scenarios[dataFileIndex].tripRequirementId) {
 
 					// Set the trip type in global variables
-					pm.environment.set("TripType",tripRequirement.tripType);
+					pm.environment.set("TripType", tripRequirement.tripType);
 
 					// Process the trip type
-					switch(tripRequirement.tripType) {
-					  case "SPECIFICATION":
-						validationLogger('[INFO] ⏳ processing a specification');
-						var legDefinitions = [];
+					switch (tripRequirement.tripType) {
+						case "SPECIFICATION":
+							validationLogger('[INFO] ⏳ processing a specification');
+							var legDefinitions = [];
 
-						// Loop through the legs and set global variables for each leg
-						tripRequirement.legs.forEach(function(leg, legIndex) {
-							const legPrefix = `leg${legIndex + 1}`;
-							const startDatetime = leg.startDatetime.replace("%TRIP_DATE%", nextWeekdayString);
-							const endDatetime = leg.endDatetime.replace("%TRIP_DATE%", nextWeekdayString);
+							// Loop through the legs and set global variables for each leg
+							tripRequirement.legs.forEach(function (leg, legIndex) {
+								const legPrefix = `leg${legIndex + 1}`;
+								const startDatetime = leg.startDatetime.replace("%TRIP_DATE%", nextWeekdayString);
+								const endDatetime = leg.endDatetime.replace("%TRIP_DATE%", nextWeekdayString);
 
-							pm.environment.set(`${legPrefix}StartStopPlaceRef`, leg.origin);
-							pm.environment.set(`${legPrefix}EndStopPlaceRef`, leg.destination);
-							pm.environment.set(`${legPrefix}StartDatetime`, startDatetime);
-							pm.environment.set(`${legPrefix}EndDatetime`, endDatetime);
-							pm.environment.set(`${legPrefix}VehicleNumber`, leg.vehicleNumber);
-							pm.environment.set(`${legPrefix}OperatorCode`, leg.operatorCode);
-							pm.environment.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
-							pm.environment.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
-							pm.environment.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
-							validationLogger("[DEBUG] 🪲 parseScenarioData1")
+								pm.environment.set(`${legPrefix}StartStopPlaceRef`, leg.origin);
+								pm.environment.set(`${legPrefix}EndStopPlaceRef`, leg.destination);
+								pm.environment.set(`${legPrefix}StartDatetime`, startDatetime);
+								pm.environment.set(`${legPrefix}EndDatetime`, endDatetime);
+								pm.environment.set(`${legPrefix}VehicleNumber`, leg.vehicleNumber);
+								pm.environment.set(`${legPrefix}OperatorCode`, leg.operatorCode);
+								pm.environment.set(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
+								pm.environment.set(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
+								pm.environment.set(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
+								validationLogger("[DEBUG] 🪲 parseScenarioData1")
 
-							// Add the leg definition to the array
-							legDefinitions.push(new TripLegDefinition(
-								leg.origin,
-								startDatetime,
-								leg.destination,
-								endDatetime,
-								leg.productCategoryRef,
-								leg.productCategoryName,
-								leg.productCategoryShortName,
-								leg.vehicleNumber,
-								leg.operatorCode
-							));
-						});
-						// Call the function to set trip specifications
-						osdmTripSpecification(legDefinitions);
+								// Add the leg definition to the array
+								legDefinitions.push(new TripLegDefinition(
+									leg.origin,
+									startDatetime,
+									leg.destination,
+									endDatetime,
+									leg.productCategoryRef,
+									leg.productCategoryName,
+									leg.productCategoryShortName,
+									leg.vehicleNumber,
+									leg.operatorCode
+								));
+							});
+							// Call the function to set trip specifications
+							osdmTripSpecification(legDefinitions);
 
-						break;
-					  case "SEARCH":
-						validationLogger('[INFO] ⏳ processing a search');
-						// Set global variables for the trip search criteria
-						pm.environment.set("tripStartStopPlaceRef", tripRequirement.trip.origin);
-						pm.environment.set("tripEndStopPlaceRef", tripRequirement.trip.destination);
-						pm.environment.set("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-						pm.environment.set("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-						pm.environment.set("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
-						pm.environment.set("tripOperatorCode", tripRequirement.trip.operatorCode);
-						pm.environment.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef || null);
-						pm.environment.set("tripProductCategoryName", tripRequirement.trip.productCategoryName || null);
-						pm.environment.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName || null);
-						// Call the function to set trip search criteria
-						osdmTripSearchCriteria([
-							new TripLegDefinition(
-								tripRequirement.trip.origin,
-								tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString),
-								tripRequirement.trip.destination,
-								tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString),
-								tripRequirement.trip.productCategoryRef,
-								tripRequirement.trip.productCategoryName,
-								tripRequirement.trip.productCategoryShortName,
-								tripRequirement.trip.vehicleNumber,
-								tripRequirement.trip.operatorCode
-							)
-						]);
-						break;
+							break;
+						case "SEARCH":
+							validationLogger('[INFO] ⏳ processing a search');
+							// Set global variables for the trip search criteria
+							pm.environment.set("tripStartStopPlaceRef", tripRequirement.trip.origin);
+							pm.environment.set("tripEndStopPlaceRef", tripRequirement.trip.destination);
+							pm.environment.set("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+							pm.environment.set("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+							pm.environment.set("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
+							pm.environment.set("tripOperatorCode", tripRequirement.trip.operatorCode);
+							pm.environment.set("tripProductCategoryRef", tripRequirement.trip.productCategoryRef || null);
+							pm.environment.set("tripProductCategoryName", tripRequirement.trip.productCategoryName || null);
+							pm.environment.set("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName || null);
+							// Call the function to set trip search criteria
+							osdmTripSearchCriteria([
+								new TripLegDefinition(
+									tripRequirement.trip.origin,
+									tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString),
+									tripRequirement.trip.destination,
+									tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString),
+									tripRequirement.trip.productCategoryRef,
+									tripRequirement.trip.productCategoryName,
+									tripRequirement.trip.productCategoryShortName,
+									tripRequirement.trip.vehicleNumber,
+									tripRequirement.trip.operatorCode
+								)
+							]);
+							break;
 					}
 					return true;
 				}
 			});
 
 			// Purchaser details
-			jsonData.purchaserList.some(function(purchaserList){
-				validationLogger('[INFO] Found number of purchaser: '+purchaserList.purchaser.length);
+			jsonData.purchaserList.some(function (purchaserList) {
+				validationLogger('[INFO] Found number of purchaser: ' + purchaserList.purchaser.length);
 				var purchaserSpecs = [];
-				purchaserList.purchaser.forEach(function(purchaser){
+				purchaserList.purchaser.forEach(function (purchaser) {
 					var osdmVersion = pm.environment.get("osdmVersion");
-					if (osdmVersion == "3.4" || osdmVersion == "3.5") {
+					if (parseFloat(osdmVersion) > 3.4) {
 						purchaserSpecs.push(new PurchaserContact(
 							new DetailContact(
 								purchaser.purchaserFirstName,
@@ -196,15 +196,15 @@ parseScenarioData = function(jsonData) {
 
 				});
 
-				validationLogger('[INFO] Pushed purchaserSpec to environment: '+JSON.stringify(purchaserSpecs));
+				validationLogger('[INFO] Pushed purchaserSpec to environment: ' + JSON.stringify(purchaserSpecs));
 				pm.environment.set("bookingPurchaserSpecifications", JSON.stringify(purchaserSpecs[0]));
 				return true;
 			});
 
 			// Loop through the passengers list to find the matching passengers list ID
-			jsonData.passengersList.some(function(passengersList){
-				if(passengersList.id==jsonData.scenarios[dataFileIndex].passengersListId){
-					validationLogger('[INFO] Found number of passengers: '+passengersList.passengers.length);
+			jsonData.passengersList.some(function (passengersList) {
+				if (passengersList.id == jsonData.scenarios[dataFileIndex].passengersListId) {
+					validationLogger('[INFO] Found number of passengers: ' + passengersList.passengers.length);
 					pm.environment.set("offerPassengerNumber", passengersList.passengers.length);
 					var offerPassengerSpecs = [];
 					var passengerSpecs = [];
@@ -212,8 +212,8 @@ parseScenarioData = function(jsonData) {
 					var passengerAdditionalData = [];
 					var passengerIndex = 0;
 					// Loop through the passengers and set global variables for each passenger
-					passengersList.passengers.forEach(function(passenger){
-						var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", (passengerIndex+1));
+					passengersList.passengers.forEach(function (passenger) {
+						var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", (passengerIndex + 1));
 						pm.environment.set(passengerKey, uuid.v4());
 						offerPassengerSpecs.push(new AnonymousPassengerSpec(
 							//pm.environment.get(passengerKey),
@@ -224,7 +224,7 @@ parseScenarioData = function(jsonData) {
 						));
 
 						var osdmVersion = pm.environment.get("osdmVersion");
-						if (osdmVersion == "3.4" || osdmVersion == "3.5") {
+						if (parseFloat(osdmVersion) > 3.4) {
 							passengerSpecs.push(new PassengerSpec(
 								//pm.environment.get(passengerKey),
 								//TODO : Remove gender from passenger spec if not set
@@ -241,7 +241,7 @@ parseScenarioData = function(jsonData) {
 									)
 								)
 							));
-						} else {							
+						} else {
 							passengerSpecs.push(new PassengerSpec(
 								//pm.environment.get(passengerKey),
 								passenger.reference,
@@ -271,7 +271,7 @@ parseScenarioData = function(jsonData) {
 						passengerIndex++;
 					});
 
-					validationLogger('[INFO] Pushed passengerSpec to environment: '+JSON.stringify(passengerSpecs));
+					validationLogger('[INFO] Pushed passengerSpec to environment: ' + JSON.stringify(passengerSpecs));
 					pm.environment.set("offerPassengerSpecifications", JSON.stringify(offerPassengerSpecs));
 					pm.environment.set("bookingPassengerSpecifications", JSON.stringify(passengerSpecs));
 					pm.environment.set("bookingPassengerReferences", JSON.stringify(passengerReferences));
@@ -320,23 +320,23 @@ parseScenarioData = function(jsonData) {
 						return true; // break the .some() loop
 					}
 				});
-			} else {	
+			} else {
 				validationLogger("[ERROR] offerSearchCriteriaList is empty or not an array.");
 			}
 			// Loop through the requested fulfillment options list to find the matching fulfillment options ID
 			if (Array.isArray(jsonData.requestedFulfillmentOptionsList) && jsonData.requestedFulfillmentOptionsList.length > 0) {
-				jsonData.requestedFulfillmentOptionsList.some(function(requestedFulfillmentOptionList) {
+				jsonData.requestedFulfillmentOptionsList.some(function (requestedFulfillmentOptionList) {
 					if (requestedFulfillmentOptionList.id == jsonData.scenarios[dataFileIndex].requestedFulfillmentOptionsListId) {
 						var requestedFulfillmentOptions = [];
-						requestedFulfillmentOptionList.requestedFulfillmentOptions.forEach(function(requestedFulfillmentOption) {
+						requestedFulfillmentOptionList.requestedFulfillmentOptions.forEach(function (requestedFulfillmentOption) {
 							const fulfillmentType = requestedFulfillmentOption.fulfillmentType ?? null;
 							const fulfillmentMedia = requestedFulfillmentOption.fulfillmentMedia ?? null;
-							
+
 							if (fulfillmentType != null && fulfillmentMedia != null) {
 								requestedFulfillmentOptions.push(new FulfillmentOption(fulfillmentType, fulfillmentMedia));
 							}
 						});
-			
+
 						osdmFulfillmentOptions(requestedFulfillmentOptions);
 						return true;
 					}
@@ -345,12 +345,12 @@ parseScenarioData = function(jsonData) {
 				validationLogger("[INFO] requestedFulfillmentOptionsList is empty");
 			}
 			foundCorrectDataSet = true;
-			validationLogger("[INFO] ✅ Correct data set was found for this scenario : "+scenarioCode);
+			validationLogger("[INFO] ✅ Correct data set was found for this scenario : " + scenarioCode);
 		}
 		dataFileIndex++;
 	}
-	if(foundCorrectDataSet==false) {
-		validationLogger("[ERROR] ⛔ Wrong scenario code. No data set found for this scenario : "+scenarioCode);
+	if (foundCorrectDataSet == false) {
+		validationLogger("[ERROR] ⛔ Wrong scenario code. No data set found for this scenario : " + scenarioCode);
 		validationLogger("[INFO] Stop execution");
 		pm.setNextRequest(null);
 	}
@@ -384,20 +384,20 @@ osdmTripSearchCriteria = function (legDefinitions) {
 	// Check if the sandbox includes "paxone"
 	if (sandbox.includes("paxone")) {
 		var tripSearchCriteria = new TripSearchCriteria(
-			legDef.startDateTime.substring(0, legDef.startDateTime.length - 6) ,
+			legDef.startDateTime.substring(0, legDef.startDateTime.length - 6),
 			new StopPlaceRef(legDef.startStopPlaceRef),
 			new StopPlaceRef(legDef.endStopPlaceRef),
 			null
 		);
 	} else {
 		var tripSearchCriteria = new TripSearchCriteria(
-			legDef.startDateTime.substring(0, legDef.startDateTime.length - 6) ,
+			legDef.startDateTime.substring(0, legDef.startDateTime.length - 6),
 			new StopPlaceRef(legDef.startStopPlaceRef),
 			new StopPlaceRef(legDef.endStopPlaceRef),
 			tripParameters
 		);
 	}
-	
+
 	// Set trip search criteria in global variables
 	pm.environment.set("offerTripSearchCriteria", JSON.stringify(tripSearchCriteria));
 };
@@ -420,12 +420,12 @@ osdmTripSpecification = function (legDefinitions) {
 	// Loop through the leg definitions and set global variables for each leg
 	for (let n = 1; n <= legDefinitions.length; n++) {
 		var legKey = TRIP.LEG_SPECIFICATION_REF_PATTERN.replace("%LEG_COUNT%", n);
-		var legDef = legDefinitions[n-1];
+		var legDef = legDefinitions[n - 1];
 
 		var boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime));
 		var alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef), new ServiceTime(legDef.endDateTime));
 
-		var productCategory = legDef.productCategoryRef == null ? 
+		var productCategory = legDef.productCategoryRef == null ?
 			null :
 			new ProductCategory(legDef.productCategoryRef, legDef.productCategoryName, legDef.productCategoryShortName);
 
@@ -473,7 +473,7 @@ osdmOfferSearchCriteria = function (
 		offerSearchCriteria.currency = currency;
 	}
 	// Set offer mode if provided
-	if(offerMode != null && offerMode != ''){
+	if (offerMode != null && offerMode != '') {
 		offerSearchCriteria.offerMode = offerMode;
 	}
 
@@ -502,7 +502,7 @@ osdmOfferSearchCriteria = function (
 };
 
 // Function to set fulfillment options
-osdmFulfillmentOptions = function(requestedFulfillmentOptions) {
+osdmFulfillmentOptions = function (requestedFulfillmentOptions) {
 	// Set fulfillment options in global variables if provided
 	if (Array.isArray(requestedFulfillmentOptions) && requestedFulfillmentOptions.length > 0) {
 		pm.environment.set("offerFulfillmentOptions", JSON.stringify(requestedFulfillmentOptions));
