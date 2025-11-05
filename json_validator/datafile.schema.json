@@ -82,22 +82,10 @@
                   "type": "string",
                   "minLength": 3,
                   "maxLength": 3
-                },
-                "requiresPlaceSelection": {
-                  "type": "boolean"
-                },
-                "offerMode": {
-                  "type": "string",
-                  "enum": [
-                    "INDIVIDUAL",
-                    "COLLECTIVE"
-                  ]
                 }
               },
               "required": [
-                "currency",
-                "requiresPlaceSelection",
-                "offerMode"
+                "currency"
               ]
             }
           }

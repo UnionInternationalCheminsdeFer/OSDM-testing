@@ -197,7 +197,7 @@ function validateDataFileJsonWithTemplate(jsonData) {
 
             // Check required
             if (value === undefined || value === null) {
-                if (key === "gender" || key === "updateGender") {
+                if (key === "gender" || key === "updateGender" || key === "requiresPlaceSelection" || key === "offerMode") {
                     validationLogger(`[INFO] ⚠️ Optional field '${fullPath}' is missing.`);
                     return;
                 }
@@ -205,7 +205,7 @@ function validateDataFileJsonWithTemplate(jsonData) {
                 return;
             }
 
-            // Type check
+            // Type
             const expectedTypes = Array.isArray(propertySchema.type)
                 ? propertySchema.type
                 : [propertySchema.type];
@@ -216,12 +216,12 @@ function validateDataFileJsonWithTemplate(jsonData) {
                 return;
             }
 
-            // Enum check
+            // Enum
             if (propertySchema.enum && !propertySchema.enum.includes(value)) {
                 validationErrors.push(`❌ '${fullPath}' has value '${value}' not in enum: ${propertySchema.enum.join(", ")}.`);
             }
 
-            // String length
+            // String
             if (typeof value === "string") {
                 if (propertySchema.minLength && value.length < propertySchema.minLength) {
                     validationErrors.push(`❌ '${fullPath}' is too short (minLength: ${propertySchema.minLength}).`);

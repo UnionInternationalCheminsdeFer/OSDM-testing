@@ -82,7 +82,7 @@ parseScenarioData = function (jsonData) {
 			pm.environment.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
 			pm.environment.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
 			pm.environment.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
-			pm.environment.set("accommodationTypeSelected", ["", "null"].includes(jsonData.scenarios[dataFileIndex].accommodationTypeSelected) ? null : jsonData.scenarios[dataFileIndex].accommodationTypeSelected);
+			pm.environment.set("accommodationSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].accommodationSelection) ? null : jsonData.scenarios[dataFileIndex].accommodationSelection);
 			pm.environment.set("requiresPlaceSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].requiresPlaceSelection) ? null : jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
 			pm.environment.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
 			validationLogger("[DEBUG] 🪲 parseScenarioData2")
@@ -259,14 +259,24 @@ parseScenarioData = function (jsonData) {
 						passengerReferences.push(passenger.reference);
 						//passengerReferences.push(pm.environment.get(passengerKey));
 
-						let passengerAdditionalDataStruct = {
-							updateFirstName: passenger.updateFirstName,
-							updateLastName: passenger.updateLastName,
-							updateDateOfBirth: passenger.updateDateOfBirth,
-							updateEmail: passenger.updateEmail,
-							updatePhoneNumber: passenger.updatePhoneNumber,
-							updateGender: passenger.updateGender || passenger.gender || "X",
+						let passengerDataStruct = {
+							updateFirstName: passenger.firstName,
+							updateLastName: passenger.lastName,
+							updateDateOfBirth: passenger.dateOfBirth,
+							updateEmail: passenger.email,
+							updatePhoneNumber: passenger.phoneNumber,
+							updateGender: passenger.gender ?? "X",
 						};
+
+						let passengerAdditionalDataStruct = {
+							updateFirstName: passenger.updateFirstName ?? passengerDataStruct.updateFirstName,
+							updateLastName: passenger.updateLastName ?? passengerDataStruct.updateLastName,
+							updateDateOfBirth: passenger.updateDateOfBirth ?? passengerDataStruct.updateDateOfBirth,
+							updateEmail: passenger.updateEmail ?? passengerDataStruct.updateEmail,
+							updatePhoneNumber: passenger.updatePhoneNumber ?? passengerDataStruct.updatePhoneNumber,
+							updateGender: passenger.updateGender ?? passengerDataStruct.updateGender,
+						};
+
 						passengerAdditionalData.push(passengerAdditionalDataStruct);
 						passengerIndex++;
 					});

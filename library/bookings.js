@@ -22,6 +22,7 @@ postCreateBookingResponse = function (offers, offerId, booking, state) {
 		validationLogger("[ERROR] Passengers structure is invalid or empty.");
 	}
 	pm.environment.set("passengerIdList", passengerIdList);
+	pm.environment.set("passengerId", passengerIdList[0]); // For backward compatibility, set the first passenger ID
 	
 	pm.test("Booking Id is returned", () => {
 		validationLogger(`[INFO] Booking Id: ${bookingId}`);
@@ -110,7 +111,7 @@ compareAdmissions = function (bookedAdmission, offeredAdmission, booking) {
 		for (var i = 0; i < bookedAdmission.products.length; i++) {
 			var bookedProduct = bookedAdmission.products[i];
 			var found = offeredAdmission.products.some(offeredProduct => bookedProduct.productId == offeredProduct.productId);
-			validationLogger(`[INFO] Product ID ${bookedProduct.productId} found: ${found}`);
+			validationLogger(`[INFO] Booked Admission Product ID ${bookedProduct.productId}, Offered Admission Product ID: ${found}`);
 			pm.expect(found).to.equal(true);
 		}
 	});
@@ -194,7 +195,7 @@ compareReservations = function (bookedReservation, offeredReservation, booking) 
 		for (var i = 0; i < bookedReservation.products.length; i++) {
 			var bookedProduct = bookedReservation.products[i];
 			var found = offeredReservation.products.some(offeredProduct => bookedProduct.productId == offeredProduct.productId);
-			validationLogger(`[INFO] Reservation ProductId: ${bookedProduct.productId}, found: ${found}`);
+			validationLogger(`[INFO] Booked Reservation Product ID ${bookedProduct.productId}, Offered Reservation Product ID: ${found}`);
 			pm.expect(found).to.equal(true);
 		}
 	});

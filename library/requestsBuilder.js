@@ -68,8 +68,8 @@ function buildOfferCollectionRequest() {
 
 // Function to build the booking request
 function buildBookingRequest() {
-	// Call the placeSelections function
-	placeSelections();
+	// Call the accommodationAndPlaceSelection function
+	accommodationAndPlaceSelection();
 
 	let bookingPassengerSpecifications = JSON.parse(pm.environment.get("bookingPassengerSpecifications"));
 	let checkBookingPassengerSpecificationsContent = bookingPassengerSpecifications[0];
@@ -120,40 +120,66 @@ function buildBookingRequest() {
 }
 
 // Function to handle place selections
-function placeSelections() {
-	// Check if place selection is required
-	var requiresPlaceSelection = pm.environment.get("requiresPlaceSelection");
+function accommodationAndPlaceSelection() {
+    var requiresPlaceSelection = pm.environment.get("requiresPlaceSelection");
+    var accommodationSelection = pm.environment.get("accommodationSelection");
+    const tripLegCoverage = JSON.parse(pm.environment.get("tripLegCoverage") || "[]");
+    const tripId = tripLegCoverage.length > 0 ? tripLegCoverage[0].tripId : "";
+    const legId = tripLegCoverage.length > 0 ? tripLegCoverage[0].legId : "";
 
-	if (requiresPlaceSelection == true) {
-		// Set the place selections in global variables
-		pm.environment.set("placeSelections", "\"placeSelections\": [\n"
-			+ "	                    {\n"
-			+ "	                        \"reservationId\": \"" + pm.environment.get("reservationId") + "\",\n"
-			+ "	                        \"places\": [\n"
-			+ "	                            {\n"
-			+ "	                                \"coachNumber\": \"" + pm.environment.get("preselectedCoach") + "\",\n"
-			+ "	                                \"placeNumber\": \"" + pm.environment.get("preselectedPlace") + "\",\n"
-			+ "	                                \"passengerRef\": \"" + pm.environment.get("passengerSpecification1ExternalRef") + "\"\n"
-			+ "	                            }\n"
-			+ "	                        ],\n"
-			+ "	                        \"tripLegCoverage\" : {\n"
-			+ "	                            \"tripId\": \"" + pm.environment.get("tripId") + "\",\n"
-			+ "	                            \"legId\" : \"" + pm.environment.get("legId") + "\"\n"
-			+ "	                        }\n"
-			+ "	                    }\n"
-			+ "	                ],");
-	} else {
-		// Set an empty string if place selection is not required
-		pm.environment.set("placeSelections", "");
-	}
+    if (requiresPlaceSelection != true && accommodationSelection != "COUCHETTE") {
+        pm.environment.set("placeSelections", "");
+        return;
+    }
+
+    var placeSelections =
+        "\"placeSelections\": [\n" +
+        "    {\n" +
+        "        \"reservationId\": \"" + pm.environment.get("reservationId") + "\",\n";
+
+    if (accommodationSelection == "COUCHETTE") {
+        placeSelections += "\n" +
+            "        \"accommodations\": [\n" +
+            "            {\n" +
+            "                \"passengerRefs\": " + pm.environment.get("bookingPassengerReferences") + ",\n" +
+            "                \"accommodationType\": \"" + pm.environment.get("accommodationSelection") + "\",\n" +
+            "                \"accommodationSubType\": \"ANY_SEAT\",\n" +
+            "                \"placeProperties\": [\"MEN\"]\n" +
+            "            }\n" +
+            "        ]";
+    }
+
+    if (requiresPlaceSelection == true) {
+        placeSelections += "\n" +
+            "        \"places\": [\n" +
+            "            {\n" +
+            "                \"passengerRefs\": " + pm.environment.get("bookingPassengerReferences") + ",\n" +
+            "                \"coachNumber\": \"" + pm.environment.get("preselectedCoach") + "\",\n" +
+            "                \"placeNumber\": \"" + pm.environment.get("preselectedPlace") + "\",\n" +
+            "            }\n" +
+            "        ]";
+    }
+
+    placeSelections += ",\n" +
+        "        \"tripLegCoverage\" : {\n" +
+        "            \"tripId\": \"" + tripId + "\",\n" +
+        "            \"legId\" : \"" + legId + "\"\n" +
+        "        }\n" +
+        "    }\n" +
+        "],";
+
+    pm.environment.set("placeSelections", placeSelections);
 }
+
+
+
 
 // Function to create request body for refund offers
 function requestRefundOffersBody(overruleCode, refundDate) {
-	const fulfillmentId = pm.environment.get('fulfillmentsId');
+	const fulfillmentIdsRaw = pm.environment.get('fulfillmentsIds');
 
 	const body = {
-		fulfillmentIds: [fulfillmentId]
+		fulfillmentIds: JSON.parse(fulfillmentIdsRaw),
 	};
 
 	if (overruleCode !== null && overruleCode !== undefined) {
@@ -169,7 +195,7 @@ function requestRefundOffersBody(overruleCode, refundDate) {
 
 // Function to create request body for exchange offers
 function requestExchangeOffersBody(overruleCode) {
-	const fulfillmentIdsRaw = pm.environment.get('fulfillmentsIds'); // <-- note le 's'
+	const fulfillmentIdsRaw = pm.environment.get('fulfillmentsIds');
 	const offerTripSearchCriteria = pm.environment.get('offerTripSearchCriteria');
 	const offerSearchCriteria = pm.environment.get('offerSearchCriteria');
 	const bookingExternalRef = "00001";
@@ -177,7 +203,7 @@ function requestExchangeOffersBody(overruleCode) {
 	const updateGender_0 = pm.environment.get('updateGender_0');
 
 	const body = {
-		fulfillmentIds: JSON.parse(fulfillmentIdsRaw), // <- assure-toi que c’est un tableau JSON (ex: ["abc123"])
+		fulfillmentIds: JSON.parse(fulfillmentIdsRaw),
 		tripSearchCriteria: JSON.parse(offerTripSearchCriteria),
 		offerSearchCriteria: JSON.parse(offerSearchCriteria),
 		anonymousPassengerSpecifications: [
@@ -189,7 +215,8 @@ function requestExchangeOffersBody(overruleCode) {
 				...(updateGender_0 !== null && { gender: updateGender_0 })
 			}
 		],
-		...(overruleCode !== null && overruleCode !== undefined && { overruleCode })
+		...(overruleCode !== null && overruleCode !== undefined && { overruleCode }),
+		...{ embed: ["ALL"] }
 	};
 
 	console.log("Request Exchange Offers Body Data:", body);

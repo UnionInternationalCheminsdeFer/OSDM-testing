@@ -41,13 +41,16 @@ function validateFulfillmentsExchange(fulfillments, expectedStatus) {
 // Function to validate exchange fee
 function validateExchangeFee(exchangeFee) {
 	validationLogger(`[INFO] Validating exchange fee: ${exchangeFee.amount}`);
-	pm.expect(exchangeFee.amount).to.be.at.least(0, "Exchange fee should be non-negative");
+	pm.test("Exchange fee is non-negative and matches after-sale admission amount", () => {
+		pm.expect(exchangeFee.amount).to.be.at.least(0, "Exchange fee should be non-negative");
+	});
 
 	let expectedFee = pm.environment.get("afterSaleCondition_admission_amount");
 
     validationLogger(`[INFO] Comparing with expected after sale fee: ${expectedFee}`);
-
-    pm.expect(exchangeFee.amount).to.eql(expectedFee, "Exchange fee should match the after-sale admission amount");
+	pm.test(`Exchange fee matches the after-sale admission amount: ${expectedFee}`, () => {
+		pm.expect(exchangeFee.amount).to.eql(expectedFee, "Exchange fee should match the after-sale admission amount");
+	});
 }
 
 // Function to validate exchangeable amount

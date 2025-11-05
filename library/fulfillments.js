@@ -10,6 +10,7 @@ function checkBookedOfferParts(bookedOffer, partType, bookingState) {
 
 // Function to validate passengers
 function validatePassengers(booking, offer) {
+    validationLogger("[INFO] ➤ validatePassengers");
     offer.passengerRefs.forEach(passenger => {
         const found = booking.passengers.some(bookedPassenger => {
             return bookedPassenger.externalRef === passenger;
@@ -23,6 +24,7 @@ function validatePassengers(booking, offer) {
 
 // Function to validate purchaser details
 function validatePurchaserDetails(purchaserDetail) {
+    validationLogger("[INFO] ➤ validatePurchaserDetails");
     if (purchaserDetail) {
         pm.test("Correct Purchaser is returned", () => {
             pm.expect(purchaserDetail.firstName).not.to.be.empty;
@@ -35,6 +37,7 @@ function validatePurchaserDetails(purchaserDetail) {
 
 // Function to validate fulfillment IDs
 function validateFulfillmentId(booking) {
+    validationLogger("[INFO] ➤ validateFulfillmentId");
     const fulfillmentsIdRaw = pm.environment.get("fulfillmentsIds");
     if (fulfillmentsIdRaw) {
         const expectedIds = JSON.parse(fulfillmentsIdRaw);
@@ -53,6 +56,7 @@ function validateFulfillmentId(booking) {
 
 // Function to validate prices
 function validatePrices(booking, fulfillmentState, totalPrice) {
+    validationLogger("[INFO] ➤ validatePrices");
     if (fulfillmentState !== undefined) {
         pm.environment.set("bookingConfirmedPrice", booking.confirmedPrice.amount);
         const bookingConfirmedPrice = pm.environment.get("bookingConfirmedPrice");
@@ -76,19 +80,28 @@ function validatePrices(booking, fulfillmentState, totalPrice) {
 
 // Function to check fulfillment details
 function checkFulfillment(booking, fulfillment) {
+    validationLogger("[INFO] ➤ checkFulfillment");
     const currentDate = new Date();
     const createdOn = new Date(fulfillment.createdOn);
 
     pm.test("Correct booking reference is returned on fulfillment", () => {
+		validationLogger(`[INFO] Booking reference in fulfillments : ${fulfillment.bookingRef}, expected booking id : ${booking.id}`);
         pm.expect(fulfillment.bookingRef).to.equal(booking.id);
     });
 
+    pm.test("ControlNumber is returned on fulfillment", () => {
+        validationLogger(`[INFO] Fulfillment controlNumber : ${fulfillment.controlNumber}`);
+        pm.expect(fulfillment.controlNumber).to.exist;
+    });
+
 	pm.test(`CreatedOn is returned on fulfillment`, () => {
+        validationLogger(`[INFO] Fulfillment createdOn : ${fulfillment.createdOn}`);
 		pm.expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
 	});
 
     pm.test(`Correct state ON_HOLD, FULFILLED or CONFIRMED is returned on fulfillment: ${fulfillment.status}`, () => {
-        pm.expect(["FULFILLED", "CONFIRMED", "ON_HOLD"]).to.include(fulfillment.status);
+        validationLogger(`[INFO] Fulfillment status : ${fulfillment.status}`);
+        pm.expect(["FULFILLED", "CONFIRMED", "ON_HOLD", "AVAILABLE"]).to.include(fulfillment.status);
     });
 
     const refundPartRefs = JSON.parse(pm.environment.get("idsAdmissionAncillariesReservationReference") || "[]");

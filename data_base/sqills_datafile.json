@@ -37,7 +37,7 @@
             "scenarioType": "REFUND",
             "scenarioAction": "",
             "osdmVersion": "3.4",
-            "desiredFlexibility": "NON_FLEXIBLE",
+            "desiredFlexibility": "FULL_FLEXIBLE",
             "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
@@ -236,6 +236,7 @@
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
+                    "updateGender": "FEMALE",
                     "type": "PERSON"
                 }
             ]
