@@ -1,7 +1,7 @@
 {
     "scenarios": [
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_PATCH_SRCH_CRIT_1ADT_1LEG",
             "scenarioType": "REFUND",
@@ -17,7 +17,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_DEL_SRCH_CRIT_1ADT_1LEG",
             "scenarioType": "REFUND",
@@ -33,7 +33,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
             "scenarioType": "REFUND",
@@ -48,7 +48,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
             "scenarioType": "REFUND",
@@ -63,7 +63,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
             "scenarioType": "REFUND",
@@ -78,7 +78,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "scenarioType": "REFUND",
@@ -93,7 +93,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
             "scenarioType": "EXCHANGE",

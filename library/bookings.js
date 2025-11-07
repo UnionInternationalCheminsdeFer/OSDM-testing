@@ -1,351 +1,337 @@
 let totalProvisionalOrBookingPrice = 0;
 
 postCreateBookingResponse = function (offers, offerId, booking, state) {
-	const currentDate = new Date();
-	const bookingId = booking.id;
-	const createdOn = new Date(booking.createdOn);
-	const bookedOffers = booking.bookedOffers;
-	const passengerIdList = [];
 
-	pm.environment.set("bookingId", bookingId);
+    // Validate HTTP response status
+    pm.test("Status code is 200", () => {
+        pm.expect(pm.response.code, "[ERROR] Wrong response status").to.eql(200);
+    });
 
-	if (jsonData.booking?.passengers?.length > 0) {
-		jsonData.booking.passengers.forEach((passenger, i) => {
-			if (passenger.id) {
-				pm.environment.set(`passengerId_${i}`, passenger.id);
-				passengerIdList.push(passenger.id);
-			} else {
-				validationLogger(`[WARNING] ⚠️ Passenger at index ${i} has no ID.`);
-			}
-		});
-	} else {
-		validationLogger("[ERROR] Passengers structure is invalid or empty.");
-	}
-	pm.environment.set("passengerIdList", passengerIdList);
-	pm.environment.set("passengerId", passengerIdList[0]); // For backward compatibility, set the first passenger ID
-	
-	pm.test("Booking Id is returned", () => {
-		validationLogger(`[INFO] Booking Id: ${bookingId}`);
-		pm.expect(bookingId).to.be.a('string').and.not.be.empty;
-	});
-	
-	validationLogger(`[INFO] Offer Id: ${offerId}`);
+    if (pm.response.code !== 200) {
+        validationLogger(`[ERROR] Wrong status: ${pm.response.code}`);
+        pm.execution.setNextRequest(null);
+        return;
+    }
 
-	pm.test(`CreatedOn in booking is returned`, () => {
-		validationLogger(`[FULL] currentDate: ${currentDate.toDateString()} vs createdOn: ${createdOn.toDateString()}`);
-		pm.expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
-	});
+    pm.test("Booking object exists", () => {
+        pm.expect(jsonData.booking, "[ERROR] 'booking' is missing or empty").to.be.an("object").that.is.not.empty;
+    });
 
-	const offer = offers.find(internalOffer => internalOffer.offerId === offerId);
+    if (!jsonData.booking || typeof jsonData.booking !== "object") {
+        validationLogger("[ERROR] No booking found or 'booking' is not an object.");
+        pm.execution.setNextRequest(null);
+        return;
+    }
 
-	if (!offer) {
-		validationLogger("[INFO] No correct offer can be found, skipping rest of validation");
-		return;
-	} else {
-		const found = bookedOffers.some(bookedOffer => compareOffers(bookedOffer, offer, booking, state));
-	
-		pm.test(`Correct offer ${offerId} is returned`, () => {
-			validationLogger(`[INFO] offerFound: ${offerId}, found: ${found}`);
-			pm.expect(found).to.equal(true);
-		});
-		validationLogger("[INFO] Correct offer from offer response found, performing rest of validation");
-	}
+    const bookingId = booking.id;
+    pm.environment.set("bookingId", bookingId);
 
-	offer.passengerRefs.forEach(passenger => {
-		const found = booking.passengers.some(bookedPassenger => {
-			return bookedPassenger.externalRef === passenger;
-		});
+    // Passengers setup
+    const passengerIdList = [];
+    if (jsonData.booking?.passengers?.length > 0) {
+        jsonData.booking.passengers.forEach((passenger, i) => {
+            if (passenger.id) {
+                passengerIdList.push(passenger.id);
+            } else {
+                validationLogger(`[WARNING] ⚠️ Passenger at index ${i} has no ID.`);
+            }
+        });
+    } else {
+        validationLogger("[ERROR] Passengers structure is invalid or empty.");
+    }
+    pm.environment.set("passengerIdList", passengerIdList);
 
-		pm.test(`Passenger ${passenger} returned`, () => {
-			validationLogger(`[INFO] passengerRef: ${passenger}, found: ${found}`);
-			pm.expect(found).to.equal(true);
-		});
-	});
+    pm.test("Booking Id is returned", () => {
+        validationLogger(`[INFO] Booking Id: ${bookingId}`);
+        pm.expect(bookingId).to.be.a('string').and.not.be.empty;
+    });
+
+    // Offer validation
+    const offer = offers.find(internalOffer => internalOffer.offerId === offerId);
+
+    if (!offer) {
+        validationLogger("[INFO] No correct offer can be found, skipping rest of validation");
+        return;
+    }
+
+    // bookedOfferIds check
+    pm.test("bookedOfferIds should be returned and not empty", () => {
+        const bookedOfferIds = booking.bookedOffers?.map(b => b.offerId);
+        pm.expect(bookedOfferIds, "[ERROR] bookedOfferIds is missing or empty").to.be.an("array").that.is.not.empty;
+        pm.environment.set("bookedOfferIds", JSON.stringify(bookedOfferIds));
+        validationLogger(`[INFO] bookedOfferIds: ${bookedOfferIds.join(", ")}`);
+    });
+
+    // Consistency check with selected offer
+    const foundOffers = booking.bookedOffers.some(bookedOffer => compareOffers(bookedOffer, offer, booking, state));
+    pm.test(`Booked offers are consistent with selected offer ${offerId}`, () => {
+        validationLogger(`[INFO] Booked offer matches selected offer: ${foundOffers}`);
+        pm.expect(foundOffers).to.equal(true);
+    });
+
+    // Passengers validation per offer
+    offer.passengerRefs.forEach(passenger => {
+        const found = booking.passengers.some(bookedPassenger => bookedPassenger.externalRef === passenger);
+        pm.test(`Passenger ${passenger} returned`, () => {
+            validationLogger(`[INFO] passengerRef: ${passenger}, found: ${found}`);
+            pm.expect(found).to.equal(true);
+        });
+    });
+
 };
+
 
 compareOffers = function (bookedOffer, offer, booking, state) {
-	validationLogger("[INFO] ➤ compareOffers");
+    validationLogger("[INFO] ➤ compareOffers");
 
-	const partRefs = [];
+    const partRefs = [];
+    let allMatched = true;
 
-	if (!bookedOffer?.admissions || !offer?.admissionOfferParts || !bookedOffer.admissions.length || !offer.admissionOfferParts.length) {
-		validationLogger("[INFO] Skipping admissions");
-	} else {
-		bookedOffer.admissions.forEach(bookedAdmission => {
-			checkGenericBookedOfferPart(bookedAdmission, state, "admissions");
-			offer.admissionOfferParts.some(offeredAdmission => compareAdmissions(bookedAdmission, offeredAdmission, booking));
-		});
-	}
+    const checkSection = (bookedItems, offeredItems, name, compareFn) => {
+        if (!bookedItems?.length || !offeredItems?.length) {
+            validationLogger(`[INFO] Skipping ${name}`);
+            return;
+        }
 
-	if (!bookedOffer?.ancillaries || !offer?.ancillaryOfferParts || !bookedOffer.ancillaries.length || !offer.ancillaryOfferParts.length) {
-		validationLogger("[INFO] Skipping ancillaries");
-	} else {
-		bookedOffer.ancillaries.forEach(bookedAncillary => {
-			checkGenericBookedOfferPart(bookedAncillary, state, "ancillaries");
-			offer.ancillaryOfferParts.some(offeredAncillary => compareAncillaries(bookedAncillary, offeredAncillary, booking));
-		});
-	}
+        bookedItems.forEach(item => {
+            checkGenericBookedOfferPart(item, state, name);
 
-	if (!bookedOffer?.reservations || !offer?.reservationOfferParts || !bookedOffer.reservations.length || !offer.reservationOfferParts.length) {
-		validationLogger("[INFO] Skipping reservations");
-	} else {
-		bookedOffer.reservations.forEach(bookedReservation => {
-			checkGenericBookedOfferPart(bookedReservation, state, "reservations");
-			offer.reservationOfferParts.some(offeredReservation => compareReservations(bookedReservation, offeredReservation, booking));
-		});
-	}
-	pm.environment.set("idsAdmissionAncillariesReservationReference", JSON.stringify(partRefs));
-	return true;
+            const found = offeredItems.some(offeredItem => compareFn(item, offeredItem, booking));
+
+            pm.test(`Check ${name} for booked item ${item.id || item.productId || item.reservationReference}`, () => {
+                validationLogger(`[INFO] ${name} match found: ${found}`);
+                pm.expect(found).to.equal(true);
+            });
+
+            if (!found) allMatched = false;
+        });
+    };
+
+    checkSection(bookedOffer.admissions, offer.admissionOfferParts, "admissions", compareAdmissions);
+    checkSection(bookedOffer.ancillaries, offer.ancillaryOfferParts, "ancillaries", compareAncillaries);
+    checkSection(bookedOffer.reservations, offer.reservationOfferParts, "reservations", compareReservations);
+
+    bookedOffer.admissions?.forEach(item => partRefs.push(item.reservationReference));
+    pm.environment.set("idsAdmissionAncillariesReservationReference", JSON.stringify(partRefs));
+
+    return allMatched;
 };
 
+
 compareAdmissions = function (bookedAdmission, offeredAdmission, booking) {
-	validationLogger("[INFO] ➤➤➤ compareAdmissions");
-	pm.test("Price of the admission should be set and similar to offer response", () => {
-		validationLogger(`[INFO] Admission price: booked: ${bookedAdmission.price.amount}/${bookedAdmission.price.currency}/${bookedAdmission.price.scale} vs offered: ${offeredAdmission.price.amount}/${offeredAdmission.price.currency}/${offeredAdmission.price.scale}`);
-		pm.expect(bookedAdmission.price.amount).to.equal(offeredAdmission.price.amount);
-		pm.expect(bookedAdmission.price.currency).to.equal(offeredAdmission.price.currency);
-		pm.expect(bookedAdmission.price.scale).to.equal(offeredAdmission.price.scale);
-	});
+    validationLogger("[INFO] ➤➤➤ compareAdmissions");
 
-	pm.test("Products of the admission should be set and similar to offer response", function () {
-		for (var i = 0; i < bookedAdmission.products.length; i++) {
-			var bookedProduct = bookedAdmission.products[i];
-			var found = offeredAdmission.products.some(offeredProduct => bookedProduct.productId == offeredProduct.productId);
-			validationLogger(`[INFO] Booked Admission Product ID ${bookedProduct.productId}, Offered Admission Product ID: ${found}`);
-			pm.expect(found).to.equal(true);
-		}
-	});
+    // Price verification
+    pm.test("Price of the admission should be set and similar to offer response", () => {
+        const b = bookedAdmission.price;
+        const o = offeredAdmission.price;
+        validationLogger(`[INFO] Admission price: booked: ${b.amount}/${b.currency}/${b.scale} vs offered: ${o.amount}/${o.currency}/${o.scale}`);
+        pm.expect(b.amount).to.equal(o.amount);
+        pm.expect(b.currency).to.equal(o.currency);
+        pm.expect(b.scale).to.equal(o.scale);
+    });
 
-	["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
-		if (bookedAdmission[prop] !== undefined) {
-			pm.test(`In admissions : ${prop} value should be set and similar to offer response`, () => {
-				validationLogger(`[FULL] ${prop}: booked: ${bookedAdmission[prop]}, offered: ${offeredAdmission[prop]}`);
-				pm.expect(bookedAdmission[prop]).to.equal(offeredAdmission[prop]);
-			});
-		}
-	});
+    // Product verification
+    pm.test("Products of the admission should be set and similar to offer response", () => {
+        bookedAdmission.products.forEach(bp => {
+            const found = offeredAdmission.products.some(op => bp.productId === op.productId);
+            validationLogger(`[INFO] Booked Admission Product ID ${bp.productId}, match found: ${found}`);
+            pm.expect(found).to.equal(true);
+        });
+    });
 
-	pm.test("Correct passengers are part of the admission", () => {
-		bookedAdmission.passengerIds.forEach(passengerId => {
-			const found = booking.passengers.some(bookedPassenger => passengerId === bookedPassenger.id);
-			validationLogger(`[INFO] PassengerId: ${passengerId}, found: ${found}`);
-			pm.expect(found).to.equal(true);
-		});
-	});
+    // Common properties verification
+    ["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
+        if (bookedAdmission[prop] !== undefined) {
+            pm.test(`Property ${prop} should match offer response`, () => {
+                validationLogger(`[FULL] ${prop}: booked: ${bookedAdmission[prop]}, offered: ${offeredAdmission[prop]}`);
+                pm.expect(bookedAdmission[prop]).to.equal(offeredAdmission[prop]);
+            });
+        }
+    });
 
-	return true;
+    // Passenger verification
+    pm.test("Correct passengers are part of the admission", () => {
+        bookedAdmission.passengerIds.forEach(pid => {
+            const found = booking.passengers.some(p => pid === p.id);
+            validationLogger(`[INFO] PassengerId: ${pid}, found: ${found}`);
+            pm.expect(found).to.equal(true);
+        });
+    });
 };
 
 
 compareAncillaries = function (bookedAncillary, offeredAncillary, booking) {
-	validationLogger("[INFO] ➤➤➤ compareAncillaries");
-	pm.test("Price of the ancillary should be set and similar to offer response", () => {
-		validationLogger(`[INFO] Ancillary price: booked: ${bookedAncillary.price.amount}/${bookedAncillary.price.currency}/${bookedAncillary.price.scale} vs offered: ${offeredAncillary.price.amount}/${offeredAncillary.price.currency}/${offeredAncillary.price.scale}`);
-		pm.expect(bookedAncillary.price.amount).to.equal(offeredAncillary.price.amount);
-		pm.expect(bookedAncillary.price.currency).to.equal(offeredAncillary.price.currency);
-		pm.expect(bookedAncillary.price.scale).to.equal(offeredAncillary.price.scale);
-	});
+    validationLogger("[INFO] ➤➤➤ compareAncillaries");
 
-	//TODO : Work on this part, test below is failed and capture the wrong ancillary product
+    // Price verification
+    pm.test("Price of the ancillary should be set and similar to offer response", () => {
+        const b = bookedAncillary.price;
+        const o = offeredAncillary.price;
+        validationLogger(`[INFO] Ancillary price: booked: ${b.amount}/${b.currency}/${b.scale} vs offered: ${o.amount}/${o.currency}/${o.scale}`);
+        pm.expect(b.amount).to.equal(o.amount);
+        pm.expect(b.currency).to.equal(o.currency);
+        pm.expect(b.scale).to.equal(o.scale);
+    });
 
-	/*pm.test("Products of the ancillary should be set and similar to offer response", function () {
-		for (var i = 0; i < bookedAncillary.products.length; i++) {
-			var bookedProduct = bookedAncillary.products[i];
-			var found = false;
-			for (var j = 0; j < offeredAncillary.products.length; j++) {
-				var offeredProduct = offeredAncillary.products[j];
-				if (bookedProduct.productId == offeredProduct.productId) {
-					found = true;
-					break;
-				}
-			}
-			pm.expect(found).to.equal(true);
-		}
-	});*/
+    // Product verification
+    pm.test("Products of the ancillary should be set and similar to offer response", () => {
+        bookedAncillary.products.forEach(bp => {
+            const found = offeredAncillary.products.some(op => bp.productId === op.productId);
+            validationLogger(`[INFO] Booked Ancillary Product ID ${bp.productId}, match found: ${found}`);
+            pm.expect(found).to.equal(true);
+        });
+    });
 
-	/*["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
-		if (bookedAncillary[prop] !== undefined) {
-			pm.test(`In ancillaries : ${prop} value should be set and similar to offer response`, () => {
-				pm.expect(bookedAncillary[prop]).to.equal(offeredAncillary[prop]);
-			});
-		}
-	});*/
+    // Common properties verification
+    ["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
+        if (bookedAncillary[prop] !== undefined) {
+            pm.test(`Property ${prop} should match offer response`, () => {
+                validationLogger(`[FULL] ${prop}: booked: ${bookedAncillary[prop]}, offered: ${offeredAncillary[prop]}`);
+                pm.expect(bookedAncillary[prop]).to.equal(offeredAncillary[prop]);
+            });
+        }
+    });
 
-	pm.test("Correct passengers are part of the ancillary", () => {
-		bookedAncillary.passengerIds.forEach(passengerId => {
-			const found = booking.passengers.some(bookedPassenger => passengerId === bookedPassenger.id);
-			validationLogger(`[INFO] Ancillary PassengerId: ${passengerId}, found: ${found}`);
-			pm.expect(found).to.equal(true);
-		});
-	});
+    // Passenger verification
+    pm.test("Correct passengers are part of the ancillary", () => {
+        bookedAncillary.passengerIds.forEach(pid => {
+            const found = booking.passengers.some(p => pid === p.id);
+            validationLogger(`[INFO] Ancillary PassengerId: ${pid}, found: ${found}`);
+            pm.expect(found).to.equal(true);
+        });
+    });
 
-	return true;
+    return true;
 };
+
 
 compareReservations = function (bookedReservation, offeredReservation, booking) {
-	validationLogger("[INFO] ➤➤➤ compareReservations");
-	pm.test("Price of the reservation should be set and similar to offer response", () => {
-		validationLogger(`[INFO] Reservation price: booked: ${bookedReservation.price.amount}/${bookedReservation.price.currency}/${bookedReservation.price.scale} vs offered: ${offeredReservation.price.amount}/${offeredReservation.price.currency}/${offeredReservation.price.scale}`);
-		pm.expect(bookedReservation.price.amount).to.equal(offeredReservation.price.amount);
-		pm.expect(bookedReservation.price.currency).to.equal(offeredReservation.price.currency);
-		pm.expect(bookedReservation.price.scale).to.equal(offeredReservation.price.scale);
-	});
+    validationLogger("[INFO] ➤➤➤ compareReservations");
 
-	pm.test("Products of the reservation should be set and similar to offer response", function () {
-		for (var i = 0; i < bookedReservation.products.length; i++) {
-			var bookedProduct = bookedReservation.products[i];
-			var found = offeredReservation.products.some(offeredProduct => bookedProduct.productId == offeredProduct.productId);
-			validationLogger(`[INFO] Booked Reservation Product ID ${bookedProduct.productId}, Offered Reservation Product ID: ${found}`);
-			pm.expect(found).to.equal(true);
-		}
-	});
+    // Price verification
+    pm.test("Price of the reservation should be set and similar to offer response", () => {
+        const b = bookedReservation.price;
+        const o = offeredReservation.price;
+        validationLogger(`[INFO] Reservation price: booked: ${b.amount}/${b.currency}/${b.scale} vs offered: ${o.amount}/${o.currency}/${o.scale}`);
+        pm.expect(b.amount).to.equal(o.amount);
+        pm.expect(b.currency).to.equal(o.currency);
+        pm.expect(b.scale).to.equal(o.scale);
+    });
 
-	["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
-		if (bookedReservation[prop] !== undefined) {
-			pm.test(`In reservations : ${prop} value should be set and similar to offer response`, () => {
-				validationLogger(`[FULL] Reservation ${prop}: booked: ${bookedReservation[prop]}, offered: ${offeredReservation[prop]}`);
-				pm.expect(bookedReservation[prop]).to.equal(offeredReservation[prop]);
-			});
-		}
-	});
+    // Product verification
+    pm.test("Products of the reservation should be set and similar to offer response", () => {
+        bookedReservation.products.forEach(bp => {
+            const found = offeredReservation.products.some(op => bp.productId === op.productId);
+            validationLogger(`[INFO] Booked Reservation Product ID ${bp.productId}, match found: ${found}`);
+            pm.expect(found).to.equal(true);
+        });
+    });
 
-	pm.test("Correct passengers are part of the reservation", () => {
-		bookedReservation.passengerIds.forEach(passengerId => {
-			const found = booking.passengers.some(bookedPassenger => passengerId === bookedPassenger.id);
-			validationLogger(`[INFO] Reservation PassengerId: ${passengerId}, found: ${found}`);
-			pm.expect(found).to.equal(true);
-		});
-	});
+    // Common properties verification
+    ["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
+        if (bookedReservation[prop] !== undefined) {
+            pm.test(`Property ${prop} should match offer response`, () => {
+                validationLogger(`[FULL] ${prop}: booked: ${bookedReservation[prop]}, offered: ${offeredReservation[prop]}`);
+                pm.expect(bookedReservation[prop]).to.equal(offeredReservation[prop]);
+            });
+        }
+    });
 
-	return true;
+    // Passenger verification
+    pm.test("Correct passengers are part of the reservation", () => {
+        bookedReservation.passengerIds.forEach(pid => {
+            const found = booking.passengers.some(p => pid === p.id);
+            validationLogger(`[INFO] Reservation PassengerId: ${pid}, found: ${found}`);
+            pm.expect(found).to.equal(true);
+        });
+    });
+
+    return true;
 };
 
-checkGenericBookedOfferPart = function (bookedofferpart, state, textDescription) {
-	validationLogger(`[INFO] ➤➤ checkGenericBookedOfferPart ${textDescription}`);
-	const currentDate = new Date();
-	const createdOn = new Date(bookedofferpart.createdOn);
-	const validUntil = new Date(bookedofferpart.validUntil);
-	const confirmableUntil = new Date(bookedofferpart.confirmableUntil);
 
-	pm.test(`CreatedOn is returned on bookedofferpart ${textDescription}`, () => {
-		validationLogger(`[FULL] ${textDescription}: currentDate: ${currentDate.toDateString()}, createdOn: ${createdOn.toDateString()}`);
-		pm.expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
-	});
+checkGenericBookedOfferPart = function (bookedOfferPart, state, textDescription) {
+    validationLogger(`[INFO] ➤➤ checkGenericBookedOfferPart ${textDescription}`);
 
-	pm.test(`ValidUntil is set for bookedofferpart ${textDescription}`, () => {
-		validationLogger(`[FULL] ${textDescription}: validUntil: ${validUntil.toISOString()}, currentDate: ${currentDate.toISOString()}`);
-		pm.expect(validUntil.getTime()).to.be.above(currentDate.getTime());
-	});
+    const currentDate = new Date();
+    const createdOn = new Date(bookedOfferPart.createdOn);
+    const validUntil = new Date(bookedOfferPart.validUntil);
+    const confirmableUntil = new Date(bookedOfferPart.confirmableUntil);
 
-	if (state === "PREBOOKED") {
-		pm.test(`ConfirmableUntil is returned on bookedofferpart ${textDescription}`, () => {
-			validationLogger(`[FULL] ${textDescription}: confirmableUntil: ${confirmableUntil.toISOString()}, currentDate: ${currentDate.toISOString()}`);
-			pm.expect(confirmableUntil.getTime()).to.be.above(currentDate.getTime());
-		});
-		
-		pm.test(`Correct status is returned on bookedofferpart ${textDescription} : ${bookedofferpart.status}`, () => {
-			validationLogger(`[INFO] ${textDescription}: status: ${bookedofferpart.status}, expected=["PREBOOKED"]`);
-			pm.expect(["PREBOOKED"]).to.include(bookedofferpart.status);
-		});
-	} else {
-		pm.test(`Correct status is returned on bookedofferpart ${textDescription} : ${bookedofferpart.status}`, () => {
-			validationLogger(`[INFO] ${textDescription}: status: ${bookedofferpart.status}, expected=["FULFILLED","CONFIRMED"]`);
-			pm.expect(["FULFILLED", "CONFIRMED"]).to.include(bookedofferpart.status);
-		});
-	}
+    // Date verification
+    pm.test(`CreatedOn is returned for ${textDescription}`, () => {
+        validationLogger(`[FULL] ${textDescription}: currentDate: ${currentDate.toDateString()}, createdOn: ${createdOn.toDateString()}`);
+        pm.expect(createdOn.toDateString()).to.equal(currentDate.toDateString());
+    });
 
-	// Set the total price in the environment
-	totalProvisionalOrBookingPrice += calculateTotalAmount(bookedofferpart);
-	pm.environment.set("totalProvisionalOrBookingPrice", totalProvisionalOrBookingPrice);
-	extractAfterSaleFees(bookedofferpart, textDescription);	
+    pm.test(`ValidUntil is set for ${textDescription}`, () => {
+        validationLogger(`[FULL] ${textDescription}: validUntil: ${validUntil.toISOString()}, currentDate: ${currentDate.toISOString()}`);
+        pm.expect(validUntil.getTime()).to.be.above(currentDate.getTime());
+    });
+
+    if (state === "PREBOOKED") {
+        pm.test(`ConfirmableUntil is returned for ${textDescription}`, () => {
+            validationLogger(`[FULL] ${textDescription}: confirmableUntil: ${confirmableUntil.toISOString()}, currentDate: ${currentDate.toISOString()}`);
+            pm.expect(confirmableUntil.getTime()).to.be.above(currentDate.getTime());
+        });
+
+        pm.test(`Status is PREBOOKED for ${textDescription}`, () => {
+            validationLogger(`[INFO] ${textDescription}: status: ${bookedOfferPart.status}`);
+            pm.expect(["PREBOOKED"]).to.include(bookedOfferPart.status);
+        });
+    } else {
+        pm.test(`Status is FULFILLED or CONFIRMED for ${textDescription}`, () => {
+            validationLogger(`[INFO] ${textDescription}: status: ${bookedOfferPart.status}`);
+            pm.expect(["FULFILLED", "CONFIRMED"]).to.include(bookedOfferPart.status);
+        });
+    }
+
+    // Total price calculation
+    totalProvisionalOrBookingPrice += calculateTotalAmount(bookedOfferPart);
+    pm.environment.set("totalProvisionalOrBookingPrice", totalProvisionalOrBookingPrice);
+
+    // After-sale fees extraction
+    extractAfterSaleFees(bookedOfferPart, textDescription);
 };
 
-function extractAfterSaleFees(bookedofferpart, textDescription) {
-	validationLogger("[INFO] ➤➤➤ extractAfterSaleFees");
-	const conditions = bookedofferpart.afterSalesConditions;
-	let result = [];
-	let index = 0;
+extractAfterSaleFees = function (bookedOfferPart, textDescription) {
+    validationLogger("[INFO] ➤➤➤ extractAfterSaleFees");
 
-	if (!Array.isArray(conditions)) {
-		validationLogger(`[INFO] No afterSalesConditions found in bookedofferpart: ${textDescription}`);
-		return;
-	}
-	if(pm.environment.get("scenarioType").includes("EXCHANGE")) {
-		var cond = "EXCHANGE";
-	}
-	if(pm.environment.get("scenarioType").includes("REFUND")) {
-		var cond = "REFUND";
-	}
-	for (let condition of conditions) {
-		if (condition.condition === cond) {
-			const fee = condition.afterSaleFee;
-			if (fee && typeof fee.amount === "number" && fee.currency) {
-				const conditionData = {
-					condition: condition.condition,
-					amount: fee.amount,
-					currency: fee.currency
-				};
-				pm.environment.set(`afterSaleCondition_${textDescription}_amount`, fee.amount);
-				pm.environment.set(`afterSaleCondition_${textDescription}_currency`, fee.currency);
+    if (!Array.isArray(bookedOfferPart.afterSalesConditions)) {
+        validationLogger(`[INFO] No afterSalesConditions for ${textDescription}`);
+        return;
+    }
 
-				validationLogger(`[INFO] Set afterSaleCondition_${textDescription}_amount: ${fee.amount}, currency: ${fee.currency}`);
-				result.push(conditionData);
-				index++;
-			}
-		}
-	}
-}
+    const scenarioType = pm.environment.get("scenarioType");
+    const cond = scenarioType.includes("EXCHANGE") ? "EXCHANGE" : scenarioType.includes("REFUND") ? "REFUND" : null;
+    if (!cond) return;
 
+    bookedOfferPart.afterSalesConditions.forEach((condition, index) => {
+        if (condition.condition === cond && condition.afterSaleFee && typeof condition.afterSaleFee.amount === "number") {
+            const fee = condition.afterSaleFee;
+            pm.environment.set(`afterSaleCondition_${textDescription}_amount`, fee.amount);
+            pm.environment.set(`afterSaleCondition_${textDescription}_currency`, fee.currency);
 
+            validationLogger(`[INFO] Set afterSaleCondition_${textDescription}_amount: ${fee.amount}, currency: ${fee.currency}`);
+        }
+    });
+};
 
-// function calculateTotalAmount(offerPart) {
-// 	// List of object types to include
-// 	const objectTypes = ['Reservation', 'Admission', 'Fees', 'Fares', 'Ancillary'];
+calculateTotalAmount = function (bookedOfferPart) {
+    validationLogger("[INFO] ➤➤➤ calculateTotalAmount");
+    const allowedTypes = ['Reservation', 'Admission', 'Fees', 'Fares', 'Ancillary'];
 
-// 	// Function to get the amount if the object is of an allowed type
-// 	function getPriceAmount(obj) {
-// 		// Check if the object's type is in the allowed list
-// 		if (objectTypes.includes(obj.objectType)) {
-// 			const amount = obj.price?.amount || 0; // Ensure price exists before accessing amount
-// 			console.log(`Type: ${obj.objectType} → Amount: ${amount}`);
-// 			return amount;
-// 		} else {
-// 			console.log(`Type: ${obj.objectType} not included → Amount: 0`);
-// 			return 0;
-// 		}
-// 	}
+    const items = Array.isArray(bookedOfferPart) ? bookedOfferPart : [bookedOfferPart];
+    let total = 0;
 
-// 	// If offerPart is an array, calculate the sum of the amounts
-// 	if (Array.isArray(offerPart)) {
-// 		let total = 0;
-// 		for (let item of offerPart) {
-// 			total += getPriceAmount(item);
-// 		}
-// 		console.log(`Final total: ${total}`);
-// 		return total;
-// 	} else {
-// 		// If it's not an array, handle it as a single object
-// 		const amount = getPriceAmount(offerPart);
-// 		console.log(`Total for a single object: ${amount}`);
-// 		return amount;
-// 	}
-// }
+    items.forEach(item => {
+        if (allowedTypes.includes(item.objectType)) {
+            total += item.price?.amount || 0;
+        }
+    });
 
-function calculateTotalAmount(bookedOfferPart) {
-	validationLogger("[INFO] ➤➤➤ calculateTotalAmount");
-	const allowedTypes = ['Reservation', 'Admission', 'Fees', 'Fares', 'Ancillary'];
-	let total = 0;
+    validationLogger(`[INFO] Total amount for ${items.length} item(s): ${total}`);
+    return total;
+};
 
-	const items = Array.isArray(bookedOfferPart) ? bookedOfferPart : [bookedOfferPart];
-
-	for (let i = 0; i < items.length; i++) {
-		const item = items[i];
-
-		if (allowedTypes.includes(item.objectType)) {
-			const amount = item.price && item.price.amount ? item.price.amount : 0;
-			total += amount;
-		}
-	}
-	validationLogger(`[INFO] Calculating total amount for all sections Reservation, Admission, Fees, Fares, Ancillary :  ${total}`);
-	return total;
-}

@@ -99,7 +99,7 @@ function checkFulfillment(booking, fulfillment) {
 		pm.expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
 	});
 
-    pm.test(`Correct state ON_HOLD, FULFILLED or CONFIRMED is returned on fulfillment: ${fulfillment.status}`, () => {
+    pm.test(`Correct state AVAILABLE, ON_HOLD, FULFILLED or CONFIRMED is returned on fulfillment: ${fulfillment.status}`, () => {
         validationLogger(`[INFO] Fulfillment status : ${fulfillment.status}`);
         pm.expect(["FULFILLED", "CONFIRMED", "ON_HOLD", "AVAILABLE"]).to.include(fulfillment.status);
     });

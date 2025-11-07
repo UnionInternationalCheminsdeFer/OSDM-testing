@@ -177,6 +177,16 @@ function postPatchRefundOfferResponse(response, isPatchResponse = false) {
 
 // Function to validate booking response for refund
 function getBookingRefundResponse(response, scenarioType) {
+
+	if (pm.response.code !== 200) {
+		pm.execution.setNextRequest(null);
+		throw new Error(`Exiting script due to wrong response status`);
+	}
+	if (!jsonData.booking || jsonData.booking.length === 0) {
+		throw new Error("⛔ Exiting script, no booking available in the response");
+	}
+	pm.test('Successfully received booking', () => pm.expect(pm.response.code).to.eql(200));
+
 	const booking = response.booking;
 
 	if (["postRefund", "patchRefund"].includes(scenarioType)) {
@@ -263,5 +273,21 @@ function getBookingRefundResponse(response, scenarioType) {
 			pm.expect(booking).to.have.property("refundOffers").that.is.an("array");
 			pm.expect(booking.refundOffers).to.be.empty;
 		});
+	}
+
+	// Decide next request based on scenarioAction
+	const action = pm.environment.get("scenarioAction") || "";
+
+	if (action.includes("PATCH")) {
+		console.log("scenarioAction contains 'PATCH', executing 13. PATCH Refund Offer request");
+		pm.execution.setNextRequest("13. PATCH Refund Offer");
+
+	} else if (action.includes("DELETE")) {
+		console.log("scenarioAction contains 'DELETE', executing 15. DEL Refund Offers");
+		pm.execution.setNextRequest("15. DEL Refund Offers");
+
+	} else {
+		console.log("scenarioAction does not contain 'DELETE' or 'PATCH', ending test scenario...");
+		pm.execution.setNextRequest(null);
 	}
 }

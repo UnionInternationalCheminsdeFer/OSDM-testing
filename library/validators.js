@@ -17,8 +17,8 @@ var uuid = require('uuid');
 
 // Function to set the authentication token
 setAuthToken = function () {
-	let jsonData = JSON.parse(responseBody);
-	pm.environment.set(GV.ACCESS_TOKEN, jsonData.access_token);
+    let jsonData = JSON.parse(responseBody);
+    pm.environment.set(GV.ACCESS_TOKEN, jsonData.access_token);
 }
 
 function captureSwaggerSchemaValidator() {
@@ -56,7 +56,7 @@ function swaggerSchemaValidatorContent() {
             try {
                 console.log("✅ AJV script successfully loaded");
                 const scriptContent = res.text();
-				pm.environment.set("scriptContent", scriptContent)
+                pm.environment.set("scriptContent", scriptContent)
                 //AJV injection
 
 
@@ -84,7 +84,7 @@ function swaggerSchemaValidatorContent() {
 
 
 
-function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHeaders, responseBody, method, url }) {
+function swaggerSchemaValidator({ schema, requestHeaders, requestBody, responseHeaders, responseBody, method, url }) {
     function resolveRef(ref, rootSchema) {
         if (!ref.startsWith('#/')) return null;
         const path = ref.slice(2).split('/');
@@ -124,9 +124,9 @@ function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHe
         }
 
         try {
-			scriptContent = pm.environment.get("scriptContent")
-			eval(scriptContent);
-			const ajv = new Ajv();
+            scriptContent = pm.environment.get("scriptContent")
+            eval(scriptContent);
+            const ajv = new Ajv();
             const validateBody = ajv.compile(bodySchema);
             const valid = validateBody(JSON.parse(requestBody));
             if (!valid) {
@@ -147,9 +147,9 @@ function swaggerSchemaValidator({schema, requestHeaders, requestBody, responseHe
         }
 
         try {
-			scriptContent = pm.environment.get("scriptContent")
-			eval(scriptContent);
-			const ajv = new Ajv();			
+            scriptContent = pm.environment.get("scriptContent")
+            eval(scriptContent);
+            const ajv = new Ajv();
             const validateResponse = ajv.compile(responseSchema);
             const valid = validateResponse(JSON.parse(responseBody));
             if (!valid) {
@@ -197,7 +197,11 @@ function validateDataFileJsonWithTemplate(jsonData) {
 
             // Check required
             if (value === undefined || value === null) {
-                if (key === "gender" || key === "updateGender" || key === "requiresPlaceSelection" || key === "offerMode") {
+                if (key === "gender" || key === "updateGender" || key === "requiresPlaceSelection" || key === "offerMode"
+                    || key === "updateFirstName" || key === "updateLastName" || key === "updateDateOfBirth"
+                    || key === "updatePhoneNumber" || key === "updateEmail" || key === "requestedOfferParts"
+                    || key === "serviceClass" || key === "travelClass" || key === "refundDate"
+                ) {
                     validationLogger(`[INFO] ⚠️ Optional field '${fullPath}' is missing.`);
                     return;
                 }
@@ -301,23 +305,3 @@ function validateDataFileJsonWithTemplate(jsonData) {
         }
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

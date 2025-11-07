@@ -1,7 +1,7 @@
 {
     "scenarios": [
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_PATCH_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
             "scenarioType": "REFUND",
@@ -17,7 +17,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_DEL_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
             "scenarioType": "REFUND",
@@ -32,14 +32,14 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
             "scenarioType": "REFUND",
             "scenarioAction": "",
             "description": "No offer found with multipax",
             "osdmVersion": "3.0.5",
-            "desiredFlexibility": "NON_FLEXIBLE",
+            "desiredFlexibility": "FULL_FLEXIBLE",
             "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
@@ -48,14 +48,14 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_2LEG",
             "scenarioType": "REFUND",
             "scenarioAction": "",
             "description": "No offer found with multipax",
             "osdmVersion": "3.0.5",
-            "desiredFlexibility": "NON_FLEXIBLE",
+            "desiredFlexibility": "FULL_FLEXIBLE",
             "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 1,
@@ -64,13 +64,13 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG_Amsterdam_Hannover",
             "scenarioType": "REFUND",
             "scenarioAction": "",
             "osdmVersion": "3.0.5",
-            "desiredFlexibility": "NON_FLEXIBLE",
+            "desiredFlexibility": "FULL_FLEXIBLE",
             "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 2,
@@ -79,14 +79,14 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
             "scenarioType": "REFUND",
             "scenarioAction": "",
             "description": "INTERNAL_ERROR 400 Bad request",
             "osdmVersion": "3.0.5",
-            "desiredFlexibility": "NON_FLEXIBLE",
+            "desiredFlexibility": "FULL_FLEXIBLE",
             "overruleCode": "PAYMENT_FAILURE",
 			"refundDate": "null",
             "tripRequirementId": 3,
@@ -95,7 +95,7 @@
             "requestedFulfillmentOptionsListId": 1
         },
         {
-            "collection": "OTST_V1.4.1_RFND_EXCH_ALL",
+            "collection": "OTST_V1.4.6_RFND_EXCH_ALL",
 			"loggingType": "INFO",
             "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
             "scenarioType": "EXCHANGE",

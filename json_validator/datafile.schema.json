@@ -29,10 +29,29 @@
             "type": "string"
           },
           "scenarioAction": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "PATCH",
+              "DELETE",
+              ""
+            ]
           },
           "osdmVersion": {
             "type": "string"
+          },
+          "desiredFlexibility": {
+            "type": "string",
+            "enum": [
+              "FULL_FLEXIBLE",
+              "SEMI_FLEXIBLE",
+              "NON_FLEXIBLE"
+            ]
+          },
+          "refundDate": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "overruleCode": {
             "type": "string"
@@ -57,6 +76,7 @@
           "scenarioType",
           "scenarioAction",
           "osdmVersion",
+          "desiredFlexibility",
           "overruleCode",
           "tripRequirementId",
           "passengersListId",
@@ -78,10 +98,61 @@
             "items": {
               "type": "object",
               "properties": {
+                "requestedOfferParts": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "RESERVATION",
+                      "ADMISSION",
+                      "ANCILLARY"
+                    ]
+                  }
+                },
                 "currency": {
                   "type": "string",
                   "minLength": 3,
                   "maxLength": 3
+                },
+                "serviceClass": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "STANDARD"
+                    ]
+                  }
+                },
+                "travelClass": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "FIRST",
+                      "SECOND"
+                    ]
+                  }
+                },
+                "requiresPlaceSelection": {
+                  "type": "boolean"
+                },
+                "flexibilities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "FULL_FLEXIBLE",
+                      "SEMI_FLEXIBLE",
+                      "NON_FLEXIBLE"
+                    ]
+                  }
+                },
+                "offerMode": {
+                  "type": "string",
+                  "enum": [
+                    "INDIVIDUAL",
+                    "COLLECTIVE"
+                  ]
                 }
               },
               "required": [
@@ -224,11 +295,6 @@
                 "lastName",
                 "phoneNumber",
                 "email",
-                "updateFirstName",
-                "updateLastName",
-                "updateDateOfBirth",
-                "updatePhoneNumber",
-                "updateEmail",
                 "type"
               ]
             }
