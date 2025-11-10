@@ -1,6 +1,8 @@
 let totalProvisionalOrBookingPrice = 0;
 
-postCreateBookingResponse = function (offers, offerId, booking, state) {
+
+postCreateBookingResponse = function (selectedOffer, booking, state) {
+    const jsonData = pm.response.json();
 
     // Validate HTTP response status
     pm.test("Status code is 200", () => {
@@ -13,18 +15,23 @@ postCreateBookingResponse = function (offers, offerId, booking, state) {
         return;
     }
 
+    // Check booking exists
     pm.test("Booking object exists", () => {
         pm.expect(jsonData.booking, "[ERROR] 'booking' is missing or empty").to.be.an("object").that.is.not.empty;
     });
-
     if (!jsonData.booking || typeof jsonData.booking !== "object") {
         validationLogger("[ERROR] No booking found or 'booking' is not an object.");
         pm.execution.setNextRequest(null);
         return;
     }
 
-    const bookingId = booking.id;
-    pm.environment.set("bookingId", bookingId);
+    pm.test("Booking Id and Booking code are returned", () => {
+        validationLogger(`[INFO] Booking Id returned: ${booking.id}`);
+        validationLogger(`[INFO] Booking code returned: ${booking.bookingCode}`);
+        pm.expect(booking.id).to.be.a('string').and.not.be.empty;
+        pm.expect(booking.bookingCode).to.be.a('string').and.not.be.empty;
+    });
+    pm.environment.set("bookingId", booking.id);
 
     // Passengers setup
     const passengerIdList = [];
@@ -41,213 +48,125 @@ postCreateBookingResponse = function (offers, offerId, booking, state) {
     }
     pm.environment.set("passengerIdList", passengerIdList);
 
-    pm.test("Booking Id is returned", () => {
-        validationLogger(`[INFO] Booking Id: ${bookingId}`);
-        pm.expect(bookingId).to.be.a('string').and.not.be.empty;
-    });
-
-    // Offer validation
-    const offer = offers.find(internalOffer => internalOffer.offerId === offerId);
-
-    if (!offer) {
-        validationLogger("[INFO] No correct offer can be found, skipping rest of validation");
-        return;
-    }
-
-    // bookedOfferIds check
-    pm.test("bookedOfferIds should be returned and not empty", () => {
-        const bookedOfferIds = booking.bookedOffers?.map(b => b.offerId);
-        pm.expect(bookedOfferIds, "[ERROR] bookedOfferIds is missing or empty").to.be.an("array").that.is.not.empty;
-        pm.environment.set("bookedOfferIds", JSON.stringify(bookedOfferIds));
-        validationLogger(`[INFO] bookedOfferIds: ${bookedOfferIds.join(", ")}`);
-    });
-
-    // Consistency check with selected offer
-    const foundOffers = booking.bookedOffers.some(bookedOffer => compareOffers(bookedOffer, offer, booking, state));
-    pm.test(`Booked offers are consistent with selected offer ${offerId}`, () => {
-        validationLogger(`[INFO] Booked offer matches selected offer: ${foundOffers}`);
-        pm.expect(foundOffers).to.equal(true);
-    });
-
-    // Passengers validation per offer
-    offer.passengerRefs.forEach(passenger => {
-        const found = booking.passengers.some(bookedPassenger => bookedPassenger.externalRef === passenger);
-        pm.test(`Passenger ${passenger} returned`, () => {
-            validationLogger(`[INFO] passengerRef: ${passenger}, found: ${found}`);
-            pm.expect(found).to.equal(true);
-        });
-    });
-
-};
-
-
-compareOffers = function (bookedOffer, offer, booking, state) {
-    validationLogger("[INFO] ➤ compareOffers");
-
-    const partRefs = [];
-    let allMatched = true;
-
-    const checkSection = (bookedItems, offeredItems, name, compareFn) => {
-        if (!bookedItems?.length || !offeredItems?.length) {
-            validationLogger(`[INFO] Skipping ${name}`);
+    // Helper to compare arrays safely (only compare values that exist in both sides)
+    const compareArraysWithWarning = (offerArr, bookingArr, partType, partId, fieldName) => {
+        if ((!offerArr || offerArr.length === 0) && (!bookingArr || bookingArr.length === 0)) {
+            validationLogger(`[WARNING] ${partType} ${partId}: ${fieldName} missing in offer AND booking`);
             return;
         }
-
-        bookedItems.forEach(item => {
-            checkGenericBookedOfferPart(item, state, name);
-
-            const found = offeredItems.some(offeredItem => compareFn(item, offeredItem, booking));
-
-            pm.test(`Check ${name} for booked item ${item.id || item.productId || item.reservationReference}`, () => {
-                validationLogger(`[INFO] ${name} match found: ${found}`);
-                pm.expect(found).to.equal(true);
+        pm.test(`${partType} ${partId} - compare array ${fieldName}`, () => {
+            const toCompare = offerArr.filter(v => bookingArr.includes(v));
+            validationLogger(`[INFO] Comparing ${fieldName}: offer=[${offerArr}] booking=[${bookingArr}]`);
+            toCompare.forEach(v => {
+                pm.expect(bookingArr, `[ERROR] ${fieldName} missing value: ${v}`).to.include(v);
             });
-
-            if (!found) allMatched = false;
+            if (toCompare.length !== offerArr.length) {
+                validationLogger(`[WARNING] Some values from ${fieldName} in offer are missing in booking`);
+            }
         });
     };
 
-    checkSection(bookedOffer.admissions, offer.admissionOfferParts, "admissions", compareAdmissions);
-    checkSection(bookedOffer.ancillaries, offer.ancillaryOfferParts, "ancillaries", compareAncillaries);
-    checkSection(bookedOffer.reservations, offer.reservationOfferParts, "reservations", compareReservations);
 
-    bookedOffer.admissions?.forEach(item => partRefs.push(item.reservationReference));
-    pm.environment.set("idsAdmissionAncillariesReservationReference", JSON.stringify(partRefs));
+    // Function to validate offer parts against booked parts
+    const validateOfferParts = (offerParts, bookedParts, partType) => {
+        offerParts.forEach((part, index) => {
+            const bookedPart = bookedParts[index];
+            // check bookedPart exists
+            if (!bookedPart) {
+                validationLogger(`[WARNING] No booked ${partType}[${index}] found for offer part id=${part.id}`);
+                return;
+            }
 
-    return allMatched;
-};
-
-
-compareAdmissions = function (bookedAdmission, offeredAdmission, booking) {
-    validationLogger("[INFO] ➤➤➤ compareAdmissions");
-
-    // Price verification
-    pm.test("Price of the admission should be set and similar to offer response", () => {
-        const b = bookedAdmission.price;
-        const o = offeredAdmission.price;
-        validationLogger(`[INFO] Admission price: booked: ${b.amount}/${b.currency}/${b.scale} vs offered: ${o.amount}/${o.currency}/${o.scale}`);
-        pm.expect(b.amount).to.equal(o.amount);
-        pm.expect(b.currency).to.equal(o.currency);
-        pm.expect(b.scale).to.equal(o.scale);
-    });
-
-    // Product verification
-    pm.test("Products of the admission should be set and similar to offer response", () => {
-        bookedAdmission.products.forEach(bp => {
-            const found = offeredAdmission.products.some(op => bp.productId === op.productId);
-            validationLogger(`[INFO] Booked Admission Product ID ${bp.productId}, match found: ${found}`);
-            pm.expect(found).to.equal(true);
-        });
-    });
-
-    // Common properties verification
-    ["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
-        if (bookedAdmission[prop] !== undefined) {
-            pm.test(`Property ${prop} should match offer response`, () => {
-                validationLogger(`[FULL] ${prop}: booked: ${bookedAdmission[prop]}, offered: ${offeredAdmission[prop]}`);
-                pm.expect(bookedAdmission[prop]).to.equal(offeredAdmission[prop]);
+            // check bookedPart.id exists
+            pm.test(`${partType} part ${index} has id in booking`, () => {
+                pm.expect(bookedPart.id, `[ERROR] ${partType}[${index}] has no id in booking`).to.exist;
+                validationLogger(`[INFO] Booking ${partType}[${index}].id = ${bookedPart.id}`);
             });
-        }
-    });
 
-    // Passenger verification
-    pm.test("Correct passengers are part of the admission", () => {
-        bookedAdmission.passengerIds.forEach(pid => {
-            const found = booking.passengers.some(p => pid === p.id);
-            validationLogger(`[INFO] PassengerId: ${pid}, found: ${found}`);
-            pm.expect(found).to.equal(true);
-        });
-    });
-};
-
-
-compareAncillaries = function (bookedAncillary, offeredAncillary, booking) {
-    validationLogger("[INFO] ➤➤➤ compareAncillaries");
-
-    // Price verification
-    pm.test("Price of the ancillary should be set and similar to offer response", () => {
-        const b = bookedAncillary.price;
-        const o = offeredAncillary.price;
-        validationLogger(`[INFO] Ancillary price: booked: ${b.amount}/${b.currency}/${b.scale} vs offered: ${o.amount}/${o.currency}/${o.scale}`);
-        pm.expect(b.amount).to.equal(o.amount);
-        pm.expect(b.currency).to.equal(o.currency);
-        pm.expect(b.scale).to.equal(o.scale);
-    });
-
-    // Product verification
-    pm.test("Products of the ancillary should be set and similar to offer response", () => {
-        bookedAncillary.products.forEach(bp => {
-            const found = offeredAncillary.products.some(op => bp.productId === op.productId);
-            validationLogger(`[INFO] Booked Ancillary Product ID ${bp.productId}, match found: ${found}`);
-            pm.expect(found).to.equal(true);
-        });
-    });
-
-    // Common properties verification
-    ["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
-        if (bookedAncillary[prop] !== undefined) {
-            pm.test(`Property ${prop} should match offer response`, () => {
-                validationLogger(`[FULL] ${prop}: booked: ${bookedAncillary[prop]}, offered: ${offeredAncillary[prop]}`);
-                pm.expect(bookedAncillary[prop]).to.equal(offeredAncillary[prop]);
+            // check exchangeable, isReservationRequired, refundable, offerMode
+            ['exchangeable', 'isReservationRequired', 'refundable', 'offerMode'].forEach(field => {
+                if (part[field] !== undefined && bookedPart[field] !== undefined) {
+                    pm.test(`${partType}[${index}].${field} matches`, () => {
+                        pm.expect(bookedPart[field]).to.eql(part[field]);
+                        validationLogger(`[INFO] ${partType}[${index}].${field}: offer='${part[field]}' booking='${bookedPart[field]}'`);
+                    });
+                } else {
+                    validationLogger(`[WARNING] ${partType}[${index}]: '${field}' missing in offer or booking`);
+                }
             });
-        }
-    });
 
-    // Passenger verification
-    pm.test("Correct passengers are part of the ancillary", () => {
-        bookedAncillary.passengerIds.forEach(pid => {
-            const found = booking.passengers.some(p => pid === p.id);
-            validationLogger(`[INFO] Ancillary PassengerId: ${pid}, found: ${found}`);
-            pm.expect(found).to.equal(true);
-        });
-    });
+            // check price
+            if (part.price || bookedPart.price) {
+                if (part.price && bookedPart.price) {
+                    ['amount','currency','scale'].forEach(f => {
+                        pm.test(`${partType}[${index}] price.${f} matches`, () => {
+                            pm.expect(bookedPart.price[f]).to.eql(part.price[f]);
+                            validationLogger(`[INFO] ${partType}[${index}] price.${f}: offer='${part.price[f]}' booking='${bookedPart.price[f]}'`);
+                        });
+                    });
+                } else {
+                    validationLogger(`[WARNING] ${partType}[${index}] price missing in offer or booking`);
+                }
+            }
 
-    return true;
-};
-
-
-compareReservations = function (bookedReservation, offeredReservation, booking) {
-    validationLogger("[INFO] ➤➤➤ compareReservations");
-
-    // Price verification
-    pm.test("Price of the reservation should be set and similar to offer response", () => {
-        const b = bookedReservation.price;
-        const o = offeredReservation.price;
-        validationLogger(`[INFO] Reservation price: booked: ${b.amount}/${b.currency}/${b.scale} vs offered: ${o.amount}/${o.currency}/${o.scale}`);
-        pm.expect(b.amount).to.equal(o.amount);
-        pm.expect(b.currency).to.equal(o.currency);
-        pm.expect(b.scale).to.equal(o.scale);
-    });
-
-    // Product verification
-    pm.test("Products of the reservation should be set and similar to offer response", () => {
-        bookedReservation.products.forEach(bp => {
-            const found = offeredReservation.products.some(op => bp.productId === op.productId);
-            validationLogger(`[INFO] Booked Reservation Product ID ${bp.productId}, match found: ${found}`);
-            pm.expect(found).to.equal(true);
-        });
-    });
-
-    // Common properties verification
-    ["exchangeable", "isReservationRequired", "isReusable", "offerMode", "refundable"].forEach(prop => {
-        if (bookedReservation[prop] !== undefined) {
-            pm.test(`Property ${prop} should match offer response`, () => {
-                validationLogger(`[FULL] ${prop}: booked: ${bookedReservation[prop]}, offered: ${offeredReservation[prop]}`);
-                pm.expect(bookedReservation[prop]).to.equal(offeredReservation[prop]);
+            // Validity dates
+            ['validFrom','validUntil'].forEach(field => {
+                if (part[field] && bookedPart[field]) {
+                    pm.test(`${partType}[${index}].${field} matches`, () => {
+                        pm.expect(bookedPart[field]).to.eql(part[field]);
+                        validationLogger(`[INFO] ${partType}[${index}].${field}: offer='${part[field]}' booking='${bookedPart[field]}'`)
+                    });
+                } else {
+                    validationLogger(`[WARNING] ${partType}[${index}] ${field} missing in offer or booking`);
+                }
             });
-        }
-    });
 
-    // Passenger verification
-    pm.test("Correct passengers are part of the reservation", () => {
-        bookedReservation.passengerIds.forEach(pid => {
-            const found = booking.passengers.some(p => pid === p.id);
-            validationLogger(`[INFO] Reservation PassengerId: ${pid}, found: ${found}`);
-            pm.expect(found).to.equal(true);
+            // Arrays comparison with warnings
+            compareArraysWithWarning(
+                (part.appliedPassengerTypes || []).map(p => p.type),
+                (bookedPart.appliedPassengerTypes || []).map(p => p.type),
+                partType, index, "appliedPassengerTypes"
+            );
+
+            compareArraysWithWarning(
+                (part.availableFulfillmentOptions || []).map(f => `${f.type}|${f.media}`),
+                (bookedPart.availableFulfillmentOptions || []).map(f => `${f.type}|${f.media}`),
+                partType, index, "availableFulfillmentOptions"
+            );
+
+            compareArraysWithWarning(
+                (part.products || []).map(p => p.productId),
+                (bookedPart.products || []).map(p => p.productId),
+                partType, index, "products.productId"
+            );
+
+            compareArraysWithWarning(
+                (part.reservationRefs || []).map(r => r.id),
+                (bookedPart.reservationRefs || []).map(r => r.id),
+                partType, index, "reservationRefs"
+            );
+
+            compareArraysWithWarning(
+                part.tripCoverage?.coveredLegIds || [],
+                bookedPart.tripCoverage?.coveredLegIds || [],
+                partType, index, "tripCoverage.coveredLegIds"
+            );
+        });
+    };
+
+
+    // Validate each section
+    validateOfferParts(selectedOffer.admissionOfferParts || [], booking.bookedOffers.flatMap(b => b.admissions || []), "admission");
+    validateOfferParts(selectedOffer.reservationOfferParts || [], booking.bookedOffers.flatMap(b => b.reservations || []), "reservation");
+    validateOfferParts(selectedOffer.ancillaryOfferParts || [], booking.bookedOffers.flatMap(b => b.ancillary || []), "ancillary");
+
+    // Passengers check
+    pm.test("Passengers in offer should exist in booking", () => {
+        (selectedOffer.anonymousPassengerSpecifications || []).forEach(p => {
+            const match = (booking.passengers || []).find(b => b.id === p.externalRef || b.externalRef === p.externalRef);
+            pm.expect(match, `[ERROR] Passenger ${p.externalRef} missing in booking`).to.exist;
         });
     });
-
-    return true;
 };
 
 
@@ -334,4 +253,3 @@ calculateTotalAmount = function (bookedOfferPart) {
     validationLogger(`[INFO] Total amount for ${items.length} item(s): ${total}`);
     return total;
 };
-

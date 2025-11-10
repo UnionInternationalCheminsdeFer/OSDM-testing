@@ -200,7 +200,8 @@ function validateDataFileJsonWithTemplate(jsonData) {
                 if (key === "gender" || key === "updateGender" || key === "requiresPlaceSelection" || key === "offerMode"
                     || key === "updateFirstName" || key === "updateLastName" || key === "updateDateOfBirth"
                     || key === "updatePhoneNumber" || key === "updateEmail" || key === "requestedOfferParts"
-                    || key === "serviceClass" || key === "travelClass" || key === "refundDate"
+                    || key === "serviceClass" || key === "travelClass" || key === "refundDate" || key === "flexibilities"
+                    || key === "desiredFlexibility"
                 ) {
                     validationLogger(`[INFO] ⚠️ Optional field '${fullPath}' is missing.`);
                     return;

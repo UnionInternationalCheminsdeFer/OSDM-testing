@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "12efbceb-c6b7-4d5b-8440-eb1b86036489",
-		"name": "OTST_V1.4.6_RFND_EXCH_ALL",
+		"name": "OTST_V1.4.7_RFND_EXCH_ALL",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -30,8 +30,6 @@
 									"    return;",
 									"}",
 									"postOfferResponse(jsonData);",
-									"",
-									"",
 									"displayOfferResponse(jsonData);",
 									"",
 									"//swaggerSchemaValidatorContent();",
@@ -62,7 +60,7 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -78,11 +76,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -147,8 +140,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Accept",
-								"value": "application/json",
+								"key": "Content-Type",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -160,11 +153,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -220,8 +208,7 @@
 									"    return;\r",
 									"}\r",
 									"postCreateBookingResponse(\r",
-									"pm.environment.get(\"offers\"),\r",
-									"pm.environment.get(\"offerId\"),\r",
+									"pm.environment.get(\"offer\"),\r",
 									"jsonData.booking,\r",
 									"\"PREBOOKED\");\r",
 									"\r",
@@ -258,7 +245,7 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -270,16 +257,11 @@
 								"key": "Requestor",
 								"value": "{{requestor}}",
 								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
-								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{{BookingRequest}}",
+							"raw": "{{BookingRequest}}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -388,8 +370,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Accept",
-								"value": "application/json",
+								"key": "Content-Type",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -401,11 +383,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -510,8 +487,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Accept",
-								"value": "application/json",
+								"key": "Content-Type",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -523,11 +500,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -599,8 +571,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Accept",
-								"value": "application/json",
+								"key": "Content-Type",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -612,11 +584,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -691,8 +658,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Accept",
-								"value": "application/json",
+								"key": "Content-Type",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -704,11 +671,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -810,8 +772,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Accept",
-								"value": "application/json",
+								"key": "Content-Type",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -823,11 +785,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -913,17 +870,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -999,17 +951,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1066,17 +1013,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1153,17 +1095,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1243,17 +1180,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1325,17 +1257,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1419,17 +1346,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1521,17 +1443,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1545,7 +1462,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_base}}/bookings/{{bookingId}}/exchange-offers",
+							"raw": "{{api_base}}/bookings/{{bookingId}}/exchange-offers?embed=ALL",
 							"host": [
 								"{{api_base}}"
 							],
@@ -1553,6 +1470,12 @@
 								"bookings",
 								"{{bookingId}}",
 								"exchange-offers"
+							],
+							"query": [
+								{
+									"key": "embed",
+									"value": "ALL"
+								}
 							]
 						}
 					},
@@ -1622,17 +1545,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1708,17 +1626,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1786,17 +1699,12 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1866,8 +1774,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Accept",
-								"value": "application/json",
+								"key": "Content-Type",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -1879,11 +1787,6 @@
 							{
 								"key": "Requestor",
 								"value": "{{requestor}}",
-								"type": "text"
-							},
-							{
-								"key": "version",
-								"value": "{{osdmVersion}}",
 								"type": "text"
 							}
 						],
@@ -1959,7 +1862,7 @@
 							},
 							{
 								"key": "Content-Type",
-								"value": "application/json",
+								"value": "application/json;version={{osdmVersion}}",
 								"type": "text"
 							},
 							{
@@ -2092,10 +1995,43 @@
 					"# 🛠️  New Collection Execution 🛠️ #",
 					"####################################",
 					"`);",
+					"",
+					"    const keepList = [",
+					"        \"Ocp-Apim-Subscription-Key\",",
+					"        \"requestor\",",
+					"        \"access_token\",",
+					"        \"x-bnds-backend\",",
+					"        \"api_base\",",
+					"        \"data_base\",",
+					"        \"library_base\",",
+					"        \"data_file\",",
+					"        \"json_schema\",",
+					"        \"scenarioCode\",",
+					"        \"client_id\",",
+					"        \"client_secret\",",
+					"        \"ajvMinified\",",
+					"        \"api-host\",",
+					"        \"agent.username\",",
+					"        \"agent.password\",",
+					"        \"auth.key_secret\",",
+					"        \"client.id\",",
+					"        \"client.secret\"",
+					"    ];",
+					"",
+					"    console.log(\"🛠️ Cleaning all environment variables..\");",
+					"    const allVars = pm.environment.toObject();",
+					"    for (const key in allVars) {",
+					"",
+					"        if (!keepList.includes(key)) {",
+					"            pm.environment.unset(key);",
+					"        }",
+					"    }",
+					"",
+					"    console.log(\"✅ All global variables have been successfully cleared\");",
+					"",
 					"    setTimeout(2000);",
-					"    pm.environment.unset(\"osdmHelpers\");",
 					"    if (!pm.environment.get(\"osdmHelpers\")) {",
-					"        console.log(\"🛠️ Retrieving external JS scripts libraries and save in environment..\");",
+					"        console.log(\"🛠️ Retrieving  scripts libraries and save in environment..\");",
 					"        libGetter();",
 					"    }",
 					"}",

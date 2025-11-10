@@ -172,7 +172,7 @@ parseScenarioData = function (jsonData) {
 				var purchaserSpecs = [];
 				purchaserList.purchaser.forEach(function (purchaser) {
 					var osdmVersion = pm.environment.get("osdmVersion");
-					if (parseFloat(osdmVersion) > 3.4) {
+					if (parseFloat(osdmVersion) >= 3.4) {
 						purchaserSpecs.push(new PurchaserContact(
 							new DetailContact(
 								purchaser.purchaserFirstName,
