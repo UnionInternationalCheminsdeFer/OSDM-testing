@@ -3,6 +3,21 @@
         {
             "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
 			"loggingType": "INFO",
+            "code": "OTST_TKT_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "",
+            "scenarioAction": "",
+            "osdmVersion": "3.4",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "overruleCode": "",
+			"refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+		{
+            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
+			"loggingType": "INFO",
             "code": "OTST_RFND_PATCH_SRCH_CRIT_1ADT_1LEG",
             "scenarioType": "REFUND",
             "scenarioAction": "PATCH",
