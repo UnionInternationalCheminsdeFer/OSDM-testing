@@ -57,7 +57,7 @@ function validateFulfillmentId(booking) {
 // Function to validate prices
 function validatePrices(booking, fulfillmentState, totalPrice) {
     validationLogger("[INFO] ➤ validatePrices");
-    if (fulfillmentState !== undefined) {
+    if (fulfillmentState != null) {
         pm.environment.set("bookingConfirmedPrice", booking.confirmedPrice.amount);
         const bookingConfirmedPrice = pm.environment.get("bookingConfirmedPrice");
         const provisionalPrice = pm.environment.get("provisionalPrice");

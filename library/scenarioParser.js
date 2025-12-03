@@ -63,33 +63,28 @@ parseScenarioData = function (jsonData) {
 	var dataFileIndex = 0;
 	var dataFileLength = jsonData.scenarios.length;
 	var foundCorrectDataSet = false;
-	var scenarioCodes = [];
 
 	// Loop through the scenarios to find the correct data set
-	while (foundCorrectDataSet == false && dataFileIndex < dataFileLength) {
-		validationLogger("[DEBUG] 🪲 DUMMYA " + jsonData.scenarios[dataFileIndex].code + " " + scenarioCode)
-
+	while (foundCorrectDataSet === false && dataFileIndex < dataFileLength) {
 
 		// Check if the scenario code matches
-		if (jsonData.scenarios[dataFileIndex].code == scenarioCode) {
-			scenarioCodes.push(jsonData.scenarios[dataFileIndex].code);
+		if (jsonData.scenarios[dataFileIndex].code === scenarioCode) {
 
 			// Set global variables for the scenario
 			pm.environment.set("loggingType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].loggingType) ? null : jsonData.scenarios[dataFileIndex].loggingType);
-			pm.environment.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
+			pm.environment.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
 			pm.environment.set("scenarioType", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioType) ? null : jsonData.scenarios[dataFileIndex].scenarioType);
 			pm.environment.set("scenarioAction", ["", "null"].includes(jsonData.scenarios[dataFileIndex].scenarioAction) ? null : jsonData.scenarios[dataFileIndex].scenarioAction);
-			pm.environment.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
-			pm.environment.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
+			pm.environment.set("osdmVersion", ["", "null"].includes(jsonData.scenarios[dataFileIndex].osdmVersion) ? null : jsonData.scenarios[dataFileIndex].osdmVersion);
 			pm.environment.set("desiredFlexibility", ["", "null"].includes(jsonData.scenarios[dataFileIndex].desiredFlexibility) ? null : jsonData.scenarios[dataFileIndex].desiredFlexibility);
 			pm.environment.set("accommodationSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].accommodationSelection) ? null : jsonData.scenarios[dataFileIndex].accommodationSelection);
 			pm.environment.set("requiresPlaceSelection", ["", "null"].includes(jsonData.scenarios[dataFileIndex].requiresPlaceSelection) ? null : jsonData.scenarios[dataFileIndex].requiresPlaceSelection);
-			pm.environment.set("scenarioCode", jsonData.scenarios[dataFileIndex].code);
-			validationLogger("[DEBUG] 🪲 parseScenarioData2")
+			pm.environment.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
+			pm.environment.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
 
 			// Loop through trip requirements to find the matching trip requirement ID
 			jsonData.tripRequirements.some(function (tripRequirement) {
-				if (tripRequirement.id == jsonData.scenarios[dataFileIndex].tripRequirementId) {
+				if (tripRequirement.id === jsonData.scenarios[dataFileIndex].tripRequirementId) {
 
 					// Set the trip type in global variables
 					pm.environment.set("TripType", tripRequirement.tripType);
@@ -203,7 +198,7 @@ parseScenarioData = function (jsonData) {
 
 			// Loop through the passengers list to find the matching passengers list ID
 			jsonData.passengersList.some(function (passengersList) {
-				if (passengersList.id == jsonData.scenarios[dataFileIndex].passengersListId) {
+				if (passengersList.id === jsonData.scenarios[dataFileIndex].passengersListId) {
 					validationLogger('[INFO] Found number of passengers: ' + passengersList.passengers.length);
 					pm.environment.set("offerPassengerNumber", passengersList.passengers.length);
 					var offerPassengerSpecs = [];
@@ -213,8 +208,8 @@ parseScenarioData = function (jsonData) {
 					var passengerIndex = 0;
 					// Loop through the passengers and set global variables for each passenger
 					passengersList.passengers.forEach(function (passenger) {
-						var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", (passengerIndex + 1));
-						pm.environment.set(passengerKey, uuid.v4());
+						// var passengerKey = "passengerSpecification%PASSENGER_COUNT%ExternalRef".replace("%PASSENGER_COUNT%", (passengerIndex + 1));
+						// pm.environment.set(passengerKey, uuid.v4());
 						offerPassengerSpecs.push(new AnonymousPassengerSpec(
 							//pm.environment.get(passengerKey),
 							passenger.reference,
@@ -279,6 +274,10 @@ parseScenarioData = function (jsonData) {
 
 						passengerAdditionalData.push(passengerAdditionalDataStruct);
 						passengerIndex++;
+
+						if (passenger.updateFirstName == null && passenger.updateLastName == null && passenger.updateDateOfBirth == null && passenger.updateEmail == null && passenger.updatePhoneNumber == null && passenger.updateGender == null) {
+							pm.environment.set("skipPatchPassengerRequest", "true");
+						}
 					});
 
 					validationLogger('[INFO] Pushed passengerSpec to environment: ' + JSON.stringify(passengerSpecs));
@@ -336,7 +335,7 @@ parseScenarioData = function (jsonData) {
 			// Loop through the requested fulfillment options list to find the matching fulfillment options ID
 			if (Array.isArray(jsonData.requestedFulfillmentOptionsList) && jsonData.requestedFulfillmentOptionsList.length > 0) {
 				jsonData.requestedFulfillmentOptionsList.some(function (requestedFulfillmentOptionList) {
-					if (requestedFulfillmentOptionList.id == jsonData.scenarios[dataFileIndex].requestedFulfillmentOptionsListId) {
+					if (requestedFulfillmentOptionList.id === jsonData.scenarios[dataFileIndex].requestedFulfillmentOptionsListId) {
 						var requestedFulfillmentOptions = [];
 						requestedFulfillmentOptionList.requestedFulfillmentOptions.forEach(function (requestedFulfillmentOption) {
 							const fulfillmentType = requestedFulfillmentOption.fulfillmentType ?? null;
@@ -359,9 +358,9 @@ parseScenarioData = function (jsonData) {
 		}
 		dataFileIndex++;
 	}
-	if (foundCorrectDataSet == false) {
-		validationLogger("[ERROR] ⛔ Wrong scenario code. No data set found for this scenario : " + scenarioCode);
-		validationLogger("[INFO] Stop execution");
+	if (foundCorrectDataSet === false) {
+		validationLogger(`[ERROR] ⛔ Scenario code witch name :  "${scenarioCode}" not found, please check`);
+		validationLogger(`[ERROR] ⛔ Stopping execution of further requests`);
 		pm.setNextRequest(null);
 	}
 }
@@ -373,7 +372,7 @@ osdmTripSearchCriteria = function (legDefinitions) {
 		pm.expect(legDefinitions).to.be.an("array");
 		pm.expect(legDefinitions.length).to.be.above(0);
 
-		if (legDefinitions.length == 0) return; // Stop execution if legs are missing
+		if (legDefinitions.length === 0) return; // Stop execution if legs are missing
 	});
 
 	// Log a warning if multiple legs are provided
@@ -419,7 +418,7 @@ osdmTripSpecification = function (legDefinitions) {
 		pm.expect(legDefinitions).to.be.an("array");
 		pm.expect(legDefinitions.length).to.be.above(0);
 
-		if (legDefinitions.length == 0) return; // Stop execution if legs are missing
+		if (legDefinitions.length === 0) return; // Stop execution if legs are missing
 	});
 
 	// Set trip external reference in global variables
@@ -435,7 +434,7 @@ osdmTripSpecification = function (legDefinitions) {
 		var boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime));
 		var alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef), new ServiceTime(legDef.endDateTime));
 
-		var productCategory = legDef.productCategoryRef == null ?
+		var productCategory = legDef.productCategoryRef === null ?
 			null :
 			new ProductCategory(legDef.productCategoryRef, legDef.productCategoryName, legDef.productCategoryShortName);
 

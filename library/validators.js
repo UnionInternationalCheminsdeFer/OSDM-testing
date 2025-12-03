@@ -196,7 +196,7 @@ function validateDataFileJsonWithTemplate(jsonData) {
             const fullPath = path ? (key ? `${path}.${key}` : path) : key;
 
             // Check required
-            if (value === undefined || value === null) {
+            if (value == null) {
                 if (key === "gender" || key === "updateGender" || key === "requiresPlaceSelection" || key === "offerMode"
                     || key === "updateFirstName" || key === "updateLastName" || key === "updateDateOfBirth"
                     || key === "updatePhoneNumber" || key === "updateEmail" || key === "requestedOfferParts"

@@ -2,104 +2,10 @@
     "scenarios": [
         {
             "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
-			"loggingType": "INFO",
+            "loggingType": "INFO",
             "code": "OTST_RFND_PATCH_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
             "scenarioType": "REFUND",
             "scenarioAction": "PATCH",
-            "osdmVersion": "3.0.5",
-            "desiredFlexibility": "FULL_FLEXIBLE",
-            "accommodationSelection": "SEAT",
-            "requiresPlaceSelection": false,
-            "overruleCode": "PAYMENT_FAILURE",
-            "tripRequirementId": 1,
-            "passengersListId": 1,
-            "offerSearchCriteriaListId" : 1,
-            "requestedFulfillmentOptionsListId": 1
-        },
-        {
-            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
-			"loggingType": "INFO",
-            "code": "OTST_RFND_DEL_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
-            "scenarioType": "REFUND",
-            "scenarioAction": "DELETE",
-            "osdmVersion": "3.4",
-            "desiredFlexibility": "FULL_FLEXIBLE",
-            "accommodationSelection": "SEAT",
-            "overruleCode": "PAYMENT_FAILURE",
-            "tripRequirementId": 1,
-            "passengersListId": 1,
-            "offerSearchCriteriaListId" : 1,
-            "requestedFulfillmentOptionsListId": 1
-        },
-        {
-            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
-			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
-            "scenarioType": "REFUND",
-            "scenarioAction": "",
-            "description": "No offer found with multipax",
-            "osdmVersion": "3.0.5",
-            "desiredFlexibility": "FULL_FLEXIBLE",
-            "overruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
-            "tripRequirementId": 1,
-            "passengersListId": 2,
-            "offerSearchCriteriaListId" : 2,
-            "requestedFulfillmentOptionsListId": 1
-        },
-        {
-            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
-			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_2LEG",
-            "scenarioType": "REFUND",
-            "scenarioAction": "",
-            "description": "No offer found with multipax",
-            "osdmVersion": "3.0.5",
-            "desiredFlexibility": "FULL_FLEXIBLE",
-            "overruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
-            "tripRequirementId": 1,
-            "passengersListId": 3,
-            "offerSearchCriteriaListId" : 2,
-            "requestedFulfillmentOptionsListId": 1
-        },
-        {
-            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
-			"loggingType": "INFO",
-            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG_Amsterdam_Hannover",
-            "scenarioType": "REFUND",
-            "scenarioAction": "",
-            "osdmVersion": "3.0.5",
-            "desiredFlexibility": "FULL_FLEXIBLE",
-            "overruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
-            "tripRequirementId": 2,
-            "passengersListId": 1,
-            "offerSearchCriteriaListId" : 1,
-            "requestedFulfillmentOptionsListId": 1
-        },
-        {
-            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
-			"loggingType": "INFO",
-            "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
-            "scenarioType": "REFUND",
-            "scenarioAction": "",
-            "description": "INTERNAL_ERROR 400 Bad request",
-            "osdmVersion": "3.0.5",
-            "desiredFlexibility": "FULL_FLEXIBLE",
-            "overruleCode": "PAYMENT_FAILURE",
-			"refundDate": "null",
-            "tripRequirementId": 3,
-            "passengersListId": 1,
-            "offerSearchCriteriaListId": 2,
-            "requestedFulfillmentOptionsListId": 1
-        },
-        {
-            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
-			"loggingType": "INFO",
-            "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
-            "scenarioType": "EXCHANGE",
-            "scenarioAction": "",
             "osdmVersion": "3.0.5",
             "desiredFlexibility": "FULL_FLEXIBLE",
             "accommodationSelection": "COUCHETTE",
@@ -107,20 +13,126 @@
             "overruleCode": "PAYMENT_FAILURE",
             "tripRequirementId": 2,
             "passengersListId": 1,
-            "offerSearchCriteriaListId" : 1,
+            "offerSearchCriteriaListId": 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_DEL_SRCH_CRIT_1ADT_2LEG_Muenchen_Hannover",
+            "scenarioType": "REFUND",
+            "scenarioAction": "DELETE",
+            "osdmVersion": "3.0.5",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "accommodationSelection": "SEAT",
+            "overruleCode": "PAYMENT_FAILURE",
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId": 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
+            "description": "No offer found with multipax",
+            "osdmVersion": "3.0.5",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 2,
+            "offerSearchCriteriaListId": 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_2LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
+            "description": "No offer found with multipax",
+            "osdmVersion": "3.0.5",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
+            "tripRequirementId": 1,
+            "passengersListId": 3,
+            "offerSearchCriteriaListId": 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG_Amsterdam_Hannover",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
+            "osdmVersion": "3.0.5",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
+            "tripRequirementId": 2,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId": 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "",
+            "description": "INTERNAL_ERROR 400 Bad request",
+            "osdmVersion": "3.0.5",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": "null",
+            "tripRequirementId": 3,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId": 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V1.4.7_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_EXCH_SRCH_CRIT_1ADT_2LEG_Amsterdam_Hannover",
+            "scenarioType": "EXCHANGE",
+            "scenarioAction": "",
+            "osdmVersion": "3.0.5",
+            "desiredFlexibility": "FULL_FLEXIBLE",
+            "accommodationSelection": "COUCHETTE",
+            "requiresPlaceSelection": true,
+            "overruleCode": "PAYMENT_FAILURE",
+            "tripRequirementId": 2,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId": 1,
             "requestedFulfillmentOptionsListId": 1
         }
     ],
-	"offerSearchCriteriaList": [
+    "offerSearchCriteriaList": [
         {
             "id": 1,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
+                    "requestedOfferParts": [
+                        "RESERVATION",
+                        "ADMISSION",
+                        "ANCILLARY"
+                    ],
                     "currency": "EUR",
-                    "serviceClass": ["STANDARD"],
-                    "travelClass": ["SECOND"],
-                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
+                    "serviceClass": [
+                        "STANDARD"
+                    ],
+                    "travelClass": [
+                        "SECOND"
+                    ],
+                    "flexibilities": [
+                        "FULL_FLEXIBLE",
+                        "SEMI_FLEXIBLE",
+                        "NON_FLEXIBLE"
+                    ],
                     "offerMode": "INDIVIDUAL"
                 }
             ]
@@ -129,11 +141,23 @@
             "id": 2,
             "offerSearchCriteria": [
                 {
-                    "requestedOfferParts": ["RESERVATION", "ADMISSION", "ANCILLARY"],
+                    "requestedOfferParts": [
+                        "RESERVATION",
+                        "ADMISSION",
+                        "ANCILLARY"
+                    ],
                     "currency": "EUR",
-                    "serviceClass": ["STANDARD"],
-                    "travelClass": ["SECOND"],
-                    "flexibilities": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"],
+                    "serviceClass": [
+                        "STANDARD"
+                    ],
+                    "travelClass": [
+                        "SECOND"
+                    ],
+                    "flexibilities": [
+                        "FULL_FLEXIBLE",
+                        "SEMI_FLEXIBLE",
+                        "NON_FLEXIBLE"
+                    ],
                     "offerMode": "COLLECTIVE"
                 }
             ]
@@ -154,26 +178,24 @@
         {
             "id": 1,
             "tripType": "SEARCH",
-            "trip": 
-                {
-                    "description": "Muenchen Hbf(8000600) to Hannover Hbf(8000152) - intermediates : Nürnberg Hbf(8096025) to Würzburg Hbf(8000260)",
-                    "origin": "urn:uic:stn:8000600",
-                    "destination": "urn:uic:stn:8600626",
-                    "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
-                }
+            "trip": {
+                "description": "Muenchen Hbf(8000600) to Hannover Hbf(8000152) - intermediates : Nürnberg Hbf(8096025) to Würzburg Hbf(8000260)",
+                "origin": "urn:uic:stn:8000600",
+                "destination": "urn:uic:stn:8600626",
+                "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
+                "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
+            }
         },
         {
             "id": 2,
             "tripType": "SEARCH",
-            "trip": 
-                {
-                    "description": "Amsterdam Centraal(8400058) to Hannover Hbf(8000152) - intermediates : Utrecht Centraal(8400621) to Osnabrück Hbf(8049700)",
-                    "origin": "urn:uic:stn:8400058",
-                    "destination": "urn:uic:stn:8000600",
-                    "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
-                    "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
-                }
+            "trip": {
+                "description": "Amsterdam Centraal(8400058) to Hannover Hbf(8000152) - intermediates : Utrecht Centraal(8400621) to Osnabrück Hbf(8049700)",
+                "origin": "urn:uic:stn:8400058",
+                "destination": "urn:uic:stn:8000600",
+                "startDatetime": "%TRIP_DATE%T00:00:00+02:00",
+                "endDatetime": "%TRIP_DATE%T00:00:00+02:00"
+            }
         },
         {
             "id": 3,
@@ -226,16 +248,10 @@
                     "dateOfBirth": "1999-01-01",
                     "firstName": "John",
                     "lastName": "Doe",
-					"phoneNumber": "+33612345678",
-					"email": "email@email.com",
-                    "gender": "MALE",
-                    "updateFirstName": "JohnUpdate",
-                    "updateLastName": "DoeUpdate",
-                    "updateDateOfBirth": "1999-01-02",
-					"updatePhoneNumber": "+33612345679",
-					"updateEmail": "email@email.com",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
                     "type": "PERSON",
-                                        "updateGender": "MALE"
+                    "updateFirstName": "JohnUpdate"
                 }
             ]
         },
@@ -247,13 +263,13 @@
                     "dateOfBirth": "1999-01-01",
                     "firstName": "John",
                     "lastName": "Doe",
-					"phoneNumber": "+33612345678",
-					"email": "email@email.com",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
-					"updatePhoneNumber": "+33612345679",
-					"updateEmail": "email@email.com",
+                    "updatePhoneNumber": "+33612345679",
+                    "updateEmail": "email@email.com",
                     "type": "PERSON"
                 },
                 {
@@ -261,13 +277,13 @@
                     "dateOfBirth": "1999-01-03",
                     "firstName": "Marta",
                     "lastName": "Doe",
-					"phoneNumber": "+33612345678",
-					"email": "email@email.com",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
                     "updateFirstName": "MartaUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-04",
-					"updatePhoneNumber": "+33612345679",
-					"updateEmail": "email@email.com",
+                    "updatePhoneNumber": "+33612345679",
+                    "updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]
@@ -285,8 +301,8 @@
                     "updateFirstName": "JohnUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-02",
-					"updatePhoneNumber": "+33612345679",
-					"updateEmail": "email@email.com",
+                    "updatePhoneNumber": "+33612345679",
+                    "updateEmail": "email@email.com",
                     "type": "PERSON"
                 },
                 {
@@ -299,8 +315,8 @@
                     "updateFirstName": "MartaUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "1999-01-04",
-					"updatePhoneNumber": "+33612345679",
-					"updateEmail": "email@email.com",
+                    "updatePhoneNumber": "+33612345679",
+                    "updateEmail": "email@email.com",
                     "type": "PERSON"
                 },
                 {
@@ -313,8 +329,8 @@
                     "updateFirstName": "AliceUpdate",
                     "updateLastName": "DoeUpdate",
                     "updateDateOfBirth": "2010-01-02",
-					"updatePhoneNumber": "+33612345679",
-					"updateEmail": "email@email.com",
+                    "updatePhoneNumber": "+33612345679",
+                    "updateEmail": "email@email.com",
                     "type": "PERSON"
                 }
             ]

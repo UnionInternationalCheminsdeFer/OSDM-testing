@@ -263,10 +263,10 @@ displayFulFilledBooking = function (response) {
 						: 'Not available'
 				}`);
 				validationLogger(`[FULL]       Refundable: ${
-					reservation?.refundable !== undefined ? reservation.refundable : 'Not available'
+					reservation?.refundable != null ? reservation.refundable : 'Not available'
 				}`);
 				validationLogger(`[FULL]       Exchangeable: ${
-					reservation?.exchangeable !== undefined ? reservation.exchangeable : 'Not available'
+					reservation?.exchangeable != null ? reservation.exchangeable : 'Not available'
 				}`);
 			});
 		});

@@ -175,12 +175,12 @@
 					"phoneNumber": "+33612345678",
 					"email": "email@email.com",
                     "gender" : "X",
+                    "type": "PERSON",
                     "updateFirstName": "johnupdate",
                     "updateLastName": "doeupdate",
                     "updateDateOfBirth": "1999-01-02",
 					"updatePhoneNumber": "+33612345679",
 					"updateEmail": "email@email.com",
-                    "type": "PERSON",
                     "updateGender": "MALE"
                 }
             ]
