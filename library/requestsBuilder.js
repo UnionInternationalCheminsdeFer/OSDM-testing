@@ -231,13 +231,10 @@ function requestExchangeOperationsBody() {
 
 	const exchangeOffersOfferId = pm.environment.get('exchangeOffersOfferId');
 	const bookingPassengerReferences = pm.environment.get('bookingPassengerReferences');
-	const placeSelectionsRaw = pm.environment.get('placeSelections');
-	let placeSelections = JSON.parse(placeSelectionsRaw);
 	const body = {
 		exchangeOffers: [
 			{
 				offerId: exchangeOffersOfferId,
-				...(placeSelections && { placeSelections }),
 				passengerRefs: JSON.parse(bookingPassengerReferences)
 			}
 		]

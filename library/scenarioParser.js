@@ -21,7 +21,12 @@ getScenarioData = function () {
 				validateDataFileJsonWithTemplate(pm.environment.get("data_base_tmp"));
 				validationLogger("[DEBUG] 🪲 getScenarioData")
 
-				parseScenarioData(jsonData);
+				// Sleep for 1 second to ensure environment variable is set before parsing
+				// This is a workaround for asynchronous behavior in Postman
+				setTimeout(() => {
+					validationLogger("[DEBUG] 🪲 getScenarioData after timeout")
+					parseScenarioData(jsonData);
+				}, 1000);
 			}
 		});
 	} else if (pm.environment.has('data_file')) {
@@ -359,9 +364,9 @@ parseScenarioData = function (jsonData) {
 		dataFileIndex++;
 	}
 	if (foundCorrectDataSet === false) {
-		validationLogger(`[ERROR] ⛔ Scenario code witch name :  "${scenarioCode}" not found, please check`);
+		validationLogger(`[ERROR] ⛔ Scenario code with name :  "${scenarioCode}" not found, please check`);
 		validationLogger(`[ERROR] ⛔ Stopping execution of further requests`);
-		pm.setNextRequest(null);
+		return;
 	}
 }
 

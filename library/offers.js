@@ -65,6 +65,8 @@ postOfferResponsePreRequest = function () {
 }
 
 function ensureAuthorizationOr403() {
+	validationLogger("[INFO] ➤ ensureAuthorizationOr403");
+	validationLogger("[INFO] Run a preoffer authorization check to avoid 403 errors ...");
 	function resolveVars(str) {
 		if (!str) return str;
 		return str.replace(/\{\{([^}]+)\}\}/g, (match, varName) => {
@@ -98,6 +100,11 @@ function ensureAuthorizationOr403() {
 		if (res && (res.code === 403 || res.code === 401)) {
 			console.log("⛔ Stop: Access forbidden (403)  or Unauthorized (401). Check permissions. Access token could be expired.")
 			pm.execution.setNextRequest(null);
+		} else if (res && res.code == 400) {
+			console.log("⛔ Stop: Bad Request (400). Check request parameters and body. Issue probably due to authorization. Check above logs for details.");
+			pm.execution.setNextRequest(null);
+		} else {
+			validationLogger("[INFO] ✅ Authorization check passed.");
 		}
 	});
 }

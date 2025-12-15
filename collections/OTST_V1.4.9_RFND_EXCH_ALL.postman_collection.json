@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "12efbceb-c6b7-4d5b-8440-eb1b86036489",
-		"name": "OTST_V1.4.8_RFND_EXCH_ALL",
+		"name": "OTST_V1.4.9_RFND_EXCH_ALL",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14251770"
 	},
@@ -135,8 +135,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -258,8 +257,7 @@
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"buildBookingRequest();\r",
-									"ensureAuthorizationOr403();"
+									"buildBookingRequest();"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -379,7 +377,6 @@
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();\r",
 									"\r",
 									"let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
 									"\r",
@@ -530,7 +527,6 @@
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();\r",
 									"\r",
 									"let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
 									"\r",
@@ -654,8 +650,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -746,8 +741,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -863,8 +857,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -921,7 +914,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"",
@@ -972,7 +964,10 @@
 									"});",
 									"",
 									"postPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus=[\"PROPOSED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
-								]
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						},
 						{
@@ -981,7 +976,6 @@
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);",
-									"ensureAuthorizationOr403();",
 									"",
 									"if (pm.environment.get(\"refundDate\") !== null) {",
 									"    requestRefundOffersBody(pm.environment.get(\"overruleCode\"), pm.environment.get(\"refundDate\"));",
@@ -1095,8 +1089,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -1199,8 +1192,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -1300,8 +1292,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -1410,8 +1401,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -1484,8 +1474,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -1603,8 +1592,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -1700,7 +1688,6 @@
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();\r",
 									"\r",
 									"requestExchangeOffersBody(pm.environment.get(\"overruleCode\"));\r",
 									""
@@ -1824,7 +1811,6 @@
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
 									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();\r",
 									"\r",
 									"requestExchangeOperationsBody();"
 								],
@@ -1935,8 +1921,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -2023,11 +2008,13 @@
 									"    //pm.execution.setNextRequest(\"13. PATCH Refund Offer\");",
 									"    //console.log(\"scenarioAction in data file contains 'PATCH' keyword, executing 13. PATCH Refund Offer\")",
 									"} else if(pm.environment.get(\"scenarioAction\").includes(\"DELETE\")) {",
-									"    pm.execution.setNextRequest(\"15. 15. DEL Exchange Offer\");",
+									"    pm.execution.setNextRequest(\"15. DEL Exchange Offer\");",
 									"    console.log(\"scenarioAction in data file contains 'DELETE' keyword, executing 15. DEL Exchange Offer\")    ",
 									"} else{",
 									"    console.log(\"scenarioAction in data file doesn't contain 'PATCH' or 'DELETE' keyword, ending test scenario ...\")    ",
-									"    pm.execution.setNextRequest(null);",
+									"    pm.execution.setNextRequest(\"14. POST Obtaining Fulfillments from Booking\");",
+									"",
+									"    //pm.execution.setNextRequest(null);",
 									"}"
 								],
 								"type": "text/javascript",
@@ -2040,8 +2027,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -2140,8 +2126,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -2246,8 +2231,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -2299,7 +2283,7 @@
 					"response": []
 				},
 				{
-					"name": "15. DEL Exchange Offer",
+					"name": "16. DEL Exchange Offer",
 					"event": [
 						{
 							"listen": "test",
@@ -2345,8 +2329,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -2444,8 +2427,7 @@
 							"script": {
 								"exec": [
 									"eval(pm.environment.get(\"osdmHelpers\"));\r",
-									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-									"ensureAuthorizationOr403();"
+									"console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
 								],
 								"type": "text/javascript",
 								"packages": {},
