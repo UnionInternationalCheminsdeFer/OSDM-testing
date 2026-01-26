@@ -1,0 +1,2618 @@
+{
+  "info": {
+    "_postman_id": "12efbceb-c6b7-4d5b-8440-eb1b86036489",
+    "name": "OTST_V1.4.9.1_RFND_EXCH_ALL",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "14251770"
+  },
+  "item": [
+    {
+      "name": "Common Requests",
+      "item": [
+        {
+          "name": "01. POST Get Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(`Status code is 200`, () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "// Stop flow if status != 200",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "",
+                  "postOfferResponse(jsonData);",
+                  "displayOfferResponse(jsonData);",
+                  "",
+                  "//swaggerSchemaValidatorContent();",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "postOfferResponsePreRequest();"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{OfferCollectionRequest}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/offers",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "offers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02. GET Place Maps for Reservation of Offer (Bileto env)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);\r",
+                  "var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
+                  "var preSelection = coach.compartments[0];\r",
+                  "pm.environment.set(\"preselectedCoach\", coach);\r",
+                  "pm.environment.set(\"preselectedPlace\", preSelection.place);\r",
+                  "pm.environment.set(\"layoutId\", coach.layoutId)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Access-Token",
+                "value": "{{access_token}}",
+                "description": "Legacy Authorization Header; remove for 2.0",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/availabilities/place-map?contextId={{offerId}}&contextType=OFFER&resourceId={{reservationId}}&resourceType=RESERVATION",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "availabilities",
+                "place-map"
+              ],
+              "query": [
+                {
+                  "key": "contextId",
+                  "value": "{{offerId}}"
+                },
+                {
+                  "key": "contextType",
+                  "value": "OFFER"
+                },
+                {
+                  "key": "resourceId",
+                  "value": "{{reservationId}}"
+                },
+                {
+                  "key": "resourceType",
+                  "value": "RESERVATION"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03. POST Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.response.code !== 200) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "postCreateBookingResponse(\r",
+                  "pm.environment.get(\"offer\"),\r",
+                  "jsonData,\r",
+                  "expectedBookedOffersStatus=[\"PREBOOKED\"],\r",
+                  "expectedFulfillmentStatus=[\"ON_HOLD\",\"AVAILABLE\"]);\r",
+                  "\r",
+                  "pm.environment.unset(\"currentPassengerIndex\");\r",
+                  "//console.log(\"Waiting 2 secs before executing 05. PATCH Multi Passenger...\");\r",
+                  "//setTimeout(() => {}, 2000);\r",
+                  "\r",
+                  "if(pm.environment.get(\"skipPatchPassengerRequest\") === \"true\"){\r",
+                  "    pm.execution.setNextRequest(\"06. GET Passenger\");\r",
+                  "} else {\r",
+                  "    pm.execution.setNextRequest(\"05. PATCH Multi Passenger\");\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+                  "buildBookingRequest();"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{BookingRequest}}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05. PATCH Multi Passenger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.response.code !== 200) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "if (!jsonData.passenger || jsonData.passenger.length === 0) {\r",
+                  "    throw new Error(\"⛔ Exiting script, no passenger available in the response\");\r",
+                  "}\r",
+                  "pm.test('Successfully received passenger', () => pm.expect(pm.response.code).to.eql(200));\r",
+                  "\r",
+                  "let totalPassengers = Number(pm.environment.get(\"offerPassengerNumber\"));\r",
+                  "let currentIndex = Number(pm.environment.get(\"currentPassengerIndex\"));\r",
+                  "if (isNaN(currentIndex)) {\r",
+                  "    currentIndex = 0;\r",
+                  "    pm.environment.set(\"currentPassengerIndex\", 0);\r",
+                  "}\r",
+                  "patchMultiPassengerResponse(jsonData, currentIndex);\r",
+                  "\r",
+                  "currentIndex++;\r",
+                  "pm.environment.set(\"currentPassengerIndex\", currentIndex);\r",
+                  "\r",
+                  "if (currentIndex < totalPassengers) {\r",
+                  "    pm.execution.setNextRequest(pm.info.requestName);\r",
+                  "} else {\r",
+                  "    pm.execution.setNextRequest(\"06. GET Passenger\");\r",
+                  "    pm.environment.set(\"currentPassengerIndex\", 0);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+                  "\r",
+                  "let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
+                  "\r",
+                  "let passengerAdditionalData = JSON.parse(pm.environment.get(\"passengerAdditionalData\") || \"[]\");\r",
+                  "let bookingPassengerSpecifications = JSON.parse(pm.environment.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
+                  "let bookingPassengerReferences = JSON.parse(pm.environment.get(\"bookingPassengerReferences\") || \"[]\");\r",
+                  "let totalPassengers = pm.environment.get(\"offerPassengerNumber\") || 0;\r",
+                  "let currentIndex = pm.environment.get(\"currentPassengerIndex\") || 0;\r",
+                  "\r",
+                  "if (currentIndex >= totalPassengers) {\r",
+                  "    console.log(\"✅ All passengers processed\");\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "let passengerId = passengerIdList[currentIndex];\r",
+                  "let data = passengerAdditionalData[currentIndex];\r",
+                  "let passengersRef = bookingPassengerReferences[currentIndex];\r",
+                  "let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
+                  "\r",
+                  "pm.environment.set(\"passengerId\", passengerId);\r",
+                  "pm.environment.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
+                  "\r",
+                  "pm.environment.set(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\r",
+                  "pm.environment.set(\"patchFirstName\", data.updateFirstName || \"\");\r",
+                  "pm.environment.set(\"patchLastName\", data.updateLastName || \"\");\r",
+                  "pm.environment.set(\"patchEmail\", data.updateEmail || \"\");\r",
+                  "pm.environment.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
+                  "pm.environment.set(\"patchGender\", data.updateGender || passengerGender.gender);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Access-Token",
+                "value": "{{access_token}}",
+                "description": "Legacy Authorization Header; remove for 2.0",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": \"{{passengerId}}\",\r\n  \"externalRef\": \"{{passengerSpecificationExternalRef}}\",\r\n  \"dateOfBirth\": \"{{patchDateOfBirth}}\",\r\n  \"type\": \"PERSON\",\r\n  \"gender\": \"{{patchGender}}\",\r\n  \"detail\": {\r\n    \"firstName\": \"{{patchFirstName}}\",\r\n    \"lastName\": \"{{patchLastName}}\",\r\n    \"contact\": {\r\n      \"email\": \"{{patchEmail}}\",\r\n      \"phoneNumber\": \"{{patchPhoneNumber}}\"\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "passengers",
+                "{{passengerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06. GET Passenger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.response.code !== 200) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "if (!jsonData.passenger || jsonData.passenger.length === 0) {\r",
+                  "    throw new Error(\"⛔ Exiting script, no passenger available in the response\");\r",
+                  "}\r",
+                  "pm.test('Successfully received passenger', () => pm.expect(pm.response.code).to.eql(200));\r",
+                  "\r",
+                  "let totalPassengers = Number(pm.environment.get(\"offerPassengerNumber\"));\r",
+                  "let currentIndex = Number(pm.environment.get(\"currentPassengerIndex\"));\r",
+                  "if (isNaN(currentIndex)) {\r",
+                  "    currentIndex = 0;\r",
+                  "    pm.environment.set(\"currentPassengerIndex\", 0);\r",
+                  "}\r",
+                  "patchMultiPassengerResponse(jsonData, currentIndex);\r",
+                  "\r",
+                  "currentIndex++;\r",
+                  "pm.environment.set(\"currentPassengerIndex\", currentIndex);\r",
+                  "\r",
+                  "if (currentIndex < totalPassengers) {\r",
+                  "    pm.execution.setNextRequest(pm.info.requestName);\r",
+                  "} else {\r",
+                  "    pm.execution.setNextRequest(\"07. GET Booking before Fulfillments\");\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+                  "\r",
+                  "let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
+                  "\r",
+                  "let passengerAdditionalData = JSON.parse(pm.environment.get(\"passengerAdditionalData\") || \"[]\");\r",
+                  "let bookingPassengerSpecifications = JSON.parse(pm.environment.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
+                  "let bookingPassengerReferences = JSON.parse(pm.environment.get(\"bookingPassengerReferences\") || \"[]\");\r",
+                  "let totalPassengers = pm.environment.get(\"offerPassengerNumber\") || 0;\r",
+                  "let currentIndex = pm.environment.get(\"currentPassengerIndex\") || 0;\r",
+                  "\r",
+                  "let passengerId = passengerIdList[currentIndex];\r",
+                  "let data = passengerAdditionalData[currentIndex];\r",
+                  "let passengersRef = bookingPassengerReferences[currentIndex];\r",
+                  "let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
+                  "\r",
+                  "if (currentIndex >= totalPassengers) {\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "pm.environment.set(\"passengerId\", passengerId);\r",
+                  "pm.environment.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
+                  "\r",
+                  "pm.environment.set(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\r",
+                  "pm.environment.set(\"patchFirstName\", data.updateFirstName || \"\");\r",
+                  "pm.environment.set(\"patchLastName\", data.updateLastName || \"\");\r",
+                  "pm.environment.set(\"patchEmail\", data.updateEmail || \"\");\r",
+                  "pm.environment.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
+                  "pm.environment.set(\"patchGender\", data.updateGender || passengerGender.gender);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Access-Token",
+                "value": "{{access_token}}",
+                "description": "Legacy Authorization Header; remove for 2.0",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "passengers",
+                "{{passengerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07. GET Booking before Fulfillments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.response.code !== 200) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "postCreateBookingResponse(\r",
+                  "pm.environment.get(\"offer\"),\r",
+                  "jsonData,\r",
+                  "expectedBookedOffersStatus=[\"PREBOOKED\"],\r",
+                  "expectedFulfillmentStatus=[\"ON_HOLD\",\"AVAILABLE\"]);\r",
+                  "\r",
+                  "displayFulFilledBooking(jsonData);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Access-Token",
+                "value": "{{access_token}}",
+                "description": "Legacy Authorization Header; remove for 2.0",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08. POST Obtaining Fulfillments from Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test('Status code is 200 or 202', () => {\r",
+                  "    pm.expect([200, 202]).to.include(pm.response.code);\r",
+                  "});\r",
+                  "\r",
+                  "if (![200, 202].includes(pm.response.code)) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "validateFulfillments(jsonData.fulfillments, 0, expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"])\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Access-Token",
+                "value": "{{access_token}}",
+                "description": "Legacy Authorization Header; remove for 2.0",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/fulfillments",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "fulfillments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09. GET Booking after Fulfillments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.response.code !== 200) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "postCreateBookingResponse(\r",
+                  "pm.environment.get(\"offer\"),\r",
+                  "jsonData,\r",
+                  "expectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],\r",
+                  "expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);\r",
+                  "\r",
+                  "displayFulFilledBooking(jsonData);\r",
+                  "\r",
+                  "if(pm.environment.get(\"scenarioType\")?.includes(\"REFUND\")) {\r",
+                  "    pm.execution.setNextRequest(\"10. POST Refund Offers\");\r",
+                  "    console.log(\"scenarioType in data file contains 'REFUND' keyword, executing 10. POST Refund Offers\")\r",
+                  "} else if(pm.environment.get(\"scenarioType\")?.includes(\"EXCHANGE\")) {\r",
+                  "    pm.execution.setNextRequest(\"10. POST Exchange Offers\");\r",
+                  "    console.log(\"scenarioType in data file contains 'EXCHANGE' keyword, executing 10. POST Exchange Offers\")    \r",
+                  "} else{\r",
+                  "    console.log(\"scenarioType in data file doesn't contain 'REFUND' or 'EXCHANGE' keyword, ending test scenario ...\")    \r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Access-Token",
+                "value": "{{access_token}}",
+                "description": "Legacy Authorization Header; remove for 2.0",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Refund",
+      "item": [
+        {
+          "name": "10. POST Refund Offers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "",
+                  "// Ensure refundOffers is always an array with the expected structure",
+                  "if (!jsonData.refundOffers) {",
+                  "    throw new Error(\"⛔ Exiting script, refundOffers property is missing in the response\");",
+                  "}",
+                  "",
+                  "// Convert to array if it's not already (defensive programming)",
+                  "if (!Array.isArray(jsonData.refundOffers)) {",
+                  "    jsonData.refundOffers = [jsonData.refundOffers];",
+                  "}",
+                  "",
+                  "// Validate array is not empty",
+                  "if (jsonData.refundOffers.length === 0) {",
+                  "    throw new Error(\"⛔ Exiting script, no refundOffers available in the response\");",
+                  "}",
+                  "",
+                  "// Normalize the array structure - ensure each offer has at least an id property",
+                  "jsonData.refundOffers = jsonData.refundOffers.map(offer => {",
+                  "    if (!offer || typeof offer !== 'object') {",
+                  "        throw new Error(\"⛔ Invalid refundOffer item in array\");",
+                  "    }",
+                  "    return offer;",
+                  "});",
+                  "",
+                  "postPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus=[\"PROPOSED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);",
+                  "",
+                  "if (pm.environment.get(\"refundDate\") !== null) {",
+                  "    requestRefundOffersBody(pm.environment.get(\"overruleCode\"), pm.environment.get(\"refundDate\"));",
+                  "} else {",
+                  "    requestRefundOffersBody(pm.environment.get(\"overruleCode\"), null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            }
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type2",
+                "value": "application/json;version={{osdm-version}}",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{requestRefundOffersBodyData}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "refund-offers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. GET Refund Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "if (!jsonData.refundOffer || jsonData.refundOffer.length === 0) {",
+                  "    throw new Error(\"⛔ Exiting script, no refundOffer available in the response\");",
+                  "}",
+                  "",
+                  "postPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus = [\"PROPOSED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundOffersOfferId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "refund-offers",
+                "{{refundOffersOfferId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. GET Booking before Patch Refund",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "postCreateBookingResponse(",
+                  "pm.environment.get(\"offer\"),",
+                  "jsonData,",
+                  "expectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],",
+                  "expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);",
+                  "",
+                  "displayFulFilledBooking(jsonData);",
+                  "",
+                  "if(pm.environment.get(\"scenarioAction\")?.includes(\"PATCH\")) {",
+                  "    pm.execution.setNextRequest(\"13. PATCH Refund Offer\");",
+                  "    console.log(\"scenarioAction in data file contains 'PATCH' keyword, executing 13. PATCH Refund Offer\")",
+                  "} else if(pm.environment.get(\"scenarioAction\")?.includes(\"DELETE\")) {",
+                  "    pm.execution.setNextRequest(\"15. DEL Refund Offer\");",
+                  "    console.log(\"scenarioAction in data file contains 'DELETE' keyword, executing 15. DEL Refund Offer\")    ",
+                  "} else{",
+                  "    console.log(\"scenarioAction in data file doesn't contain 'PATCH' or 'DELETE' keyword, ending test scenario ...\")    ",
+                  "    pm.execution.setNextRequest(null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ],
+              "query": [
+                {
+                  "key": "embed",
+                  "value": "ALL"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13. PATCH Refund Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "let refundOffersArray = [];",
+                  "let jsonDataToArray;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "    if (jsonData.refundOffer) {",
+                  "        refundOffersArray.push(jsonData.refundOffer);",
+                  "    }",
+                  "    jsonDataToArray = {",
+                  "        refundOffers: refundOffersArray",
+                  "    };    ",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "if (!jsonData.refundOffer || jsonData.refundOffer.length === 0) {",
+                  "    throw new Error(\"⛔ Exiting script, no refundOffer available in the response\");",
+                  "}",
+                  "postPatchRefundOfferResponse(jsonDataToArray, expectedexchangeOperationStatus = [\"CONFIRMED\"], expectedFulfillmentStatus=[\"REFUNDED\"]);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            }
+          },
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundOffersOfferId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "refund-offers",
+                "{{refundOffersOfferId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14. GET Booking after Patch Refund",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "if (!jsonData.booking || jsonData.booking.length === 0) {",
+                  "    throw new Error(\"⛔ Exiting script, no booking available in the response\");",
+                  "}",
+                  "postCreateBookingResponse(",
+                  "pm.environment.get(\"offer\"),",
+                  "jsonData,",
+                  "expectedBookedOffersStatus=[\"REFUNDED\"],",
+                  "expectedFulfillmentStatus=[\"REFUNDED\"]);",
+                  "",
+                  "displayFulFilledBooking(jsonData);",
+                  "pm.execution.setNextRequest(null);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ],
+              "query": [
+                {
+                  "key": "embed",
+                  "value": "ALL"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15. DEL Refund Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if(pm.environment.get(\"isRefundConfirmed\")) {\r",
+                  "    pm.test(\"Status code is 404, refund offer has been confirmed\", function () {\r",
+                  "        pm.response.to.have.status(404);\r",
+                  "    });\r",
+                  "} else {\r",
+                  "    pm.test(\"Status code is 204, offer is deleted\", function () {\r",
+                  "        pm.response.to.have.status(204);\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            }
+          },
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundOffersOfferId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "refund-offers",
+                "{{refundOffersOfferId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "16. GET Booking after Delete Refund",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "",
+                  "if (!jsonData.booking || jsonData.booking.length === 0) {",
+                  "    throw new Error(\"⛔ Exiting script, no booking available in the response\");",
+                  "}",
+                  "",
+                  "if(pm.environment.get(\"isRefundConfirmed\")) {",
+                  "    postCreateBookingResponse(",
+                  "    pm.environment.get(\"offer\"),",
+                  "    jsonData,",
+                  "    expectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],",
+                  "    expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);",
+                  "} else {",
+                  "    postCreateBookingResponse(",
+                  "    pm.environment.get(\"offer\"),",
+                  "    jsonData,",
+                  "    expectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],",
+                  "    expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);",
+                  "}",
+                  "displayFulFilledBooking(jsonData);",
+                  "pm.execution.setNextRequest(null);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ],
+              "query": [
+                {
+                  "key": "embed",
+                  "value": "ALL"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Exchange",
+      "item": [
+        {
+          "name": "10. POST Exchange Offers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.response.code !== 200) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "postPatchExchangeOffersResponse(jsonData, expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+                  "\r",
+                  "requestExchangeOffersBody(pm.environment.get(\"overruleCode\"));\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            }
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type2",
+                "value": "application/json;version={{osdm-version}}",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{requestExchangeOffersBodyData}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/exchange-offers?embed=ALL",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "exchange-offers"
+              ],
+              "query": [
+                {
+                  "key": "embed",
+                  "value": "ALL"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. POST Exchange Operations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);\r",
+                  "});\r",
+                  "\r",
+                  "if (pm.response.code !== 200) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "if (!jsonData.exchangeOperation || jsonData.exchangeOperation.length === 0) {\r",
+                  "    throw new Error(\"⛔ Exiting script, no exchangeOffers available in the response\");\r",
+                  "}\r",
+                  "pm.test('Successfully received exchangeOffers', () => pm.expect(pm.response.code).to.eql(200));\r",
+                  "\r",
+                  "postPatchExchangeOperationsResponse(jsonData, expectedexchangeOperationStatus = [\"PREBOOKED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+                  "\r",
+                  "requestExchangeOperationsBody();"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            }
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type2",
+                "value": "application/json;version={{osdm-version}}",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{requestExchangeOperationsBodyData}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/exchange-operations",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "exchange-operations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. GET Exchange Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "if (!jsonData.exchangeOperation || jsonData.exchangeOperation.length === 0) {",
+                  "    throw new Error(\"⛔ Exiting script, no exchangeOffers available in the response\");",
+                  "}",
+                  "pm.test('Successfully received exchangeOffers', () => pm.expect(pm.response.code).to.eql(200));",
+                  "",
+                  "postPatchExchangeOperationsResponse(jsonData, expectedexchangeOperationStatus = [\"PREBOOKED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/exchange-operations/{{exchangeOperationId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "exchange-operations",
+                "{{exchangeOperationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13. GET Booking before Fulfillment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "postCreateBookingResponse(",
+                  "pm.environment.get(\"offer\"),",
+                  "jsonData,",
+                  "expectedBookedOffersStatus=[\"EXCHANGE_ONGOING\"],",
+                  "expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\", \"ON_HOLD\"]);",
+                  "",
+                  "displayFulFilledBooking(jsonData);",
+                  "",
+                  "if(pm.environment.get(\"scenarioAction\")?.includes(\"PATCH\")) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    console.log(\"scenarioAction in data file contains 'PATCH' keyword, not implemented\")",
+                  "    //pm.execution.setNextRequest(\"13. PATCH Refund Offer\");",
+                  "    //console.log(\"scenarioAction in data file contains 'PATCH' keyword, executing 13. PATCH Refund Offer\")",
+                  "} else if(pm.environment.get(\"scenarioAction\")?.includes(\"DELETE\")) {",
+                  "    pm.execution.setNextRequest(\"16. DEL Exchange Offer\");",
+                  "    console.log(\"scenarioAction in data file contains 'DELETE' keyword, executing 16. DEL Exchange Offer\")    ",
+                  "} else{",
+                  "    console.log(\"scenarioAction in data file doesn't contain 'PATCH' or 'DELETE' keyword, ending test scenario ...\")    ",
+                  "    pm.execution.setNextRequest(\"14. POST Obtaining Fulfillments from Booking\");",
+                  "",
+                  "    //pm.execution.setNextRequest(null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ],
+              "query": [
+                {
+                  "key": "embed",
+                  "value": "ALL"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14. POST Obtaining Fulfillments from Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "\r",
+                  "// Validate HTTP response status\r",
+                  "pm.test('Status code is 200 or 202', () => {\r",
+                  "    pm.expect([200, 202]).to.include(pm.response.code);\r",
+                  "});\r",
+                  "\r",
+                  "if (![200, 202].includes(pm.response.code)) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "if (![200, 202].includes(pm.response.code)) {\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);\r",
+                  "}\r",
+                  "\r",
+                  "// Parse JSON safely\r",
+                  "let jsonData;\r",
+                  "try {\r",
+                  "    jsonData = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "    validationLogger(\"Failed to parse JSON response\");\r",
+                  "    pm.test(\"JSON parsing should succeed\", () => {\r",
+                  "        throw e;\r",
+                  "    });\r",
+                  "    pm.execution.setNextRequest(null);\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "validateFulfillments(jsonData.fulfillments, 0, expectedFulfillmentStatus=[\"EXCHANGED\", \"FULFILLED\", \"CONFIRMED\"])\r",
+                  "\r",
+                  "console.log(\"Fulfillment status processing from CONFIRMED to FULFILLED\");\r",
+                  "console.log(\"Waiting 2 secs before executing 15. GET Booking after Fulfillment...\");\r",
+                  "setTimeout(() => {}, 2000);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Access-Token",
+                "value": "{{access_token}}",
+                "description": "Legacy Authorization Header; remove for 2.0",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/fulfillments",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "fulfillments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15. GET Booking after Fulfillment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "postCreateBookingResponse(",
+                  "pm.environment.get(\"offer\"),",
+                  "jsonData,",
+                  "expectedBookedOffersStatus=[\"EXCHANGED\"],",
+                  "expectedFulfillmentStatus=[\"EXCHANGED\", \"FULFILLED\", \"CONFIRMED\"]);",
+                  "",
+                  "displayFulFilledBooking(jsonData);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              },
+              {
+                "key": "version",
+                "value": "{{osdmVersion}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ],
+              "query": [
+                {
+                  "key": "embed",
+                  "value": "ALL"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "16. DEL Exchange Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204, offer is deleted\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              },
+              {
+                "key": "version",
+                "value": "{{osdmVersion}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}/exchange-operations/{{exchangeOperationId}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}",
+                "exchange-operations",
+                "{{exchangeOperationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "17. GET Booking after Fulfillment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));",
+                  "",
+                  "// Validate HTTP response status",
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.expect(pm.response.code, \"[ERROR] Wrong response status\").to.eql(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code !== 200) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error(`Exiting script due to wrong response status: ${pm.response.code}`);",
+                  "}",
+                  "",
+                  "// Parse JSON safely",
+                  "let jsonData;",
+                  "try {",
+                  "    jsonData = pm.response.json();",
+                  "} catch (e) {",
+                  "    validationLogger(\"Failed to parse JSON response\");",
+                  "    pm.test(\"JSON parsing should succeed\", () => {",
+                  "        throw e;",
+                  "    });",
+                  "    pm.execution.setNextRequest(null);",
+                  "    return;",
+                  "}",
+                  "postCreateBookingResponse(",
+                  "pm.environment.get(\"offer\"),",
+                  "jsonData,",
+                  "expectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],",
+                  "expectedFulfillmentStatus=[\"EXCHANGED\", \"FULFILLED\", \"CONFIRMED\", \"CANCELLED\"]);",
+                  "",
+                  "displayFulFilledBooking(jsonData);",
+                  "pm.execution.setNextRequest(null);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "type": "text"
+              },
+              {
+                "key": "Requestor",
+                "value": "{{requestor}}",
+                "type": "text"
+              },
+              {
+                "key": "version",
+                "value": "{{osdmVersion}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ],
+              "query": [
+                {
+                  "key": "embed",
+                  "value": "ALL"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{Ocp-Apim-Subscription-Key}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "Ocp-Apim-Subscription-Key",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          "/*",
+          "Copyright UIC, Union Internationale des Chemins de fer",
+          "Licensed under the Apache License, Version 2.0 (the \"License\");",
+          "you may not use this file except in compliance with the License.",
+          "You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0",
+          "",
+          "Unless required by applicable law or agreed to in writing, software",
+          "distributed under the License is distributed on an \"AS IS\" BASIS,",
+          "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.",
+          "See the License for the specific language governing permissions and",
+          "limitations under the License.",
+          "",
+          "No reproduction nor distribution shall be allowed without the following notice",
+          "“This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”",
+          "*/",
+          "",
+          "var scenarioCode = pm.environment.get(\"scenarioCode\");",
+          "",
+          "function pad(number) {",
+          "    return (number < 10) ? '0' + number : number;",
+          "}",
+          "",
+          "function get_next_weekday (date) {",
+          "    var tomorrow = new Date(date.setDate(date.getDate() + 1))",
+          "    return tomorrow.getDay() % 6",
+          "        ? tomorrow",
+          "        : get_next_weekday(tomorrow)",
+          "}",
+          "",
+          "var lib = \"\";",
+          "var jsLibraries = [\"validators\", \"bookings\", \"displays\", \"exchanges\", \"fulfillments\", \"model\", \"offers\", \"passengers\", \"refunds\", \"requestsBuilder\", \"scenarioParser\", \"swagger\"];",
+          "//var jsLibraries = [\"functions\", \"model\"];",
+          "",
+          "pm.test(`API base is available : ${pm.environment.get(\"api_base\")}`, function () {",
+          "    pm.expect(pm.environment.get(\"api_base\")).to.not.be.null;",
+          "    console.log(`API base is available : ${pm.environment.get(\"api_base\")}`)",
+          "});",
+          "",
+          "pm.test(`Library base is available : ${pm.environment.get(\"library_base\")}`, function () {",
+          "    pm.expect(pm.environment.get(\"library_base\")).not.null;",
+          "    console.log(`Library base is available : ${pm.environment.get(\"library_base\")}`)",
+          "});",
+          "",
+          "pm.test(`Data file is available : ${pm.environment.get(\"data_base\")}`, function () {",
+          "    pm.expect(pm.environment.get(\"data_base\")).not.null;",
+          "    console.log(`Data file is available : ${pm.environment.get(\"data_base\")}`)",
+          "});",
+          "",
+          "function libGetter() {",
+          "    pm.sendRequest({",
+          "        url: pm.environment.get(\"library_base\") + jsLibraries[0] + \".js\",",
+          "        method: 'GET',",
+          "        proxy: false",
+          "    }, function (err, res) {",
+          "        if (err) {",
+          "            console.log(err);",
+          "        } else {",
+          "            lib = lib.concat(res.text());",
+          "            jsLibraries.shift();",
+          "            if (jsLibraries[0]) {",
+          "                libGetter();",
+          "            }",
+          "            else {",
+          "                pm.environment.set(\"osdmHelpers\", lib);",
+          "                eval(pm.environment.get(\"osdmHelpers\"));",
+          "                getScenarioData();",
+          "            }",
+          "        }",
+          "    });",
+          "}",
+          "",
+          "// Cannot check exact URL as the endpoint path varies among different API vendors",
+          "if (pm.request.url.toString().includes(\"/offers\")) {",
+          "    console.log(`",
+          "####################################",
+          "# 🛠️  New Collection Execution 🛠️ #",
+          "####################################",
+          "`);",
+          "",
+          "    const keepList = [",
+          "        \"Ocp-Apim-Subscription-Key\",",
+          "        \"requestor\",",
+          "        \"access_token\",",
+          "        \"x-bnds-backend\",",
+          "        \"api_base\",",
+          "        \"data_base\",",
+          "        \"library_base\",",
+          "        \"data_file\",",
+          "        \"json_schema\",",
+          "        \"scenarioCode\",",
+          "        \"client_id\",",
+          "        \"client_secret\",",
+          "        \"ajvMinified\",",
+          "        \"api-host\",",
+          "        \"agent.username\",",
+          "        \"agent.password\",",
+          "        \"auth.key_secret\",",
+          "        \"client.id\",",
+          "        \"client.secret\"",
+          "    ];",
+          "",
+          "    console.log(\"🛠️ Cleaning all environment variables..\");",
+          "    const allVars = pm.environment.toObject();",
+          "    for (const key in allVars) {",
+          "",
+          "        if (!keepList.includes(key)) {",
+          "            pm.environment.unset(key);",
+          "        }",
+          "    }",
+          "",
+          "    console.log(\"✅ All global variables have been successfully cleared\");",
+          "",
+          "    setTimeout(2000);",
+          "    if (!pm.environment.get(\"osdmHelpers\")) {",
+          "        console.log(\"🛠️ Retrieving  scripts libraries and save in environment..\");",
+          "        libGetter();",
+          "    }",
+          "}",
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "client_id",
+      "value": "b9004d5e-8503-4bbb-9e79-aa1e8d2cfcc4"
+    },
+    {
+      "key": "client_secret",
+      "value": "a23a0024-8d4f-4b97-a8e4-e475e7ce2380"
+    }
+  ]
+}

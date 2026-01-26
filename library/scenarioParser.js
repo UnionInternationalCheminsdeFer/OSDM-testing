@@ -49,7 +49,7 @@ parseScenarioData = function (jsonData) {
 	//TODO implement data file date in scenario structure with departureTimeFromToday ?
 	//const plusDays = parseInt(pm.environment.get("departureDateFromToday")) || 0;
 
-	const plusDays = 2;
+	const plusDays = 10;
 	const today = new Date();
 
 	today.setDate(today.getDate() + plusDays);
@@ -68,6 +68,7 @@ parseScenarioData = function (jsonData) {
 	var dataFileIndex = 0;
 	var dataFileLength = jsonData.scenarios.length;
 	var foundCorrectDataSet = false;
+	var scenarioCode = pm.environment.get("scenarioCode");
 
 	// Loop through the scenarios to find the correct data set
 	while (foundCorrectDataSet === false && dataFileIndex < dataFileLength) {

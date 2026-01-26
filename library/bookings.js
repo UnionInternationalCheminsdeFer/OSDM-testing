@@ -106,7 +106,7 @@ postCreateBookingResponse = function (selectedOffer, jsonData, expectedBookedOff
                 // Collect all values from offer and booking for this field
                 const offerValues = offerParts.map(p => p[field]).filter(v => v != null);
                 const bookingValues = bookedParts.map(p => p[field]).filter(v => v != null);
-                
+
                 if (offerValues.length > 0 && bookingValues.length > 0) {
                     pm.test(`${partType} ${field} values match between offer and booking (order-independent) offer=[${offerValues}] booking=[${bookingValues}]`, () => {
                         pm.expect(bookingValues).to.have.members(offerValues);
@@ -146,7 +146,7 @@ postCreateBookingResponse = function (selectedOffer, jsonData, expectedBookedOff
             const offerPrices = offerParts
                 .filter(p => p.price)
                 .map(p => ({ amount: p.price.amount, currency: p.price.currency, scale: p.price.scale }));
-            
+
             const bookingPrices = bookedParts
                 .filter(p => p.price)
                 .map(p => ({ amount: p.price.amount, currency: p.price.currency, scale: p.price.scale }));
@@ -154,15 +154,15 @@ postCreateBookingResponse = function (selectedOffer, jsonData, expectedBookedOff
             if (offerPrices.length > 0 && bookingPrices.length > 0) {
                 pm.test(`${partType} prices match between offer and booking (order-independent)`, () => {
                     pm.expect(offerPrices.length).to.equal(bookingPrices.length);
-                    
+
                     // Compare each price field
                     ['amount', 'currency', 'scale'].forEach(field => {
                         const offerValues = offerPrices.map(p => p[field]);
                         const bookingValues = bookingPrices.map(p => p[field]);
-                        
+
                         pm.expect(bookingValues).to.have.members(offerValues);
                         pm.expect(offerValues).to.have.members(bookingValues);
-                        
+
                         validationLogger(`[INFO] ${partType} price.${field}: offer=[${offerValues}] booking=[${bookingValues}]`);
                     });
                 });
@@ -354,7 +354,7 @@ postCreateBookingResponse = function (selectedOffer, jsonData, expectedBookedOff
     // Validate each section
     validateOfferParts(selectedOffer.admissionOfferParts || [], jsonData.booking.bookedOffers.flatMap(b => b.admissions || []), "admission");
     validateOfferParts(selectedOffer.reservationOfferParts || [], jsonData.booking.bookedOffers.flatMap(b => b.reservations || []), "reservation");
-    validateOfferParts(selectedOffer.ancillaryOfferParts || [], jsonData.booking.bookedOffers.flatMap(b => b.ancillary || []), "ancillary");
+    validateOfferParts(selectedOffer.ancillaryOfferParts || [], jsonData.booking.bookedOffers.flatMap(b => b.ancillaries || []), "ancillary");
 
     // validate fulfillments
     validateFulfillments(jsonData.booking.fulfillments || [], 0, expectedFulfillmentStatus);
@@ -387,7 +387,7 @@ validateFulfillments = function (fulfillments, index, expectedFulfillmentStatus)
             // Check fulfillment id exists
             pm.test(`Fulfillment[${index}] id exists`, () => {
                 pm.expect(fulfillment.id).to.be.a("string").and.not.be.empty;
-                validationLogger(`[INFO] Fulfillment[${index}] id: ${fulfillment.id}`);
+                validationLogger(`[INFO] Fulfillment[${index}] id exists: ${fulfillment.id}`);
                 fulfillmentIds.push(fulfillment.id);
                 pm.environment.set("fulfillmentIds", fulfillmentIds);
             });
@@ -395,19 +395,18 @@ validateFulfillments = function (fulfillments, index, expectedFulfillmentStatus)
             // Check bookingRef exists
             pm.test(`Fulfillment[${index}] bookingRef exists`, () => {
                 pm.expect(fulfillment.bookingRef).to.be.a("string").and.not.be.empty;
-                validationLogger(`[INFO] Fulfillment[${index}] bookingRef: ${fulfillment.bookingRef}`);
+                validationLogger(`[INFO] Fulfillment[${index}] bookingRef exists: ${fulfillment.bookingRef}`);
             });
 
-
             // Check createdOn for FULFILLED or CONFIRMED status
+            console.log("Expected Fulfillment Status:", expectedFulfillmentStatus);
             if (expectedFulfillmentStatus.includes("FULFILLED") || expectedFulfillmentStatus.includes("CONFIRMED")) {
                 const createdOnDate = new Date(fulfillment.createdOn);
-
                 if (!isNaN(createdOnDate.getTime())) {
                     pm.test(`Fulfillment[${index}] createdOn exists`, () => {
                         pm.expect(fulfillment.createdOn).to.be.a("string").and.not.be.empty;
                         pm.expect(createdOnDate.getTime()).to.be.at.most(Date.now());
-                        validationLogger(`[INFO] Fulfillment[${index}] createdOn: ${fulfillment.createdOn}`);
+                        validationLogger(`[INFO] Fulfillment[${index}] createdOn exists: ${fulfillment.createdOn}`);
                     });
                 } else {
                     validationLogger(`[WARNING] Fulfillment[${index}] createdOn has invalid date format: ${fulfillment.createdOn}`);
@@ -416,12 +415,12 @@ validateFulfillments = function (fulfillments, index, expectedFulfillmentStatus)
 
             // Check fulfillment status
             pm.test(`Fulfillment[${index}] status comparison - expected: ${expectedFulfillmentStatus}, actual: ${fulfillment.status}`, () => {
+                validationLogger(`[INFO] Fulfillment[${index}] status comparison - expected: ${expectedFulfillmentStatus}, actual: ${fulfillment.status}`);
                 if (Array.isArray(expectedFulfillmentStatus)) {
                     pm.expect(expectedFulfillmentStatus).to.include(fulfillment.status);
                 } else {
                     pm.expect(fulfillment.status).to.eql(expectedFulfillmentStatus);
                 }
-                validationLogger(`Fulfillment[${index}] status comparison - expected: ${expectedFulfillmentStatus}, actual: ${fulfillment.status}`);
             });
 
             // Check controlNumber exists
@@ -437,8 +436,8 @@ validateFulfillments = function (fulfillments, index, expectedFulfillmentStatus)
             pm.test(`Fulfillment[${index}] bookingParts.id exist in admissionReservationAncillaryBookingPartsIds - expected: [${admissionReservationAncillaryBookingPartsIds}], actual: [${fulfillment.bookingParts.map(bp => bp.id)}]`, () => {
                 pm.expect(fulfillment.bookingParts).to.be.an("array").that.is.not.empty;
                 fulfillment.bookingParts.forEach(part => {
-                    pm.expect(admissionReservationAncillaryBookingPartsIds).to.include(part.id);
                     validationLogger(`[INFO] Fulfillment[${index}] bookingPart.id: ${part.id} exists in admissionReservationAncillaryBookingPartsIds`);
+                    pm.expect(admissionReservationAncillaryBookingPartsIds).to.include(part.id);
                 });
             });
 

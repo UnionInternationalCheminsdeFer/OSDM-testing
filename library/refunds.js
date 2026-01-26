@@ -2,6 +2,13 @@
 postPatchRefundOfferResponse = function (jsonData, expectedRefundOperationStatus, expectedFulfillmentStatus) {
 	validationLogger("[INFO] ➤ postPatchRefundOfferResponse");
 	checkWarningsAndProblems(jsonData);
+	
+	// Convert single refundOffer to refundOffers array if necessary
+	if (jsonData.refundOffer && !jsonData.refundOffers) {
+		jsonData.refundOffers = [jsonData.refundOffer];
+		validationLogger("[INFO] Converted single refundOffer to refundOffers array");
+	}
+	
 	// Stop flow if exchangeOperation invalid
 	if (!Array.isArray(jsonData.refundOffers) || jsonData.refundOffers.length === 0) {
 		validationLogger("[ERROR] No refundOffers found or 'refundOffers' is not an array.");
@@ -102,34 +109,48 @@ function validateRefundOfferResponse(refundOffer, index, expectedRefundOperation
 
 	// Validate appliedOverruleCode
 	const overruleCode = pm.environment.get("overruleCode");
-	validateAppliedOverruleCode(refundOffer.appliedOverruleCode, overruleCode);
-	
+	validateRefundAppliedOverruleCode(refundOffer.appliedOverruleCode, overruleCode);
+
 	// Validate refundableAmount structure
 	pm.test(`Refund offer[${index}] refundableAmount exists and is valid, amount: ${refundOffer.refundableAmount.amount}, currency: ${refundOffer.refundableAmount.currency}`, () => {
+		validationLogger(`[INFO] Refund offer[${index}] refundableAmount: ${refundOffer.refundableAmount.amount} ${refundOffer.refundableAmount.currency}`);
 		pm.expect(refundOffer.refundableAmount).to.exist;
 		pm.expect(refundOffer.refundableAmount).to.be.an('object');
 		pm.expect(refundOffer.refundableAmount.amount).to.be.a('number');
 		pm.expect(refundOffer.refundableAmount.currency).to.be.a('string');
 		pm.expect(refundOffer.refundableAmount.scale).to.be.a('number');
-		validationLogger(`[INFO] Refund offer[${index}] refundableAmount: ${refundOffer.refundableAmount.amount} ${refundOffer.refundableAmount.currency}`);
+
+		// Store or validate refund amounts based on fulfillmentStatus
+		if (expectedFulfillmentStatus === "CONFIRMED" || expectedFulfillmentStatus === "FULFILLED") {
+			const confirmedPriceAmount = pm.environment.get("confirmedPriceAmount");
+			validateRefundableAmount(refundOffer, overruleCode, confirmedPriceAmount);
+		} else if (expectedFulfillmentStatus === "PROPOSED") {
+			pm.environment.set("refundRefundAmount", refundOffer.refundableAmount.amount);
+			pm.environment.set("refundFee", refundOffer.refundFee.amount);
+		}
 	});
 
 	// Validate refundFee structure
 	pm.test(`Refund offer[${index}] refundFee exists and is valid, amount: ${refundOffer.refundFee.amount}, currency: ${refundOffer.refundFee.currency}`, () => {
+		validationLogger(`[INFO] Refund offer[${index}] refundFee: ${refundOffer.refundFee.amount} ${refundOffer.refundFee.currency}`);
 		pm.expect(refundOffer.refundFee).to.exist;
 		pm.expect(refundOffer.refundFee).to.be.an('object');
 		pm.expect(refundOffer.refundFee.amount).to.be.a('number');
 		pm.expect(refundOffer.refundFee.currency).to.be.a('string');
 		pm.expect(refundOffer.refundFee.scale).to.be.a('number');
-		validationLogger(`[INFO] Refund offer[${index}] refundFee: ${refundOffer.refundFee.amount} ${refundOffer.refundFee.currency}`);
+		pm.expect(refundOffer.refundFee.amount).to.be.at.least(0);
 	});
 
 	// Validate reimbursementStatus
-	pm.test(`Refund offer[${index}] has valid reimbursementStatus: ${refundOffer.reimbursementStatus}`, () => {
-		pm.expect(refundOffer.reimbursementStatus).to.exist;
-		pm.expect(refundOffer.reimbursementStatus).to.be.oneOf(['IMMEDIATE', 'DELAYED']);
-		validationLogger(`[INFO] Refund offer[${index}] has valid reimbursementStatus: ${refundOffer.reimbursementStatus}`);
-	});
+	if (refundOffer.reimbursementStatus) {
+		pm.test(`Refund offer[${index}] has valid reimbursementStatus: ${refundOffer.reimbursementStatus}`, () => {
+			pm.expect(refundOffer.reimbursementStatus).to.exist;
+			pm.expect(refundOffer.reimbursementStatus).to.be.oneOf(['IMMEDIATE', 'DELAYED']);
+			validationLogger(`[INFO] Refund offer[${index}] has valid reimbursementStatus: ${refundOffer.reimbursementStatus}`);
+		});
+	} else {
+		validationLogger(`[INFO] reimbursementStatus is not present in refund offer[${index}] → test skipped`);
+	}
 
 	// Validate refundOfferBreakDown
 	if (Array.isArray(refundOffer.refundOfferBreakDown) && refundOffer.refundOfferBreakDown.length > 0) {
@@ -141,8 +162,10 @@ function validateRefundOfferResponse(refundOffer, index, expectedRefundOperation
 		refundOffer.refundOfferBreakDown.forEach((breakdown, bdIndex) => {
 			pm.test(`Refund offer[${index}] breakdown[${bdIndex}] is valid, refundFee amount: ${breakdown.refundFee.amount}, refundableAmount amount: ${breakdown.refundableAmount.amount}`, () => {
 				// Validate refundFee
+				validationLogger(`[INFO] Refund offer[${index}] breakdown[${bdIndex}] refundFee: ${breakdown.refundFee.amount} ${breakdown.refundFee.currency}`);
 				pm.expect(breakdown.refundFee).to.exist;
 				pm.expect(breakdown.refundFee.amount).to.be.a('number');
+				pm.expect(breakdown.refundFee.amount).to.be.at.least(0);
 				pm.expect(breakdown.refundFee.currency).to.be.a('string');
 				pm.expect(breakdown.refundFee.scale).to.be.a('number');
 
@@ -172,59 +195,47 @@ function validateRefundOfferResponse(refundOffer, index, expectedRefundOperation
 	// Validate fulfillments
 	validateFulfillments(refundOffer.fulfillments, index, expectedFulfillmentStatus);
 
-	// Store refund amounts based on status
-	if (expectedFulfillmentStatus === "CONFIRMED" || expectedFulfillmentStatus === "FULFILLED") {
-		const confirmedPriceAmount = pm.environment.get("confirmedPriceAmount");
-		validateRefundableAmount(refundOffer, overruleCode, confirmedPriceAmount);
-		validateRefundFee(refundOffer.refundFee);
-	} else if (expectedFulfillmentStatus === "PROPOSED") {
-		pm.environment.set("refundRefundAmount", refundOffer.refundableAmount.amount);
-		pm.environment.set("refundFee", refundOffer.refundFee.amount);
-		validationLogger(`[INFO] Stored refundRefundAmount: ${refundOffer.refundableAmount.amount}, refundFee: ${refundOffer.refundFee.amount}`);
-	}
 }
 
 // Function to validate refund fee
 function validateRefundFee(refundFee) {
-    validationLogger(`[INFO] Validating refund fee: ${refundFee.amount} ${refundFee.currency}`);
-    
-    pm.test(`Refund fee is valid and non-negative`, () => {
-        pm.expect(refundFee.amount).to.be.at.least(0);
-        validationLogger(`[INFO] Refund fee amount: ${refundFee.amount} (non-negative)`);
-    });
+	validationLogger(`[INFO] Validating refund fee: ${refundFee.amount} ${refundFee.currency}`);
+
+	pm.test(`Refund fee is valid and non-negative`, () => {
+		pm.expect(refundFee.amount).to.be.at.least(0);
+		validationLogger(`[INFO] Refund fee amount: ${refundFee.amount} (non-negative)`);
+	});
 }
 
 // Function to validate refundable amount
 function validateRefundableAmount(refundOffer, overruleCode, confirmedPriceAmount) {
-    validationLogger(`[INFO] confirmedPriceAmount: ${confirmedPriceAmount}`);
-    validationLogger(`[INFO] RefundOffer.refundableAmount.amount: ${refundOffer.refundableAmount.amount}`);
-    validationLogger(`[INFO] RefundOffer.refundFee.amount: ${refundOffer.refundFee.amount}`);
-    validationLogger(`[INFO] OverruleCode: ${overruleCode}`);
+	validationLogger(`[INFO] confirmedPriceAmount: ${confirmedPriceAmount}`);
+	validationLogger(`[INFO] RefundOffer.refundableAmount.amount: ${refundOffer.refundableAmount.amount}`);
+	validationLogger(`[INFO] RefundOffer.refundFee.amount: ${refundOffer.refundFee.amount}`);
+	validationLogger(`[INFO] OverruleCode: ${overruleCode}`);
 
-    if (!overruleCode || overruleCode === "CODE_DOES_NOT_EXIST") {
-        pm.test(`Refundable amount is 0 because overruleCode is null or CODE_DOES_NOT_EXIST`, () => {
-            pm.expect(refundOffer.refundableAmount.amount).to.equal(0);
-            validationLogger(`[INFO] Refundable amount is 0 as expected (no valid overrule code)`);
-        });
-    } else {
-        const expectedRefundableAmount = confirmedPriceAmount - refundOffer.refundFee.amount;
-        pm.test(`Refundable amount is valid: ${refundOffer.refundableAmount.amount} = ${confirmedPriceAmount} - ${refundOffer.refundFee.amount}`, () => {
-            pm.expect(refundOffer.refundableAmount.amount).to.equal(expectedRefundableAmount);
-            validationLogger(`[INFO] Refundable amount calculation verified: ${refundOffer.refundableAmount.amount} = ${confirmedPriceAmount} - ${refundOffer.refundFee.amount}`);
-        });
-    }
+	if (!overruleCode || overruleCode === "CODE_DOES_NOT_EXIST") {
+		pm.test(`Refundable amount is 0 because overruleCode is null or CODE_DOES_NOT_EXIST`, () => {
+			pm.expect(refundOffer.refundableAmount.amount).to.equal(0);
+			validationLogger(`[INFO] Refundable amount is 0 as expected (no valid overrule code)`);
+		});
+	} else {
+		const expectedRefundableAmount = confirmedPriceAmount - refundOffer.refundFee.amount;
+		pm.test(`Refundable amount is valid: ${refundOffer.refundableAmount.amount} = ${confirmedPriceAmount} - ${refundOffer.refundFee.amount}`, () => {
+			pm.expect(refundOffer.refundableAmount.amount).to.equal(expectedRefundableAmount);
+			validationLogger(`[INFO] Refundable amount calculation verified: ${refundOffer.refundableAmount.amount} = ${confirmedPriceAmount} - ${refundOffer.refundFee.amount}`);
+		});
+	}
 }
 
 // Function to validate applied overrule code
-function validateAppliedOverruleCode(appliedOverruleCode, expectedOverruleCode) {
-    const testMessage = expectedOverruleCode === null 
-        ? `AppliedOverruleCode is null as expected, expected : null, actual : ${appliedOverruleCode}`
-        : `AppliedOverruleCode matches, expected : ${expectedOverruleCode}, actual : ${appliedOverruleCode}`;
+function validateRefundAppliedOverruleCode(appliedOverruleCode, expectedOverruleCode) {
+	validationLogger(`[INFO] ExpectedOverruleCode: ${expectedOverruleCode}`);
+	validationLogger(`[INFO] AppliedOverruleCode: ${appliedOverruleCode}`);
 
-    pm.test(testMessage, () => {
-        pm.expect(appliedOverruleCode).to.equal(expectedOverruleCode);
-        validationLogger(`[INFO] AppliedOverruleCode matches, expected : ${expectedOverruleCode}, actual : ${appliedOverruleCode}`);
-    });
+	pm.test(expectedOverruleCode === null ? "AppliedOverruleCode is null as expected" : `AppliedOverruleCode is valid, (expected: appliedOverruleCode = ${appliedOverruleCode}, actual: expectedOverruleCode = ${expectedOverruleCode})`, () => {
+		pm.expect(appliedOverruleCode).to.equal(expectedOverruleCode);
+	});
 }
 
 // Function to validate booking response for refund

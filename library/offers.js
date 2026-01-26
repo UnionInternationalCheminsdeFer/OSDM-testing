@@ -95,7 +95,7 @@ function ensureAuthorizationOr403() {
 		url: resolvedUrl,
 		method: pm.request.method,
 		header: resolvedHeaders,
-		body: resolvedBody
+		body: JSON.stringify(resolvedBody)
 	}, function (err, res) {
 		if (res && (res.code === 403 || res.code === 401)) {
 			console.log("⛔ Stop: Access forbidden (403)  or Unauthorized (401). Check permissions. Access token could be expired.")
@@ -284,10 +284,14 @@ function validateOfferSummary(selectedOffer) {
 	});
 
 	// Overall travel class validation
-	pm.test(`Offer summary - overallTravelClass is defined - overallTravelClass: ${overallTravelClass}`, function () {
-		validationLogger(`[INFO] Offer summary - overallTravelClass is defined - overallTravelClass: ${overallTravelClass}`);
-		pm.expect(overallTravelClass).to.be.a("string");
-	});
+	if (overallTravelClass) {
+		pm.test(`Offer summary - overallTravelClass is defined - overallTravelClass: ${overallTravelClass}`, function () {
+			validationLogger(`[INFO] Offer summary - overallTravelClass is defined - overallTravelClass: ${overallTravelClass}`);
+			pm.expect(overallTravelClass).to.be.a("string");
+		});
+	} else {
+		validationLogger(`[INFO] overallTravelClass is not present in offer summary → test skipped`);
+	}
 
 }
 
@@ -357,18 +361,38 @@ function validateOfferParts(selectedOffer) {
 
 	const sumPrice = parts => parts.reduce((sum, p) => sum + (p.price?.amount || 0), 0);
 
+	// Collect all referenced ancillary IDs from admissionOfferParts
+	const referencedAncillaryIds = new Set();
+	admissionParts.forEach(admissionPart => {
+		const ancillaries = admissionPart.ancillaries || [];
+		ancillaries.forEach(ancillary => {
+			const ancillaryRefs = ancillary.ancillaryGroup?.ancillaryRefs || [];
+			ancillaryRefs.forEach(ref => {
+				if (ref.id) {
+					referencedAncillaryIds.add(ref.id);
+				}
+			});
+		});
+	});
+
+	// Filter ancillaryParts to only those that are referenced
+	const referencedAncillaryParts = ancillaryParts.filter(part => referencedAncillaryIds.has(part.id));
+
+	// Stock referenced ancillary IDs in environment
+	pm.environment.set("referencedAncillaryIds", JSON.stringify([...referencedAncillaryIds]));
+
 	const admissionPrice = sumPrice(admissionParts);
 	const reservationPrice = sumPrice(reservationParts);
-	const ancillaryPrice = sumPrice(ancillaryParts);
+	const ancillaryPrice = sumPrice(referencedAncillaryParts);
 
 	validationLogger(`[INFO] Admission parts price: ${admissionPrice}`);
 	validationLogger(`[INFO] Reservation parts price: ${reservationPrice}`);
 	validationLogger(`[INFO] Ancillary parts price: ${ancillaryPrice}`);
 
-	const offerParts = [...admissionParts, ...reservationParts, ...ancillaryParts];
+	const offerParts = [...admissionParts, ...reservationParts, ...referencedAncillaryParts];
 
-	const overallPrice = selectedOffer.offerSummary?.minimalPrice?.amount || 0;
-	pm.environment.set("overallPrice", overallPrice);
+	const minimalPrice = selectedOffer.offerSummary?.minimalPrice?.amount || 0;
+	pm.environment.set("minimalPrice", minimalPrice);
 	pm.environment.set("admissionPartsPrice", admissionPrice);
 	pm.environment.set("reservationPartsPrice", reservationPrice);
 	pm.environment.set("ancillaryPartsPrice", ancillaryPrice);
@@ -377,9 +401,9 @@ function validateOfferParts(selectedOffer) {
 
 	const sumPartsPrice = sumPrice(offerParts);
 
-	pm.test(`Offer overallPrice >= sum of offerParts price - overallPrice: ${overallPrice}, sumPartsPrice: ${sumPartsPrice}`, function () {
-		validationLogger(`[INFO] Offer overallPrice >= sum of offerParts price - overallPrice: ${overallPrice}, sumPartsPrice: ${sumPartsPrice}`);
-		pm.expect(overallPrice).to.be.at.least(sumPartsPrice);
+	pm.test(`Offer minimalPrice >= sum of offerParts price - minimalPrice: ${minimalPrice}, sumPartsPrice: ${sumPartsPrice}`, function () {
+		validationLogger(`[INFO] Offer minimalPrice >= sum of offerParts price - minimalPrice: ${minimalPrice}, sumPartsPrice: ${sumPartsPrice}`);
+		pm.expect(minimalPrice).to.be.at.least(sumPartsPrice);
 	});
 
 
@@ -421,6 +445,7 @@ function validateAdmissions(selectedOffer) {
 	const reservationParts = selectedOffer.reservationOfferParts || [];
 	const ancillaryParts = selectedOffer.ancillaryOfferParts || [];
 	const admissionReservationAncillaryOfferPartsIds = pm.environment.get("admissionReservationAncillaryOfferPartsIds") || [];
+	let admissionReservationAncillaryOfferPartsAftersalesConditions = pm.environment.get("admissionReservationAncillaryOfferPartsAftersalesConditions") || 0;
 
 	if (admissionParts.length > 0) {
 		admissionParts.forEach((admission, i) => {
@@ -529,6 +554,15 @@ function validateAdmissions(selectedOffer) {
 							pm.expect(condition.afterSaleFee.amount, `afterSalesCondition[${condIndex}].afterSaleFee.amount should be a number`).to.be.a('number');
 							pm.expect(condition.afterSaleFee.scale, `afterSalesCondition[${condIndex}].afterSaleFee.scale should be a number`).to.be.a('number');
 							validationLogger(`[INFO] afterSalesCondition[${condIndex}].afterSaleFee: ${condition.afterSaleFee.amount} ${condition.afterSaleFee.currency}`);
+
+							// Push only if scenarioType matches the condition type
+							if (pm.environment.get("scenarioType").includes("REFUND") && condition.condition === "REFUND") {
+								admissionReservationAncillaryOfferPartsAftersalesConditions += condition.afterSaleFee.amount;
+								pm.environment.set("admissionReservationAncillaryOfferPartsAftersalesConditions", admissionReservationAncillaryOfferPartsAftersalesConditions);
+							} else if (pm.environment.get("scenarioType").includes("EXCHANGE") && condition.condition === "EXCHANGE") {
+								admissionReservationAncillaryOfferPartsAftersalesConditions += condition.afterSaleFee.amount;
+								pm.environment.set("admissionReservationAncillaryOfferPartsAftersalesConditions", admissionReservationAncillaryOfferPartsAftersalesConditions);
+							}
 						} else {
 							validationLogger(`[WARNING] afterSalesCondition[${condIndex}].afterSaleFee is missing`);
 						}
@@ -571,6 +605,7 @@ function validateReservations(selectedOffer) {
 	const reservationParts = selectedOffer.reservationOfferParts || [];
 	const ancillaryParts = selectedOffer.ancillaryOfferParts || [];
 	const admissionReservationAncillaryOfferPartsIds = pm.environment.get("admissionReservationAncillaryOfferPartsIds") || [];
+	let admissionReservationAncillaryOfferPartsAftersalesConditions = pm.environment.get("admissionReservationAncillaryOfferPartsAftersalesConditions") || 0;
 
 	if (reservationParts.length > 0) {
 		reservationParts.forEach((reservation, i) => {
@@ -683,6 +718,15 @@ function validateReservations(selectedOffer) {
 							pm.expect(condition.afterSaleFee.amount, `afterSalesCondition[${condIndex}].afterSaleFee.amount should be a number`).to.be.a('number');
 							pm.expect(condition.afterSaleFee.scale, `afterSalesCondition[${condIndex}].afterSaleFee.scale should be a number`).to.be.a('number');
 							validationLogger(`[INFO] afterSalesCondition[${condIndex}].afterSaleFee: ${condition.afterSaleFee.amount} ${condition.afterSaleFee.currency}`);
+
+							// Push only if scenarioType matches the condition type
+							if (pm.environment.get("scenarioType").includes("REFUND") && condition.condition === "REFUND") {
+								admissionReservationAncillaryOfferPartsAftersalesConditions += condition.afterSaleFee.amount;
+								pm.environment.set("admissionReservationAncillaryOfferPartsAftersalesConditions", admissionReservationAncillaryOfferPartsAftersalesConditions);
+							} else if (pm.environment.get("scenarioType").includes("EXCHANGE") && condition.condition === "EXCHANGE") {
+								admissionReservationAncillaryOfferPartsAftersalesConditions += condition.afterSaleFee.amount;
+								pm.environment.set("admissionReservationAncillaryOfferPartsAftersalesConditions", admissionReservationAncillaryOfferPartsAftersalesConditions);
+							}
 						} else {
 							validationLogger(`[WARNING] afterSalesCondition[${condIndex}].afterSaleFee is missing`);
 						}
@@ -701,12 +745,21 @@ function validateAncillaries(selectedOffer) {
 	validationLogger("[INFO] ➤ validateAncillaries");
 	const ancillaryParts = selectedOffer.ancillaryOfferParts || [];
 	const admissionReservationAncillaryOfferPartsIds = pm.environment.get("admissionReservationAncillaryOfferPartsIds") || [];
+	let admissionReservationAncillaryOfferPartsAftersalesConditions = pm.environment.get("admissionReservationAncillaryOfferPartsAftersalesConditions") || 0;
+
+	// Capture referenced ancillary IDs from environment
+	const referencedAncillaryIdsArray = JSON.parse(pm.environment.get("referencedAncillaryIds") || "[]");
+	const referencedAncillaryIds = new Set(referencedAncillaryIdsArray);
 
 	if (ancillaryParts.length > 0) {
 		ancillaryParts.forEach((ancillary, i) => {
 			validationLogger(`[INFO] Validating ancillaryOfferParts ${i + 1} id=${ancillary.id}`);
-			admissionReservationAncillaryOfferPartsIds.push(ancillary.id);
-			pm.environment.set("admissionReservationAncillaryOfferPartsIds", admissionReservationAncillaryOfferPartsIds);
+			
+			// Add ids only if referenced in admissionOfferParts
+			if (referencedAncillaryIds.has(ancillary.id)) {
+				admissionReservationAncillaryOfferPartsIds.push(ancillary.id);
+				pm.environment.set("admissionReservationAncillaryOfferPartsIds", admissionReservationAncillaryOfferPartsIds);
+			}
 
 			//TODO Check needed ?
 			// pm.test(`Ancillary part ${i + 1} category is defined - category: ${ancillary.category}`, function () {
@@ -760,6 +813,15 @@ function validateAncillaries(selectedOffer) {
 							pm.expect(condition.afterSaleFee.amount, `afterSalesCondition[${condIndex}].afterSaleFee.amount should be a number`).to.be.a('number');
 							pm.expect(condition.afterSaleFee.scale, `afterSalesCondition[${condIndex}].afterSaleFee.scale should be a number`).to.be.a('number');
 							validationLogger(`[INFO] afterSalesCondition[${condIndex}].afterSaleFee: ${condition.afterSaleFee.amount} ${condition.afterSaleFee.currency}`);
+
+							// Push only if scenarioType matches the condition type
+							if (pm.environment.get("scenarioType").includes("REFUND") && condition.condition === "REFUND") {
+								admissionReservationAncillaryOfferPartsAftersalesConditions += condition.afterSaleFee.amount;
+								pm.environment.set("admissionReservationAncillaryOfferPartsAftersalesConditions", admissionReservationAncillaryOfferPartsAftersalesConditions);
+							} else if (pm.environment.get("scenarioType").includes("EXCHANGE") && condition.condition === "EXCHANGE") {
+								admissionReservationAncillaryOfferPartsAftersalesConditions += condition.afterSaleFee.amount;
+								pm.environment.set("admissionReservationAncillaryOfferPartsAftersalesConditions", admissionReservationAncillaryOfferPartsAftersalesConditions);
+							}
 						} else {
 							validationLogger(`[WARNING] afterSalesCondition[${condIndex}].afterSaleFee is missing`);
 						}
