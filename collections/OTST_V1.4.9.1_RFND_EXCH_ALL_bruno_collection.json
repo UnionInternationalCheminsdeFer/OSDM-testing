@@ -1,0 +1,1427 @@
+{
+  "name": "OTST_V1.4.9.1_RFND_EXCH_ALL",
+  "version": "1",
+  "items": [
+    {
+      "type": "folder",
+      "name": "Refund",
+      "filename": "Refund",
+      "seq": 2,
+      "examples": [],
+      "root": {
+        "request": {
+          "auth": {
+            "mode": "inherit"
+          }
+        },
+        "meta": {
+          "name": "Refund",
+          "seq": 2
+        }
+      },
+      "items": [
+        {
+          "type": "http",
+          "name": "10. POST Refund Offers",
+          "filename": "10. POST Refund Offers.bru",
+          "seq": 1,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/refund-offers",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type2",
+                "value": "application/json;version={{osdm-version}}",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{{requestRefundOffersBodyData}}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "const { requestRefundOffersBody } = require(bru.getEnvVar(\"library_base\")+\"requestsBuilder.js\");\n\nconsole.log(\"⏩ [STEP] Executing request : \" + req.getName());\n\nif (bru.getEnvVar(\"refundDate\") !== null) {\n    requestRefundOffersBody(bru.getEnvVar(\"overruleCode\"), bru.getEnvVar(\"refundDate\"));\n} else {\n    requestRefundOffersBody(bru.getEnvVar(\"overruleCode\"), null);\n}",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postPatchRefundOfferResponse } = require(bru.getEnvVar(\"library_base\")+\"refunds.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\n// Ensure refundOffers is always an array with the expected structure\nif (!jsonData.refundOffers) {\n    throw new Error(\"⛔ Exiting script, refundOffers property is missing in the response\");\n}\n\n// Convert to array if it's not already (defensive programming)\nif (!Array.isArray(jsonData.refundOffers)) {\n    jsonData.refundOffers = [jsonData.refundOffers];\n}\n\n// Validate array is not empty\nif (jsonData.refundOffers.length === 0) {\n    throw new Error(\"⛔ Exiting script, no refundOffers available in the response\");\n}\n\n// Normalize the array structure - ensure each offer has at least an id property\njsonData.refundOffers = jsonData.refundOffers.map(offer => {\n    if (!offer || typeof offer !== 'object') {\n        throw new Error(\"⛔ Invalid refundOffer item in array\");\n    }\n    return offer;\n});\n\npostPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus=[\"PROPOSED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "11. GET Refund Offer",
+          "filename": "11. GET Refund Offer.bru",
+          "seq": 2,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundOffersOfferId}}",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postPatchRefundOfferResponse } = require(bru.getEnvVar(\"library_base\")+\"refunds.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\nif (!jsonData.refundOffer || jsonData.refundOffer.length === 0) {\n    throw new Error(\"⛔ Exiting script, no refundOffer available in the response\");\n}\n\npostPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus = [\"PROPOSED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "12. GET Booking before Patch Refund",
+          "filename": "12. GET Booking before Patch Refund.bru",
+          "seq": 3,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [
+              {
+                "name": "embed",
+                "value": "ALL",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],\nexpectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);\n\ndisplayFulFilledBooking(jsonData);\n\nif(bru.getEnvVar(\"scenarioAction\")?.includes(\"PATCH\")) {\n    bru.runner.setNextRequest(\"13. PATCH Refund Offer\");\n    console.log(\"scenarioAction in data file contains 'PATCH' keyword, executing 13. PATCH Refund Offer\")\n} else if(bru.getEnvVar(\"scenarioAction\")?.includes(\"DELETE\")) {\n    bru.runner.setNextRequest(\"15. DEL Refund Offer\");\n    console.log(\"scenarioAction in data file contains 'DELETE' keyword, executing 15. DEL Refund Offer\")    \n} else{\n    console.log(\"scenarioAction in data file doesn't contain 'PATCH' or 'DELETE' keyword, ending test scenario ...\")    \n    bru.runner.stopExecution();\n}"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "13. PATCH Refund Offer",
+          "filename": "13. PATCH Refund Offer.bru",
+          "seq": 4,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundOffersOfferId}}",
+            "method": "PATCH",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{\n  \"status\": \"CONFIRMED\"\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postPatchRefundOfferResponse } = require(bru.getEnvVar(\"library_base\")+\"refunds.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\nlet refundOffersArray = [];\nlet jsonDataToArray;\ntry {\n    jsonData = res.getBody();\n    if (jsonData.refundOffer) {\n        refundOffersArray.push(jsonData.refundOffer);\n    }\n    jsonDataToArray = {\n        refundOffers: refundOffersArray\n    };    \n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\nif (!jsonData.refundOffer || jsonData.refundOffer.length === 0) {\n    throw new Error(\"⛔ Exiting script, no refundOffer available in the response\");\n}\npostPatchRefundOfferResponse(jsonDataToArray, expectedexchangeOperationStatus = [\"CONFIRMED\"], expectedFulfillmentStatus=[\"REFUNDED\"]);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "14. GET Booking after Patch Refund",
+          "filename": "14. GET Booking after Patch Refund.bru",
+          "seq": 5,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [
+              {
+                "name": "embed",
+                "value": "ALL",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\nif (!jsonData.booking || jsonData.booking.length === 0) {\n    throw new Error(\"⛔ Exiting script, no booking available in the response\");\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"REFUNDED\"],\nexpectedFulfillmentStatus=[\"REFUNDED\"]);\n\ndisplayFulFilledBooking(jsonData);\nbru.runner.stopExecution();"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "15. DEL Refund Offer",
+          "filename": "15. DEL Refund Offer.bru",
+          "seq": 6,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundOffersOfferId}}",
+            "method": "DELETE",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "if(bru.getEnvVar(\"isRefundConfirmed\")) {\n    test(\"Status code is 404, refund offer has been confirmed\", function () {\n        expect(res.getStatus()).to.equal(404);\n    });\n} else {\n    test(\"Status code is 204, offer is deleted\", function () {\n        expect(res.getStatus()).to.equal(204);\n    });\n}"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "16. GET Booking after Delete Refund",
+          "filename": "16. GET Booking after Delete Refund.bru",
+          "seq": 7,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [
+              {
+                "name": "embed",
+                "value": "ALL",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\nif (!jsonData.booking || jsonData.booking.length === 0) {\n    throw new Error(\"⛔ Exiting script, no booking available in the response\");\n}\n\nif(bru.getEnvVar(\"isRefundConfirmed\")) {\n    postCreateBookingResponse(\n    bru.getEnvVar(\"offer\"),\n    jsonData,\n    expectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],\n    expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);\n} else {\n    postCreateBookingResponse(\n    bru.getEnvVar(\"offer\"),\n    jsonData,\n    expectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],\n    expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);\n}\ndisplayFulFilledBooking(jsonData);\nbru.runner.stopExecution();"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "Exchange",
+      "filename": "Exchange",
+      "seq": 3,
+      "examples": [],
+      "root": {
+        "request": {
+          "auth": {
+            "mode": "inherit"
+          }
+        },
+        "meta": {
+          "name": "Exchange",
+          "seq": 3
+        }
+      },
+      "items": [
+        {
+          "type": "http",
+          "name": "10. POST Exchange Offers",
+          "filename": "10. POST Exchange Offers.bru",
+          "seq": 1,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/exchange-offers?embed=ALL",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type2",
+                "value": "application/json;version={{osdm-version}}",
+                "enabled": false
+              }
+            ],
+            "params": [
+              {
+                "name": "embed",
+                "value": "ALL",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "json",
+              "json": "{{requestExchangeOffersBodyData}}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "const { requestExchangeOffersBody } = require(bru.getEnvVar(\"library_base\")+\"requestsBuilder.js\");\n\nconsole.log(\"⏩ [STEP] Executing request : \" + req.getName());\n\nrequestExchangeOffersBody(bru.getEnvVar(\"overruleCode\"));\n",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postPatchExchangeOffersResponse } = require(bru.getEnvVar(\"library_base\")+\"exchanges.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\npostPatchExchangeOffersResponse(jsonData, expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "11. POST Exchange Operations",
+          "filename": "11. POST Exchange Operations.bru",
+          "seq": 2,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/exchange-operations",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type2",
+                "value": "application/json;version={{osdm-version}}",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{{requestExchangeOperationsBodyData}}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "const { requestExchangeOperationsBody } = require(bru.getEnvVar(\"library_base\")+\"requestsBuilder.js\");\n\nconsole.log(\"⏩ [STEP] Executing request : \" + req.getName());\n\nrequestExchangeOperationsBody();",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postPatchExchangeOperationsResponse } = require(bru.getEnvVar(\"library_base\")+\"exchanges.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\nif (!jsonData.exchangeOperation || jsonData.exchangeOperation.length === 0) {\n    throw new Error(\"⛔ Exiting script, no exchangeOffers available in the response\");\n}\ntest('Successfully received exchangeOffers', () => expect(res.getStatus()).to.eql(200));\n\npostPatchExchangeOperationsResponse(jsonData, expectedexchangeOperationStatus = [\"PREBOOKED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "12. GET Exchange Offer",
+          "filename": "12. GET Exchange Offer.bru",
+          "seq": 3,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/exchange-operations/{{exchangeOperationId}}",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postPatchExchangeOperationsResponse } = require(bru.getEnvVar(\"library_base\")+\"exchanges.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\nif (!jsonData.exchangeOperation || jsonData.exchangeOperation.length === 0) {\n    throw new Error(\"⛔ Exiting script, no exchangeOffers available in the response\");\n}\ntest('Successfully received exchangeOffers', () => expect(res.getStatus()).to.eql(200));\n\npostPatchExchangeOperationsResponse(jsonData, expectedexchangeOperationStatus = [\"PREBOOKED\"], expectedFulfillmentStatus=[\"CONFIRMED\", \"FULFILLED\"]);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "13. GET Booking before Fulfillment",
+          "filename": "13. GET Booking before Fulfillment.bru",
+          "seq": 4,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [
+              {
+                "name": "embed",
+                "value": "ALL",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"EXCHANGE_ONGOING\"],\nexpectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\", \"ON_HOLD\"]);\n\ndisplayFulFilledBooking(jsonData);\n\nif(bru.getEnvVar(\"scenarioAction\")?.includes(\"PATCH\")) {\n    bru.runner.stopExecution();\n    console.log(\"scenarioAction in data file contains 'PATCH' keyword, not implemented\")\n//     //pm.execution.setNextRequest(\"13. PATCH Refund Offer\");\n    //console.log(\"scenarioAction in data file contains 'PATCH' keyword, executing 13. PATCH Refund Offer\")\n} else if(bru.getEnvVar(\"scenarioAction\")?.includes(\"DELETE\")) {\n    bru.runner.setNextRequest(\"16. DEL Exchange Offer\");\n    console.log(\"scenarioAction in data file contains 'DELETE' keyword, executing 16. DEL Exchange Offer\")    \n} else{\n    console.log(\"scenarioAction in data file doesn't contain 'PATCH' or 'DELETE' keyword, ending test scenario ...\")    \n    bru.runner.setNextRequest(\"14. POST Obtaining Fulfillments from Booking\");\n\n//     //pm.execution.setNextRequest(null);\n}"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "14. POST Obtaining Fulfillments from Booking",
+          "filename": "14. POST Obtaining Fulfillments from Booking.bru",
+          "seq": 5,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/fulfillments",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Access-Token",
+                "value": "{{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { validateFulfillments } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest('Status code is 200 or 202', () => {\n    expect([200, 202]).to.include(res.getStatus());\n});\n\nif (![200, 202].includes(res.getStatus())) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\nif (![200, 202].includes(res.getStatus())) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\nvalidateFulfillments(jsonData.fulfillments, 0, expectedFulfillmentStatus=[\"EXCHANGED\", \"FULFILLED\", \"CONFIRMED\"])\n\nconsole.log(\"Fulfillment status processing from CONFIRMED to FULFILLED\");\nconsole.log(\"Waiting 2 secs before executing 15. GET Booking after Fulfillment...\");\nsetTimeout(() => {}, 2000);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "15. GET Booking after Fulfillment",
+          "filename": "15. GET Booking after Fulfillment.bru",
+          "seq": 6,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              },
+              {
+                "name": "version",
+                "value": "{{osdmVersion}}",
+                "enabled": true
+              }
+            ],
+            "params": [
+              {
+                "name": "embed",
+                "value": "ALL",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"EXCHANGED\"],\nexpectedFulfillmentStatus=[\"EXCHANGED\", \"FULFILLED\", \"CONFIRMED\"]);\n\ndisplayFulFilledBooking(jsonData);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "16. DEL Exchange Offer",
+          "filename": "16. DEL Exchange Offer.bru",
+          "seq": 7,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/exchange-operations/{{exchangeOperationId}}",
+            "method": "DELETE",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              },
+              {
+                "name": "version",
+                "value": "{{osdmVersion}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "test(\"Status code is 204, offer is deleted\", function () {\n    expect(res.getStatus()).to.equal(204);\n});"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "17. GET Booking after Fulfillment",
+          "filename": "17. GET Booking after Fulfillment.bru",
+          "seq": 8,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}?embed=ALL",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              },
+              {
+                "name": "version",
+                "value": "{{osdmVersion}}",
+                "enabled": true
+              }
+            ],
+            "params": [
+              {
+                "name": "embed",
+                "value": "ALL",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],\nexpectedFulfillmentStatus=[\"EXCHANGED\", \"FULFILLED\", \"CONFIRMED\", \"CANCELLED\"]);\n\ndisplayFulFilledBooking(jsonData);\nbru.runner.stopExecution();\n"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "Common Requests",
+      "filename": "Common Requests",
+      "seq": 1,
+      "examples": [],
+      "root": {
+        "request": {
+          "auth": {
+            "mode": "inherit"
+          }
+        },
+        "meta": {
+          "name": "Common Requests",
+          "seq": 1
+        }
+      },
+      "items": [
+        {
+          "type": "http",
+          "name": "01. POST Get Offer",
+          "filename": "01. POST Get Offer.bru",
+          "seq": 1,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/offers",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Accept",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{{OfferCollectionRequest}}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "const { postOfferResponsePreRequest } = require(bru.getEnvVar(\"library_base\")+\"offers.js\");\npostOfferResponsePreRequest();",
+              "res": "const { postOfferResponsePreRequest } = require(bru.getEnvVar(\"library_base\")+\"offers.js\");\nconst { displayOfferResponse } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\n\n// Validate HTTP response status\ntest(`Status code is 200`, () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\n// Stop flow if status != 200\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\npostOfferResponse(jsonData);\ndisplayOfferResponse(jsonData);\n\n//swaggerSchemaValidatorContent();\n"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "02. GET Place Maps for Reservation of Offer (Bileto env)",
+          "filename": "02. GET Place Maps for Reservation of Offer (Bileto env).bru",
+          "seq": 2,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/availabilities/place-map?contextId={{offerId}}&contextType=OFFER&resourceId={{reservationId}}&resourceType=RESERVATION",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Access-Token",
+                "value": "{{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [
+              {
+                "name": "contextId",
+                "value": "{{offerId}}",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "contextType",
+                "value": "OFFER",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "resourceId",
+                "value": "{{reservationId}}",
+                "type": "query",
+                "enabled": true
+              },
+              {
+                "name": "resourceType",
+                "value": "RESERVATION",
+                "type": "query",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "var jsonData = res.getBody();\nvar coach = jsonData.vehicleAvailability.vehicle.coaches[0];\nvar preSelection = coach.compartments[0];\nbru.setEnvVar(\"preselectedCoach\", coach);\nbru.setEnvVar(\"preselectedPlace\", preSelection.place);\nbru.setEnvVar(\"layoutId\", coach.layoutId)"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "03. POST Create Booking",
+          "filename": "03. POST Create Booking.bru",
+          "seq": 3,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Accept",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{{BookingRequest}}\n",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "const { buildBookingRequest } = require(bru.getEnvVar(\"library_base\")+\"requestsBuilder.js\");\nconsole.log(\"⏩ [STEP] Executing request : \" + req.getName());\nbuildBookingRequest();",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"PREBOOKED\"],\nexpectedFulfillmentStatus=[\"ON_HOLD\",\"AVAILABLE\"]);\n\nbru.deleteEnvVar(\"currentPassengerIndex\");\n//console.log(\"Waiting 2 secs before executing 05. PATCH Multi Passenger...\");\n//setTimeout(() => {}, 2000);\n\nif(bru.getEnvVar(\"skipPatchPassengerRequest\") === \"true\"){\n    bru.runner.setNextRequest(\"06. GET Passenger\");\n} else {\n    bru.runner.setNextRequest(\"05. PATCH Multi Passenger\");\n}"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "05. PATCH Multi Passenger",
+          "filename": "05. PATCH Multi Passenger.bru",
+          "seq": 4,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+            "method": "PATCH",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Access-Token",
+                "value": "{{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{\n  \"id\": \"{{passengerId}}\",\n  \"externalRef\": \"{{passengerSpecificationExternalRef}}\",\n  \"dateOfBirth\": \"{{patchDateOfBirth}}\",\n  \"type\": \"PERSON\",\n  \"gender\": \"{{patchGender}}\",\n  \"detail\": {\n    \"firstName\": \"{{patchFirstName}}\",\n    \"lastName\": \"{{patchLastName}}\",\n    \"contact\": {\n      \"email\": \"{{patchEmail}}\",\n      \"phoneNumber\": \"{{patchPhoneNumber}}\"\n    }\n  }\n}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());\n\nlet passengerIdList = bru.getEnvVar(\"passengerIdList\");\n\nlet passengerAdditionalData = JSON.parse(bru.getEnvVar(\"passengerAdditionalData\") || \"[]\");\nlet bookingPassengerSpecifications = JSON.parse(bru.getEnvVar(\"bookingPassengerSpecifications\") || \"[]\");\nlet bookingPassengerReferences = JSON.parse(bru.getEnvVar(\"bookingPassengerReferences\") || \"[]\");\nlet totalPassengers = bru.getEnvVar(\"offerPassengerNumber\") || 0;\nlet currentIndex = bru.getEnvVar(\"currentPassengerIndex\") || 0;\n\nif (currentIndex >= totalPassengers) {\n    console.log(\"✅ All passengers processed\");\n    return;\n}\n\nlet passengerId = passengerIdList[currentIndex];\nlet data = passengerAdditionalData[currentIndex];\nlet passengersRef = bookingPassengerReferences[currentIndex];\nlet passengerGender = bookingPassengerSpecifications[currentIndex];\n\nbru.setEnvVar(\"passengerId\", passengerId);\nbru.setEnvVar(\"passengerSpecificationExternalRef\", passengersRef);\n\nbru.setEnvVar(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\nbru.setEnvVar(\"patchFirstName\", data.updateFirstName || \"\");\nbru.setEnvVar(\"patchLastName\", data.updateLastName || \"\");\nbru.setEnvVar(\"patchEmail\", data.updateEmail || \"\");\nbru.setEnvVar(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\nbru.setEnvVar(\"patchGender\", data.updateGender || passengerGender.gender);",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { patchMultiPassengerResponse } = require(bru.getEnvVar(\"library_base\")+\"passengers.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\nif (!jsonData.passenger || jsonData.passenger.length === 0) {\n    throw new Error(\"⛔ Exiting script, no passenger available in the response\");\n}\ntest('Successfully received passenger', () => expect(res.getStatus()).to.eql(200));\n\nlet totalPassengers = Number(bru.getEnvVar(\"offerPassengerNumber\"));\nlet currentIndex = Number(bru.getEnvVar(\"currentPassengerIndex\"));\nif (isNaN(currentIndex)) {\n    currentIndex = 0;\n    bru.setEnvVar(\"currentPassengerIndex\", 0);\n}\npatchMultiPassengerResponse(jsonData, currentIndex);\n\ncurrentIndex++;\nbru.setEnvVar(\"currentPassengerIndex\", currentIndex);\n\nif (currentIndex < totalPassengers) {\n    bru.runner.setNextRequest(req.getName());\n} else {\n    bru.runner.setNextRequest(\"06. GET Passenger\");\n    bru.setEnvVar(\"currentPassengerIndex\", 0);\n}\n"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "06. GET Passenger",
+          "filename": "06. GET Passenger.bru",
+          "seq": 5,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Access-Token",
+                "value": "{{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());\n\nlet passengerIdList = bru.getEnvVar(\"passengerIdList\");\n\nlet passengerAdditionalData = JSON.parse(bru.getEnvVar(\"passengerAdditionalData\") || \"[]\");\nlet bookingPassengerSpecifications = JSON.parse(bru.getEnvVar(\"bookingPassengerSpecifications\") || \"[]\");\nlet bookingPassengerReferences = JSON.parse(bru.getEnvVar(\"bookingPassengerReferences\") || \"[]\");\nlet totalPassengers = bru.getEnvVar(\"offerPassengerNumber\") || 0;\nlet currentIndex = bru.getEnvVar(\"currentPassengerIndex\") || 0;\n\nlet passengerId = passengerIdList[currentIndex];\nlet data = passengerAdditionalData[currentIndex];\nlet passengersRef = bookingPassengerReferences[currentIndex];\nlet passengerGender = bookingPassengerSpecifications[currentIndex];\n\nif (currentIndex >= totalPassengers) {\n    return;\n}\n\nbru.setEnvVar(\"passengerId\", passengerId);\nbru.setEnvVar(\"passengerSpecificationExternalRef\", passengersRef);\n\nbru.setEnvVar(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\nbru.setEnvVar(\"patchFirstName\", data.updateFirstName || \"\");\nbru.setEnvVar(\"patchLastName\", data.updateLastName || \"\");\nbru.setEnvVar(\"patchEmail\", data.updateEmail || \"\");\nbru.setEnvVar(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\nbru.setEnvVar(\"patchGender\", data.updateGender || passengerGender.gender);",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { patchMultiPassengerResponse } = require(bru.getEnvVar(\"library_base\")+\"passengers.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\nif (!jsonData.passenger || jsonData.passenger.length === 0) {\n    throw new Error(\"⛔ Exiting script, no passenger available in the response\");\n}\ntest('Successfully received passenger', () => expect(res.getStatus()).to.eql(200));\n\nlet totalPassengers = Number(bru.getEnvVar(\"offerPassengerNumber\"));\nlet currentIndex = Number(bru.getEnvVar(\"currentPassengerIndex\"));\nif (isNaN(currentIndex)) {\n    currentIndex = 0;\n    bru.setEnvVar(\"currentPassengerIndex\", 0);\n}\npatchMultiPassengerResponse(jsonData, currentIndex);\n\ncurrentIndex++;\nbru.setEnvVar(\"currentPassengerIndex\", currentIndex);\n\nif (currentIndex < totalPassengers) {\n    bru.runner.setNextRequest(req.getName());\n} else {\n    bru.runner.setNextRequest(\"07. GET Booking before Fulfillments\");\n}\n"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "07. GET Booking before Fulfillments",
+          "filename": "07. GET Booking before Fulfillments.bru",
+          "seq": 6,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Access-Token",
+                "value": "{{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"PREBOOKED\"],\nexpectedFulfillmentStatus=[\"ON_HOLD\",\"AVAILABLE\"]);\n\ndisplayFulFilledBooking(jsonData);"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "08. POST Obtaining Fulfillments from Booking",
+          "filename": "08. POST Obtaining Fulfillments from Booking.bru",
+          "seq": 7,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}/fulfillments",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Access-Token",
+                "value": "{{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{}",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { validateFulfillments } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n// Validate HTTP response status\ntest('Status code is 200 or 202', () => {\n    expect([200, 202]).to.include(res.getStatus());\n});\n\nif (![200, 202].includes(res.getStatus())) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\n\nvalidateFulfillments(jsonData.fulfillments, 0, expectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"])\n"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        },
+        {
+          "type": "http",
+          "name": "09. GET Booking after Fulfillments",
+          "filename": "09. GET Booking after Fulfillments.bru",
+          "seq": 8,
+          "settings": {
+            "encodeUrl": true,
+            "timeout": 0
+          },
+          "tags": [],
+          "examples": [],
+          "request": {
+            "url": "{{api_base}}/bookings/{{bookingId}}",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json;version={{osdmVersion}}",
+                "enabled": true
+              },
+              {
+                "name": "Access-Token",
+                "value": "{{access_token}}",
+                "enabled": true
+              },
+              {
+                "name": "Requestor",
+                "value": "{{requestor}}",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none",
+              "formUrlEncoded": [],
+              "multipartForm": [],
+              "file": []
+            },
+            "script": {
+              "req": "console.log(\"⏩ [STEP] Executing request : \" + req.getName());",
+              "res": "const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar(\"library_base\")+\"displays.js\");\nconst { postCreateBookingResponse } = require(bru.getEnvVar(\"library_base\")+\"bookings.js\");\n\n\n// Validate HTTP response status\ntest(\"Status code is 200\", () => {\n    expect(res.getStatus(), \"[ERROR] Wrong response status\").to.eql(200);\n});\n\nif (res.getStatus() !== 200) {\n    bru.runner.stopExecution();\n    throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);\n}\n\n// Parse JSON safely\nlet jsonData;\ntry {\n    jsonData = res.getBody();\n} catch (e) {\n    validationLogger(\"Failed to parse JSON response\");\n    test(\"JSON parsing should succeed\", () => {\n        throw e;\n    });\n    bru.runner.stopExecution();\n    return;\n}\npostCreateBookingResponse(\nbru.getEnvVar(\"offer\"),\njsonData,\nexpectedBookedOffersStatus=[\"FULFILLED\", \"CONFIRMED\"],\nexpectedFulfillmentStatus=[\"FULFILLED\", \"CONFIRMED\"]);\n\ndisplayFulFilledBooking(jsonData);\n\nif(bru.getEnvVar(\"scenarioType\")?.includes(\"REFUND\")) {\n    bru.runner.setNextRequest(\"10. POST Refund Offers\");\n    console.log(\"scenarioType in data file contains 'REFUND' keyword, executing 10. POST Refund Offers\")\n} else if(bru.getEnvVar(\"scenarioType\")?.includes(\"EXCHANGE\")) {\n    bru.runner.setNextRequest(\"10. POST Exchange Offers\");\n    console.log(\"scenarioType in data file contains 'EXCHANGE' keyword, executing 10. POST Exchange Offers\")    \n} else{\n    console.log(\"scenarioType in data file doesn't contain 'REFUND' or 'EXCHANGE' keyword, ending test scenario ...\")    \n    bru.runner.stopExecution();\n}"
+            },
+            "vars": {},
+            "assertions": [],
+            "tests": "",
+            "docs": "",
+            "auth": {
+              "mode": "inherit"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "environments": [
+  ],
+  "root": {
+    "request": {
+      "auth": {
+        "mode": "none"
+      },
+      "script": {
+        "req": "/*\nCopyright UIC, Union Internationale des Chemins de fer\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n\nNo reproduction nor distribution shall be allowed without the following notice\n“This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”\n*/\n\nconst { getScenarioData } = require(bru.getEnvVar(\"library_base\")+\"scenarioParser.js\");\n\nvar scenarioCode = bru.getEnvVar(\"scenarioCode\");\n\nfunction pad(number) {\n    return (number < 10) ? '0' + number : number;\n}\n\nfunction get_next_weekday (date) {\n    var tomorrow = new Date(date.setDate(date.getDate() + 1));\n    return tomorrow.getDay() % 6\n        ? tomorrow\n        : get_next_weekday(tomorrow)\n}\n\nvar lib = \"\";\nvar jsLibraries = [\"validators\", \"bookings\", \"displays\", \"exchanges\", \"fulfillments\", \"model\", \"offers\", \"passengers\", \"refunds\", \"requestsBuilder\", \"scenarioParser\", \"swagger\"];\n//var jsLibraries = [\"functions\", \"model\"];\n\ntest(`API base is available : ${bru.getEnvVar(\"api_base\")}`, function () {\n    expect(bru.getEnvVar(\"api_base\")).to.not.be.null;\n    console.log(`API base is available : ${bru.getEnvVar(\"api_base\")}`)\n});\n\ntest(`Library base is available : ${bru.getEnvVar(\"library_base\")}`, function () {\n    expect(bru.getEnvVar(\"library_base\")).not.null;\n    console.log(`Library base is available : ${bru.getEnvVar(\"library_base\")}`)\n});\n\ntest(`Data file is available : ${bru.getEnvVar(\"data_base\")}`, function () {\n    expect(bru.getEnvVar(\"data_base\")).not.null;\n    console.log(`Data file is available : ${bru.getEnvVar(\"data_base\")}`)\n});\n\n// Cannot check exact URL as the endpoint path varies among different API vendors\nif (req.getUrl().toString().includes(\"/offers\")) {\n    console.log(`\n    ####################################\n    # 🛠️  New Collection Execution 🛠️ #\n    ####################################\n    `);\n\n    const keepList = [\n        \"Ocp-Apim-Subscription-Key\",\n        \"requestor\",\n        \"access_token\",\n        \"x-bnds-backend\",\n        \"api_base\",\n        \"data_base\",\n        \"library_base\",\n        \"data_file\",\n        \"json_schema\",\n        \"scenarioCode\",\n        \"client_id\",\n        \"client_secret\",\n        \"ajvMinified\",\n        \"api-host\",\n        \"agent.username\",\n        \"agent.password\",\n        \"auth.key_secret\",\n        \"client.id\",\n        \"client.secret\"\n    ];\n\n    //console.log(\"🛠️ Cleaning all environment variables..\");\n    //const allVars = bru.environment.toObject();\n\n    //for (const key in allVars) {\n    //    if (!keepList.includes(key)) {\n    //        bru.deleteEnvVar(key);\n    //    }\n    //}\n\n    console.log(\"✅ All global variables have been successfully cleared\");\n\n    setTimeout(2000);\n    if (!bru.getEnvVar(\"osdmHelpers\")) {\n        console.log(\"🛠️ Retrieving  scripts libraries and save in environment..\");\n        //libGetter();\n        getScenarioData();\n    }\n}\n\n// Add default headers\n\n// SBB OSDM REQUIRED HEADERS\nif (bru.getEnvVar(\"API\") == \"SBB\"){\n  req.setHeader('accept-language', 'en');\n  req.setHeader('traceparent', bru.getEnvVar(\"traceparent\"));\n  req.setHeader('tracestate', bru.getEnvVar(\"tracestate\"));\n}\n"
+      }
+    },
+    "docs": "bru run --reporter-html report.html --env SMAPI-DB-OTST_SBB_Env --sandbox=developer",
+    "meta": {
+      "name": "OTST_V1.4.9.1_RFND_EXCH_ALL"
+    }
+  },
+  "brunoConfig": {
+    "version": "1",
+    "name": "OTST_V1.4.9.1_RFND_EXCH_ALL",
+    "type": "collection",
+    "ignore": [
+      "node_modules",
+      ".git"
+    ],
+    "size": 0.07128143310546875,
+    "filesCount": 30
+  },
+  "exportedAt": "2026-02-11T10:01:07.745Z",
+  "exportedUsing": "Bruno/3.0.2"
+}
