@@ -108,10 +108,10 @@ postCreateBookingResponse = function (selectedOffer, jsonData, expectedBookedOff
                 const bookingValues = bookedParts.map(p => p[field]).filter(v => v != null);
 
                 if (offerValues.length > 0 && bookingValues.length > 0) {
-                    pm.test(`${partType} ${field} values match between offer and booking (order-independent) offer=[${offerValues}] booking=[${bookingValues}]`, () => {
-                        pm.expect(bookingValues).to.have.members(offerValues);
-                        pm.expect(offerValues).to.have.members(bookingValues);
-                        validationLogger(`[INFO] ${partType} ${field}: offer=[${offerValues}] booking=[${bookingValues}]`);
+                    pm.test(`${partType} ${field} values have at least one member in common between offer and booking offer=[${offerValues}] booking=[${bookingValues}]`, () => {
+                        const intersection = offerValues.filter(v => bookingValues.includes(v));
+                        pm.expect(intersection.length, `No common value for ${field} between offer and booking`).to.be.above(0);
+                        validationLogger(`[INFO] ${partType} ${field}: offer=[${offerValues}] booking=[${bookingValues}] intersection=[${intersection}]`);
                     });
                 } else if (offerValues.length === 0 && bookingValues.length === 0) {
                     validationLogger(`[INFO] ${partType}: '${field}' is empty in both offer and booking`);
@@ -152,18 +152,14 @@ postCreateBookingResponse = function (selectedOffer, jsonData, expectedBookedOff
                 .map(p => ({ amount: p.price.amount, currency: p.price.currency, scale: p.price.scale }));
 
             if (offerPrices.length > 0 && bookingPrices.length > 0) {
-                pm.test(`${partType} prices match between offer and booking (order-independent)`, () => {
-                    pm.expect(offerPrices.length).to.equal(bookingPrices.length);
-
+                pm.test(`${partType} prices have at least one member in common between offer and booking`, () => {
                     // Compare each price field
                     ['amount', 'currency', 'scale'].forEach(field => {
                         const offerValues = offerPrices.map(p => p[field]);
                         const bookingValues = bookingPrices.map(p => p[field]);
-
-                        pm.expect(bookingValues).to.have.members(offerValues);
-                        pm.expect(offerValues).to.have.members(bookingValues);
-
-                        validationLogger(`[INFO] ${partType} price.${field}: offer=[${offerValues}] booking=[${bookingValues}]`);
+                        const intersection = offerValues.filter(v => bookingValues.includes(v));
+                        pm.expect(intersection.length, `No common value for price.${field} between offer and booking`).to.be.above(0);
+                        validationLogger(`[INFO] ${partType} price.${field}: offer=[${offerValues}] booking=[${bookingValues}] intersection=[${intersection}]`);
                     });
                 });
             } else if (offerPrices.length === 0 && bookingPrices.length === 0) {

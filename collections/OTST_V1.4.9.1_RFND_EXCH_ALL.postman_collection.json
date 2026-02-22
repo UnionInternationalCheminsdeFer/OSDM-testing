@@ -13,6 +13,17 @@
           "name": "01. POST Get Offer",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "postOfferResponsePreRequest();"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -45,24 +56,18 @@
                   "postOfferResponse(jsonData);",
                   "displayOfferResponse(jsonData);",
                   "",
+                  "const requiresPlaceSelection = pm.environment.get(\"requiresPlaceSelection\");",
+                  "",
+                  "if (requiresPlaceSelection !== true) {",
+                  "    validationLogger(`[INFO] requiresPlaceSelection is ${requiresPlaceSelection}, skipping place selection`);",
+                  "    pm.execution.setNextRequest(\"03. POST Create Booking\");",
+                  "}",
+                  "",
                   "//swaggerSchemaValidatorContent();",
                   ""
                 ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
-                  "postOfferResponsePreRequest();"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "packages": {}
               }
             }
           ],
@@ -314,6 +319,45 @@
           "name": "05. PATCH Multi Passenger",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+                  "\r",
+                  "let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
+                  "\r",
+                  "let passengerAdditionalData = JSON.parse(pm.environment.get(\"passengerAdditionalData\") || \"[]\");\r",
+                  "let bookingPassengerSpecifications = JSON.parse(pm.environment.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
+                  "let bookingPassengerReferences = JSON.parse(pm.environment.get(\"bookingPassengerReferences\") || \"[]\");\r",
+                  "let totalPassengers = pm.environment.get(\"offerPassengerNumber\") || 0;\r",
+                  "let currentIndex = pm.environment.get(\"currentPassengerIndex\") || 0;\r",
+                  "\r",
+                  "if (currentIndex >= totalPassengers) {\r",
+                  "    console.log(\"✅ All passengers processed\");\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "let passengerId = passengerIdList[currentIndex];\r",
+                  "let dataPatchMultipax = passengerAdditionalData[currentIndex];\r",
+                  "let passengersRef = bookingPassengerReferences[currentIndex];\r",
+                  "let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
+                  "\r",
+                  "pm.environment.set(\"passengerId\", passengerId);\r",
+                  "pm.environment.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
+                  "\r",
+                  "pm.environment.set(\"patchDateOfBirth\", dataPatchMultipax.updateDateOfBirth || \"\");\r",
+                  "pm.environment.set(\"patchFirstName\", dataPatchMultipax.updateFirstName || \"\");\r",
+                  "pm.environment.set(\"patchLastName\", dataPatchMultipax.updateLastName || \"\");\r",
+                  "pm.environment.set(\"patchEmail\", dataPatchMultipax.updateEmail || \"\");\r",
+                  "pm.environment.set(\"patchPhoneNumber\", dataPatchMultipax.updatePhoneNumber || \"\");\r",
+                  "pm.environment.set(\"patchGender\", dataPatchMultipax.updateGender || passengerGender.gender);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -367,48 +411,7 @@
                   ""
                 ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
-                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-                  "\r",
-                  "let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
-                  "\r",
-                  "let passengerAdditionalData = JSON.parse(pm.environment.get(\"passengerAdditionalData\") || \"[]\");\r",
-                  "let bookingPassengerSpecifications = JSON.parse(pm.environment.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
-                  "let bookingPassengerReferences = JSON.parse(pm.environment.get(\"bookingPassengerReferences\") || \"[]\");\r",
-                  "let totalPassengers = pm.environment.get(\"offerPassengerNumber\") || 0;\r",
-                  "let currentIndex = pm.environment.get(\"currentPassengerIndex\") || 0;\r",
-                  "\r",
-                  "if (currentIndex >= totalPassengers) {\r",
-                  "    console.log(\"✅ All passengers processed\");\r",
-                  "    return;\r",
-                  "}\r",
-                  "\r",
-                  "let passengerId = passengerIdList[currentIndex];\r",
-                  "let data = passengerAdditionalData[currentIndex];\r",
-                  "let passengersRef = bookingPassengerReferences[currentIndex];\r",
-                  "let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
-                  "\r",
-                  "pm.environment.set(\"passengerId\", passengerId);\r",
-                  "pm.environment.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
-                  "\r",
-                  "pm.environment.set(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\r",
-                  "pm.environment.set(\"patchFirstName\", data.updateFirstName || \"\");\r",
-                  "pm.environment.set(\"patchLastName\", data.updateLastName || \"\");\r",
-                  "pm.environment.set(\"patchEmail\", data.updateEmail || \"\");\r",
-                  "pm.environment.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
-                  "pm.environment.set(\"patchGender\", data.updateGender || passengerGender.gender);"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "packages": {}
               }
             }
           ],
@@ -465,6 +468,44 @@
           "name": "06. GET Passenger",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
+                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
+                  "\r",
+                  "let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
+                  "\r",
+                  "let passengerAdditionalData = JSON.parse(pm.environment.get(\"passengerAdditionalData\") || \"[]\");\r",
+                  "let bookingPassengerSpecifications = JSON.parse(pm.environment.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
+                  "let bookingPassengerReferences = JSON.parse(pm.environment.get(\"bookingPassengerReferences\") || \"[]\");\r",
+                  "let totalPassengers = pm.environment.get(\"offerPassengerNumber\") || 0;\r",
+                  "let currentIndex = pm.environment.get(\"currentPassengerIndex\") || 0;\r",
+                  "\r",
+                  "let passengerId = passengerIdList[currentIndex];\r",
+                  "let dataGetMultiplax = passengerAdditionalData[currentIndex];\r",
+                  "let passengersRef = bookingPassengerReferences[currentIndex];\r",
+                  "let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
+                  "\r",
+                  "if (currentIndex >= totalPassengers) {\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "pm.environment.set(\"passengerId\", passengerId);\r",
+                  "pm.environment.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
+                  "\r",
+                  "pm.environment.set(\"patchDateOfBirth\", dataGetMultiplax.updateDateOfBirth || \"\");\r",
+                  "pm.environment.set(\"patchFirstName\", dataGetMultiplax.updateFirstName || \"\");\r",
+                  "pm.environment.set(\"patchLastName\", dataGetMultiplax.updateLastName || \"\");\r",
+                  "pm.environment.set(\"patchEmail\", dataGetMultiplax.updateEmail || \"\");\r",
+                  "pm.environment.set(\"patchPhoneNumber\", dataGetMultiplax.updatePhoneNumber || \"\");\r",
+                  "pm.environment.set(\"patchGender\", dataGetMultiplax.updateGender || passengerGender.gender);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -517,47 +558,7 @@
                   ""
                 ],
                 "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "eval(pm.environment.get(\"osdmHelpers\"));\r",
-                  "console.log(\"⏩ [STEP] Executing request : \" + pm.info.requestName);\r",
-                  "\r",
-                  "let passengerIdList = pm.environment.get(\"passengerIdList\");\r",
-                  "\r",
-                  "let passengerAdditionalData = JSON.parse(pm.environment.get(\"passengerAdditionalData\") || \"[]\");\r",
-                  "let bookingPassengerSpecifications = JSON.parse(pm.environment.get(\"bookingPassengerSpecifications\") || \"[]\");\r",
-                  "let bookingPassengerReferences = JSON.parse(pm.environment.get(\"bookingPassengerReferences\") || \"[]\");\r",
-                  "let totalPassengers = pm.environment.get(\"offerPassengerNumber\") || 0;\r",
-                  "let currentIndex = pm.environment.get(\"currentPassengerIndex\") || 0;\r",
-                  "\r",
-                  "let passengerId = passengerIdList[currentIndex];\r",
-                  "let data = passengerAdditionalData[currentIndex];\r",
-                  "let passengersRef = bookingPassengerReferences[currentIndex];\r",
-                  "let passengerGender = bookingPassengerSpecifications[currentIndex];\r",
-                  "\r",
-                  "if (currentIndex >= totalPassengers) {\r",
-                  "    return;\r",
-                  "}\r",
-                  "\r",
-                  "pm.environment.set(\"passengerId\", passengerId);\r",
-                  "pm.environment.set(\"passengerSpecificationExternalRef\", passengersRef);\r",
-                  "\r",
-                  "pm.environment.set(\"patchDateOfBirth\", data.updateDateOfBirth || \"\");\r",
-                  "pm.environment.set(\"patchFirstName\", data.updateFirstName || \"\");\r",
-                  "pm.environment.set(\"patchLastName\", data.updateLastName || \"\");\r",
-                  "pm.environment.set(\"patchEmail\", data.updateEmail || \"\");\r",
-                  "pm.environment.set(\"patchPhoneNumber\", data.updatePhoneNumber || \"\");\r",
-                  "pm.environment.set(\"patchGender\", data.updateGender || passengerGender.gender);"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "packages": {}
               }
             }
           ],

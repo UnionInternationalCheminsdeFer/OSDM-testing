@@ -129,8 +129,8 @@ function postOfferResponse(jsonData) {
 
 	validateOfferSummary(selectedOffer);
 	validatePassengers(jsonData);
-	validateTripsAndLegs(jsonData);
 	validateOfferParts(selectedOffer);
+	validateTripsAndLegs(jsonData);
 	validateAdmissions(selectedOffer);
 	validateReservations(selectedOffer);
 	validateAncillaries(selectedOffer);
@@ -201,13 +201,11 @@ function selectAndSetOffer(jsonData) {
 	if (desiredFlexibility) {
 		const actual = selectedOffer.offerSummary?.overallFlexibility;
 		pm.test(`Selected offer has expected flexibility - expected: ${desiredFlexibility}, actual: ${actual}`, () => {
-			const success = actual === desiredFlexibility;
 			validationLogger(`[INFO] Selected offer has expected flexibility - expected: ${desiredFlexibility}, actual: ${actual}`);
 			pm.expect(actual).to.eql(desiredFlexibility);
 		});
 
 		const matchingProducts = (selectedOffer.products || []).filter(p => p.flexibility === desiredFlexibility);
-		const success = matchingProducts.length > 0;
 		pm.test(`At least one matching product has the expected flexibility - count : ${matchingProducts.length}`, () => {
 			validationLogger(`[INFO] At least one matching product has the expected flexibility - count : ${matchingProducts.length}`);
 			pm.expect(matchingProducts.length).to.be.above(0);
@@ -264,10 +262,10 @@ function validateOfferSummary(selectedOffer) {
 
 	// Check all price fields (amount, currency, scale) exist in minimalPrice
 	pm.test(`Price fields exist (currency, scale) exist in minimalPrice`, () => {
+		validationLogger(`[INFO] Price fields (currency, scale) are present in minimalPrice`);
 		['currency', 'scale'].forEach(field => {
 			pm.expect(mini[field], `minimalPrice.${field} missing`).to.exist;
 		});
-		validationLogger(`[INFO] Price fields (currency, scale) are present in minimalPrice`);
 	});
 
 	// Overall flexibility validation
@@ -323,10 +321,19 @@ function validatePassengers(jsonData) {
 function validateTripsAndLegs(jsonData) {
 	validationLogger("[INFO] ➤ validateTripsAndLegs");
 	const trips = jsonData.trips || [];
-
+	
 	pm.test(`Trips are defined - length: ${trips.length}`, function () {
 		validationLogger(`[INFO] Trips are defined - length: ${trips.length}`);
 		pm.expect(trips.length).to.be.above(0);
+	});
+	
+	// Capture trip ids and compare to coveredTripId
+	const tripIds = (jsonData.trips || []).map(trip => trip.id).filter(id => id !== undefined && id !== null);
+	validationLogger(`[INFO] tripIds found: ${JSON.stringify(tripIds)}`);
+	const coveredTripId = pm.environment.get("coveredTripId");
+	pm.test(`selectedOffer.tripCoverage.coverageTripId if part of Trip ids - coveredTripId: ${coveredTripId}`, function () {
+		validationLogger(`[INFO] selectedOffer.tripCoverage.coverageTripId if part of Trip ids - coveredTripId: ${coveredTripId}`);
+		pm.expect(tripIds).to.include(coveredTripId);
 	});
 
 	trips.forEach((trip, tripIndex) => {
@@ -336,6 +343,7 @@ function validateTripsAndLegs(jsonData) {
 			pm.expect(legs.length).to.be.above(0);
 		});
 
+		// Display TrainID, Origin & Destination
 		legs.forEach((leg, legIndex) => {
 			const trainId = leg.timedLeg?.service?.vehicleNumbers?.[0];
 			const origin = leg.timedLeg?.start?.stopPlaceName;
@@ -412,13 +420,20 @@ function validateOfferParts(selectedOffer) {
 	//Is this check in jsonData.products[] ?
 	const productFlex = Array.from(new Set(selectedOffer?.products?.map(p => p.flexibility).filter(Boolean)));
 
-	// Si au moins un produit est FULL_FLEXIBLE, le résultat est FULL_FLEXIBLE
+	// If at least one product is FULL_FLEXIBLE, the result is FULL_FLEXIBLE
 	const flexibilityResult = productFlex.includes("FULL_FLEXIBLE") ? "FULL_FLEXIBLE" : (productFlex.length === 1 ? productFlex[0] : "SEMI_FLEXIBLE");
 
 	pm.test(`Offer overallFlexibility consistency - overallFlex: ${overallFlex}, flexibilityResult: ${flexibilityResult}`, () => {
 		validationLogger(`[INFO] productFlex: ${productFlex.join(", ")}, Result: ${flexibilityResult}`);
 		pm.expect(overallFlex).to.eql(flexibilityResult);
 	});
+
+	// capture coveredTripId if value exists
+	const coveredTripId = selectedOffer.tripCoverage && selectedOffer.tripCoverage.coveredTripId;
+	if (coveredTripId !== undefined && coveredTripId !== null) {
+		validationLogger(`[INFO] Covered Trip ID: ${coveredTripId}`);
+		pm.environment.set("coveredTripId", coveredTripId);
+	}
 
 	// Travel class
 	//TODO Travel Class : In some cases the travel class of a short leg is lower than the longer one.
@@ -573,7 +588,7 @@ function validateAdmissions(selectedOffer) {
 			}
 
 			// If FULL FLEXIBLE ticket, refundable and/or exchangeable must be YES
-			if (overallFlex === "FULL_FLEXIBLE") {
+			if (overallFlex === "FULL_FLEXIBLE" || overallFlex === "SEMI_FLEXIBLE") {
 				if (pm.environment.get("scenarioType").includes("REFUND")) {
 					pm.test(
 						`Admission part ${i + 1} refundable : ${admission.refundable}`,
@@ -862,15 +877,12 @@ function handleAccommodationAndPlaceSelection(selectedOffer) {
 	validationLogger("[INFO] ➤ handleAccommodationAndPlaceSelection");
 
 	const accommodationSelection = pm.environment.get("accommodationSelection");
-	const requiresPlaceSelection = pm.environment.get("requiresPlaceSelection");
 
 	if (accommodationSelection !== "COUCHETTE" && accommodationSelection !== "BERTH") {
 		validationLogger(`[INFO] accommodationSelection is ${accommodationSelection}, skipping place selection`);
 		return;
 	}
-	if (requiresPlaceSelection !== true) {
-		pm.execution.setNextRequest("03. POST Create Booking");
-	}
+
 	const reservationParts = selectedOffer.reservationOfferParts || [];
 	validationLogger(`[INFO] Reservation Offer Parts count: ${reservationParts.length}`);
 
