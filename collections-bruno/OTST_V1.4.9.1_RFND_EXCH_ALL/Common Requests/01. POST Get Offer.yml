@@ -1,0 +1,74 @@
+info:
+  name: 01. POST Get Offer
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{api_base}}/offers"
+  headers:
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Requestor
+      value: "{{requestor}}"
+  body:
+    type: json
+    data: "{{OfferCollectionRequest}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const { postOfferResponsePreRequest } = require(bru.getEnvVar("library_base")+"offers.js");
+        postOfferResponsePreRequest();
+    - type: after-response
+      code: |-
+        const { postOfferResponse } = require(bru.getEnvVar("library_base")+"offers.js");
+        const { displayOfferResponse } = require(bru.getEnvVar("library_base")+"displays.js");
+
+        // Validate HTTP response status
+        test(`Status code is 200`, () => {
+            expect(res.getStatus(), "[ERROR] Wrong response status").to.eql(200);
+        });
+
+        // Stop flow if status != 200
+        if (res.getStatus() !== 200) {
+            bru.runner.stopExecution();
+            throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+        }
+
+        // Parse JSON safely
+        let jsonData;
+        try {
+            jsonData = res.getBody();
+        } catch (e) {
+            validationLogger("Failed to parse JSON response");
+            test("JSON parsing should succeed", () => {
+                throw e;
+            });
+            bru.runner.stopExecution();
+            return;
+        }
+
+        postOfferResponse(jsonData);
+        displayOfferResponse(jsonData);
+
+        //swaggerSchemaValidatorContent();
+
+        const requiresPlaceSelection = bru.getEnvVar("requiresPlaceSelection");
+
+        if (requiresPlaceSelection !== true) {
+          bru.runner.setNextRequest("03. POST Create Booking");
+          bru.setGlobalEnvVar("skipPlaceMaps", true);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

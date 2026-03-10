@@ -1,0 +1,142 @@
+name: OTST_V1.4.9.1_Paxone_Env
+variables:
+  - secret: true
+    name: client_id
+  - secret: true
+    name: client_secret
+  - secret: true
+    name: access_token
+  - name: api-host
+    value: https://staging.sandbox.paxone.app/api/v1/auth/user/token
+  - name: api_base
+    value: https://staging.sandbox.paxone.app/api/osdm
+  - name: library_base
+    value: ./library-bruno/
+  - name: data_base
+    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/data_base/paxone_datafile.json
+  - name: json_schema
+    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/json_validator/datafile.schema.json
+  - name: scenarioCode
+    value: OTST_EXCH_SRCH_CRIT_1ADT_1LEG
+  - name: osdmHelpers
+    value: ""
+  - name: data_base_tmp
+    value: ""
+  - name: loggingType
+    value: ""
+  - name: scenarioType
+    value: ""
+  - name: scenarioAction
+    value: ""
+  - name: osdmVersion
+    value: ""
+  - name: desiredFlexibility
+    value: ""
+  - name: accommodationSelection
+    value: ""
+  - name: requiresPlaceSelection
+    value: ""
+  - name: overruleCode
+    value: ""
+  - name: refundDate
+    value: ""
+  - name: TripType
+    value: ""
+  - name: tripStartStopPlaceRef
+    value: ""
+  - name: tripEndStopPlaceRef
+    value: ""
+  - name: tripStartDatetime
+    value: ""
+  - name: tripEndDatetime
+    value: ""
+  - name: tripVehicleNumber
+    value: ""
+  - name: tripOperatorCode
+    value: ""
+  - name: tripProductCategoryRef
+    value: ""
+  - name: tripProductCategoryName
+    value: ""
+  - name: tripProductCategoryShortName
+    value: ""
+  - name: offerTripSearchCriteria
+    value: ""
+  - name: bookingPurchaserSpecifications
+    value: ""
+  - name: offerPassengerNumber
+    value: ""
+  - name: offerPassengerSpecifications
+    value: ""
+  - name: bookingPassengerSpecifications
+    value: ""
+  - name: bookingPassengerReferences
+    value: ""
+  - name: passengerAdditionalData
+    value: ""
+  - name: updateFirstName_0
+    value: ""
+  - name: updateLastName_0
+    value: ""
+  - name: updateDateOfBirth_0
+    value: ""
+  - name: updateEmail_0
+    value: ""
+  - name: updatePhoneNumber_0
+    value: ""
+  - name: updateGender_0
+    value: ""
+  - name: offerSearchCriteria
+    value: ""
+  - name: OfferCollectionRequest
+    value: ""
+  - name: offer
+    value: ""
+  - name: offerId
+    value: ""
+  - name: offers
+    value: ""
+  - name: overallFlexibility
+    value: ""
+  - name: passengerCount
+    value: ""
+  - name: referencedAncillaryIds
+    value: ""
+  - name: minimalPrice
+    value: ""
+  - name: admissionPartsPrice
+    value: ""
+  - name: reservationPartsPrice
+    value: ""
+  - name: ancillaryPartsPrice
+    value: ""
+  - name: admissionReservationAncillaryOfferPartsIds
+    value: ""
+  - name: admissionReservationAncillaryOfferPartsAftersalesConditions
+    value: ""
+  - name: placeSelections
+    value: ""
+  - name: BookingRequest
+    value: ""
+  - name: bookingId
+    value: ""
+  - name: passengerIdList
+    value: ""
+  - name: provisionalPriceAmount
+    value: ""
+  - name: confirmedPriceAmount
+    value: ""
+  - name: admissionReservationAncillaryBookingPartsIds
+    value: ""
+  - name: afterSaleCondition_EXCHANGE_amount
+    value: ""
+  - name: afterSaleCondition_EXCHANGE_currency
+    value: ""
+  - name: afterSaleCondition_EXCHANGE_scale
+    value: ""
+  - name: fulfillmentIds
+    value: ""
+  - name: requestRefundOffersBodyData
+    value: ""
+  - name: refundOffersOfferId
+    value: ""

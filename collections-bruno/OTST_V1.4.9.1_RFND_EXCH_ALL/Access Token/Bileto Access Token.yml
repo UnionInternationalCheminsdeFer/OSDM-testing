@@ -1,0 +1,55 @@
+info:
+  name: Bileto Access Token
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{api_base}}/oauth/token?grant_type=client_credentials&client_id={{client_id}}&client_secret={{client_secret}}"
+  headers:
+    - name: Accept
+      value: application/json
+  params:
+    - name: grant_type
+      value: client_credentials
+      type: query
+    - name: client_id
+      value: "{{client_id}}"
+      type: query
+    - name: client_secret
+      value: "{{client_secret}}"
+      type: query
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: "// Parse the response JSON\r
+
+        const response = res.getBody();\r
+
+        \r
+
+        // Check if the response contains the access_token\r
+
+        if (response.access_token) {\r
+
+        \    // Set the access_token in the environment variable\r
+
+        \    bru.setEnvVar(\"access_token\", response.access_token);\r
+
+        \    console.log(\"Access token saved to environment: \", response.access_token);\r
+
+        } else {\r
+
+        \    // Log an error if access_token is not found\r
+
+        \    console.error(\"No access_token found in the response\");\r
+
+        }"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

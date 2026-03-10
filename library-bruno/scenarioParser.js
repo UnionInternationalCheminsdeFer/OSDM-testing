@@ -1,9 +1,6 @@
 // Import needed library files
-const display = require('./displays.js');
 const validators = require('./validators.js');
 const models = require('./model.js');
-
-// scenarioParser-bruno.js
 
 const uuid = require('uuid');
 
@@ -15,6 +12,19 @@ module.exports = {
   osdmOfferSearchCriteria,
   osdmFulfillmentOptions
 };
+
+// Returns null for empty / "null" strings, otherwise returns the value as-is
+const nullIfEmpty = v => (v == null || v === '' || v === 'null') ? null : v;
+
+// Zero-pad a number to 2 digits
+const pad = n => String(n).padStart(2, '0');
+
+// Returns the ISO date string for today + plusDays
+function getTripDate(plusDays = 10) {
+  const d = new Date();
+  d.setDate(d.getDate() + plusDays);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 // Helper: GET JSON via Bruno's sendRequest
 function getJson(url) {
@@ -95,319 +105,227 @@ async function getScenarioData() {
 
 // Function to parse scenario data from JSON
 function parseScenarioData(jsonData) {
-  // const plusDays = parseInt(bru.getEnvVar("departureDateFromToday")) || 0;
-  const plusDays = 10;
-  const today = new Date();
-  today.setDate(today.getDate() + plusDays);
-
-  function pad(n) {
-    return String(n).padStart(2, '0');
-  }
-
-  const nextWeekdayString = today.getFullYear() + "-" +
-    pad(today.getMonth() + 1) + "-" +
-    pad(today.getDate());
-
-  let dataFileIndex = 0;
-  const dataFileLength = (jsonData.scenarios || []).length;
-  let foundCorrectDataSet = false;
+  const nextWeekdayString = getTripDate(parseInt(bru.getEnvVar("departureDateFromToday")) || 10);
   const scenarioCode = bru.getEnvVar("scenarioCode");
 
-  while (foundCorrectDataSet === false && dataFileIndex < dataFileLength) {
-    const scenario = jsonData.scenarios[dataFileIndex];
+  const scenario = (jsonData.scenarios || []).find(s => s.code === scenarioCode);
 
-    if (scenario.code === scenarioCode) {
-      // Set environment variables for the scenario
-      bru.setEnvVar("loggingType", ["", "null"].includes(scenario.loggingType) ? null : scenario.loggingType);
-      bru.setEnvVar("scenarioCode", scenario.code);
-      bru.setEnvVar("scenarioType", ["", "null"].includes(scenario.scenarioType) ? null : scenario.scenarioType);
-      bru.setEnvVar("scenarioAction", ["", "null"].includes(scenario.scenarioAction) ? null : scenario.scenarioAction);
-      bru.setEnvVar("osdmVersion", ["", "null"].includes(scenario.osdmVersion) ? null : scenario.osdmVersion);
-      bru.setEnvVar("desiredFlexibility", ["", "null"].includes(scenario.desiredFlexibility) ? null : scenario.desiredFlexibility);
-      bru.setEnvVar("accommodationSelection", ["", "null"].includes(scenario.accommodationSelection) ? null : scenario.accommodationSelection);
-      bru.setEnvVar("requiresPlaceSelection", ["", "null"].includes(scenario.requiresPlaceSelection) ? null : scenario.requiresPlaceSelection);
-      bru.setEnvVar("overruleCode", ["", "null"].includes(scenario.overruleCode) ? null : scenario.overruleCode);
-      bru.setEnvVar("refundDate", ["", "null"].includes(scenario.refundDate) ? null : scenario.refundDate);
-
-      // Trip requirements
-      jsonData.tripRequirements?.some(function (tripRequirement) {
-        if (tripRequirement.id === scenario.tripRequirementId) {
-          bru.setEnvVar("TripType", tripRequirement.tripType);
-
-          switch (tripRequirement.tripType) {
-            case "SPECIFICATION":
-              validationLogger('[INFO] ⏳ processing a specification');
-              const legDefinitions = [];
-
-              tripRequirement.legs.forEach(function (leg, legIndex) {
-                const legPrefix = `leg${legIndex + 1}`;
-                const startDatetime = leg.startDatetime.replace("%TRIP_DATE%", nextWeekdayString);
-                const endDatetime = leg.endDatetime.replace("%TRIP_DATE%", nextWeekdayString);
-
-                bru.setEnvVar(`${legPrefix}StartStopPlaceRef`, leg.origin);
-                bru.setEnvVar(`${legPrefix}EndStopPlaceRef`, leg.destination);
-                bru.setEnvVar(`${legPrefix}StartDatetime`, startDatetime);
-                bru.setEnvVar(`${legPrefix}EndDatetime`, endDatetime);
-                bru.setEnvVar(`${legPrefix}VehicleNumber`, leg.vehicleNumber);
-                bru.setEnvVar(`${legPrefix}OperatorCode`, leg.operatorCode);
-                bru.setEnvVar(`${legPrefix}ProductCategoryRef`, leg.productCategoryRef || null);
-                bru.setEnvVar(`${legPrefix}ProductCategoryName`, leg.productCategoryName || null);
-                bru.setEnvVar(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
-                validationLogger("[DEBUG] 🪲 parseScenarioData1");
-
-                legDefinitions.push(new TripLegDefinition(
-                  leg.origin,
-                  startDatetime,
-                  leg.destination,
-                  endDatetime,
-                  leg.productCategoryRef,
-                  leg.productCategoryName,
-                  leg.productCategoryShortName,
-                  leg.vehicleNumber,
-                  leg.operatorCode
-                ));
-              });
-
-              osdmTripSpecification(legDefinitions);
-              break;
-
-            case "SEARCH":
-              validationLogger('[INFO] ⏳ processing a search');
-              bru.setEnvVar("tripStartStopPlaceRef", tripRequirement.trip.origin);
-              bru.setEnvVar("tripEndStopPlaceRef", tripRequirement.trip.destination);
-              bru.setEnvVar("tripStartDatetime", tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-              bru.setEnvVar("tripEndDatetime", tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
-              bru.setEnvVar("tripVehicleNumber", tripRequirement.trip.vehicleNumber);
-              bru.setEnvVar("tripOperatorCode", tripRequirement.trip.operatorCode);
-              bru.setEnvVar("tripProductCategoryRef", tripRequirement.trip.productCategoryRef || null);
-              bru.setEnvVar("tripProductCategoryName", tripRequirement.trip.productCategoryName || null);
-              bru.setEnvVar("tripProductCategoryShortName", tripRequirement.trip.productCategoryShortName || null);
-
-              osdmTripSearchCriteria([
-                new TripLegDefinition(
-                  tripRequirement.trip.origin,
-                  tripRequirement.trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString),
-                  tripRequirement.trip.destination,
-                  tripRequirement.trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString),
-                  tripRequirement.trip.productCategoryRef,
-                  tripRequirement.trip.productCategoryName,
-                  tripRequirement.trip.productCategoryShortName,
-                  tripRequirement.trip.vehicleNumber,
-                  tripRequirement.trip.operatorCode
-                )
-              ]);
-              break;
-          }
-          return true;
-        }
-      });
-
-      // Purchaser details
-      jsonData.purchaserList?.some(function (purchaserList) {
-        validationLogger('[INFO] Found number of purchaser: ' + purchaserList.purchaser.length);
-        const purchaserSpecs = [];
-        purchaserList.purchaser.forEach(function (purchaser) {
-          const osdmVersion = bru.getEnvVar("osdmVersion");
-          if (parseFloat(osdmVersion) >= 3.4) {
-            purchaserSpecs.push(new PurchaserContact(
-              new DetailContact(
-                purchaser.purchaserFirstName,
-                purchaser.purchaserLastName,
-                new Contact(
-                  purchaser.purchaserEmail,
-                  purchaser.purchaserPhoneNumber
-                )
-              )
-            ));
-          } else {
-            purchaserSpecs.push(new Purchaser(
-              new Detail(
-                purchaser.purchaserFirstName,
-                purchaser.purchaserLastName,
-                purchaser.purchaserEmail,
-                purchaser.purchaserPhoneNumber
-              )
-            ));
-          }
-        });
-
-        validationLogger('[INFO] Pushed purchaserSpec to environment: ' + JSON.stringify(purchaserSpecs));
-        bru.setEnvVar("bookingPurchaserSpecifications", JSON.stringify(purchaserSpecs[0]));
-        return true;
-      });
-
-      // Passengers
-      jsonData.passengersList?.some(function (passengersList) {
-        if (passengersList.id === scenario.passengersListId) {
-          validationLogger('[INFO] Found number of passengers: ' + passengersList.passengers.length);
-          bru.setEnvVar("offerPassengerNumber", passengersList.passengers.length);
-          const offerPassengerSpecs = [];
-          const passengerSpecs = [];
-          const passengerReferences = [];
-          const passengerAdditionalData = [];
-          let passengerIndex = 0;
-
-          passengersList.passengers.forEach(function (passenger) {
-            offerPassengerSpecs.push(new AnonymousPassengerSpec(
-              passenger.reference,
-              passenger.type,
-              passenger.dateOfBirth,
-              passenger.gender || null,
-            ));
-
-            const osdmVersion = bru.getEnvVar("osdmVersion");
-            if (parseFloat(osdmVersion) > 3.4) {
-              passengerSpecs.push(new PassengerSpec(
-                passenger.reference,
-                passenger.type,
-                passenger.dateOfBirth,
-                passenger.gender || null,
-                new DetailContact(
-                  passenger.firstName,
-                  passenger.lastName,
-                  new Contact(
-                    passenger.email || null,
-                    passenger.phoneNumber || null
-                  )
-                )
-              ));
-            } else {
-              passengerSpecs.push(new PassengerSpec(
-                passenger.reference,
-                passenger.type,
-                passenger.dateOfBirth,
-                passenger.gender || null,
-                new Detail(
-                  passenger.firstName,
-                  passenger.lastName,
-                  passenger.email || null,
-                  passenger.phoneNumber || null
-                )
-              ));
-            }
-
-            passengerReferences.push(passenger.reference);
-
-            const passengerDataStruct = {
-              updateFirstName: passenger.firstName,
-              updateLastName: passenger.lastName,
-              updateDateOfBirth: passenger.dateOfBirth,
-              updateEmail: passenger.email,
-              updatePhoneNumber: passenger.phoneNumber,
-              updateGender: passenger.gender ?? "X",
-            };
-
-            const passengerAdditionalDataStruct = {
-              updateFirstName: passenger.updateFirstName ?? passengerDataStruct.updateFirstName,
-              updateLastName: passenger.updateLastName ?? passengerDataStruct.updateLastName,
-              updateDateOfBirth: passenger.updateDateOfBirth ?? passengerDataStruct.updateDateOfBirth,
-              updateEmail: passenger.updateEmail ?? passengerDataStruct.updateEmail,
-              updatePhoneNumber: passenger.updatePhoneNumber ?? passengerDataStruct.updatePhoneNumber,
-              updateGender: passenger.updateGender ?? passengerDataStruct.updateGender,
-            };
-
-            passengerAdditionalData.push(passengerAdditionalDataStruct);
-            passengerIndex++;
-
-            if (
-              passenger.updateFirstName == null &&
-              passenger.updateLastName == null &&
-              passenger.updateDateOfBirth == null &&
-              passenger.updateEmail == null &&
-              passenger.updatePhoneNumber == null &&
-              passenger.updateGender == null
-            ) {
-              bru.setEnvVar("skipPatchPassengerRequest", "true");
-            }
-          });
-
-          validationLogger('[INFO] Pushed passengerSpec to environment: ' + JSON.stringify(passengerSpecs));
-          bru.setEnvVar("offerPassengerSpecifications", JSON.stringify(offerPassengerSpecs));
-          bru.setEnvVar("bookingPassengerSpecifications", JSON.stringify(passengerSpecs));
-          bru.setEnvVar("bookingPassengerReferences", JSON.stringify(passengerReferences));
-          bru.setEnvVar("passengerAdditionalData", JSON.stringify(passengerAdditionalData));
-
-          let passengerData = bru.getEnvVar("passengerAdditionalData");
-          passengerData = typeof passengerData === 'string' ? JSON.parse(passengerData) : passengerData;
-          passengerData.forEach((data, index) => {
-            Object.entries(data).forEach(([key, value]) => {
-              bru.setEnvVar(`${key}_${index}`, value);
-            });
-          });
-          return true;
-        }
-      });
-
-      // Offer search criteria
-      if (Array.isArray(jsonData.offerSearchCriteriaList) && jsonData.offerSearchCriteriaList.length > 0) {
-        jsonData.offerSearchCriteriaList.some(function (offerSearchCriteriaItem) {
-          if (offerSearchCriteriaItem.id === scenario.offerSearchCriteriaListId) {
-            const criteriaList = offerSearchCriteriaItem.offerSearchCriteria;
-            if (Array.isArray(criteriaList) && criteriaList.length > 0) {
-              const criteria = criteriaList.find(() => true);
-              if (criteria) {
-                osdmOfferSearchCriteria(
-                  criteria.currency || null,
-                  criteria.offerMode || null,
-                  criteria.requestedOfferParts,
-                  criteria.flexibilities || null,
-                  criteria.serviceClass || null,
-                  criteria.travelClass || null,
-                  null
-                );
-              } else {
-                validationLogger(`[WARN] No matching offerSearchCriteria found in list for ID '${offerSearchCriteriaItem.id}'`);
-              }
-            } else {
-              validationLogger(`[WARN] No offerSearchCriteria array found or it's empty in offerSearchCriteriaItem with ID '${offerSearchCriteriaItem.id}'`);
-            }
-            return true;
-          }
-        });
-      } else {
-        validationLogger("[ERROR] offerSearchCriteriaList is empty or not an array.");
-      }
-
-      // Requested fulfillment options
-      if (Array.isArray(jsonData.requestedFulfillmentOptionsList) && jsonData.requestedFulfillmentOptionsList.length > 0) {
-        jsonData.requestedFulfillmentOptionsList.some(function (requestedFulfillmentOptionList) {
-          if (requestedFulfillmentOptionList.id === scenario.requestedFulfillmentOptionsListId) {
-            const requestedFulfillmentOptions = [];
-            requestedFulfillmentOptionList.requestedFulfillmentOptions.forEach(function (requestedFulfillmentOption) {
-              const fulfillmentType = requestedFulfillmentOption.fulfillmentType ?? null;
-              const fulfillmentMedia = requestedFulfillmentOption.fulfillmentMedia ?? null;
-              if (fulfillmentType != null && fulfillmentMedia != null) {
-                requestedFulfillmentOptions.push(new FulfillmentOption(fulfillmentType, fulfillmentMedia));
-              }
-            });
-
-            osdmFulfillmentOptions(requestedFulfillmentOptions);
-            return true;
-          }
-        });
-      } else {
-        validationLogger("[INFO] requestedFulfillmentOptionsList is empty");
-      }
-
-      foundCorrectDataSet = true;
-      validationLogger("[INFO] ✅ Correct data set was found for this scenario : " + scenarioCode);
-    }
-    dataFileIndex++;
+  if (!scenario) {
+    validationLogger(`[ERROR] ⛔ Scenario code "${scenarioCode}" not found, please check`);
+    throw new Error(`Scenario code "${scenarioCode}" not found`);
   }
 
-  if (foundCorrectDataSet === false) {
-    validationLogger(`[ERROR] ⛔ Scenario code with name :  "${scenarioCode}" not found, please check`);
-    validationLogger(`[ERROR] ⛔ Stopping execution of further requests`);
-    throw new Error(`Scenario code "${scenarioCode}" not found`);
+  // Set environment variables for the scenario
+  bru.setEnvVar("loggingType",            nullIfEmpty(scenario.loggingType));
+  bru.setEnvVar("scenarioCode",           scenario.code);
+  bru.setEnvVar("scenarioType",           nullIfEmpty(scenario.scenarioType));
+  bru.setEnvVar("scenarioAction",         nullIfEmpty(scenario.scenarioAction));
+  bru.setEnvVar("osdmVersion",            nullIfEmpty(scenario.osdmVersion));
+  bru.setEnvVar("desiredFlexibility",     nullIfEmpty(scenario.desiredFlexibility));
+  bru.setEnvVar("accommodationSelection", nullIfEmpty(scenario.accommodationSelection));
+  bru.setEnvVar("requiresPlaceSelection", nullIfEmpty(scenario.requiresPlaceSelection));
+  bru.setEnvVar("overruleCode",           nullIfEmpty(scenario.overruleCode));
+  bru.setEnvVar("refundDate",             nullIfEmpty(scenario.refundDate));
+
+  validationLogger("[INFO] ✅ Correct data set was found for scenario : " + scenarioCode);
+
+  // Trip requirements
+  jsonData.tripRequirements?.some(tripRequirement => {
+    if (tripRequirement.id !== scenario.tripRequirementId) return false;
+    bru.setEnvVar("TripType", tripRequirement.tripType);
+
+    switch (tripRequirement.tripType) {
+      case "SPECIFICATION": {
+        validationLogger('[INFO] ⏳ processing a specification');
+        const legDefinitions = tripRequirement.legs.map((leg, legIndex) => {
+          const legPrefix = `leg${legIndex + 1}`;
+          const startDatetime = leg.startDatetime.replace("%TRIP_DATE%", nextWeekdayString);
+          const endDatetime   = leg.endDatetime.replace("%TRIP_DATE%", nextWeekdayString);
+
+          bru.setEnvVar(`${legPrefix}StartStopPlaceRef`,       leg.origin);
+          bru.setEnvVar(`${legPrefix}EndStopPlaceRef`,         leg.destination);
+          bru.setEnvVar(`${legPrefix}StartDatetime`,           startDatetime);
+          bru.setEnvVar(`${legPrefix}EndDatetime`,             endDatetime);
+          bru.setEnvVar(`${legPrefix}VehicleNumber`,           leg.vehicleNumber);
+          bru.setEnvVar(`${legPrefix}OperatorCode`,            leg.operatorCode);
+          bru.setEnvVar(`${legPrefix}ProductCategoryRef`,      leg.productCategoryRef      || null);
+          bru.setEnvVar(`${legPrefix}ProductCategoryName`,     leg.productCategoryName     || null);
+          bru.setEnvVar(`${legPrefix}ProductCategoryShortName`, leg.productCategoryShortName || null);
+
+          return new TripLegDefinition(
+            leg.origin, startDatetime, leg.destination, endDatetime,
+            leg.productCategoryRef, leg.productCategoryName, leg.productCategoryShortName,
+            leg.vehicleNumber, leg.operatorCode
+          );
+        });
+        osdmTripSpecification(legDefinitions);
+        break;
+      }
+      case "SEARCH": {
+        validationLogger('[INFO] ⏳ processing a search');
+        const trip = tripRequirement.trip;
+        bru.setEnvVar("tripStartStopPlaceRef",       trip.origin);
+        bru.setEnvVar("tripEndStopPlaceRef",         trip.destination);
+        bru.setEnvVar("tripStartDatetime",           trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+        bru.setEnvVar("tripEndDatetime",             trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString));
+        bru.setEnvVar("tripVehicleNumber",           trip.vehicleNumber);
+        bru.setEnvVar("tripOperatorCode",            trip.operatorCode);
+        bru.setEnvVar("tripProductCategoryRef",      trip.productCategoryRef      || null);
+        bru.setEnvVar("tripProductCategoryName",     trip.productCategoryName     || null);
+        bru.setEnvVar("tripProductCategoryShortName", trip.productCategoryShortName || null);
+        osdmTripSearchCriteria([
+          new TripLegDefinition(
+            trip.origin,      trip.startDatetime.replace("%TRIP_DATE%", nextWeekdayString),
+            trip.destination, trip.endDatetime.replace("%TRIP_DATE%", nextWeekdayString),
+            trip.productCategoryRef, trip.productCategoryName, trip.productCategoryShortName,
+            trip.vehicleNumber, trip.operatorCode
+          )
+        ]);
+        break;
+      }
+    }
+    return true;
+  });
+
+  // Purchaser details
+  const firstPurchaserList = jsonData.purchaserList?.[0];
+  if (firstPurchaserList) {
+    validationLogger('[INFO] Found number of purchaser: ' + firstPurchaserList.purchaser.length);
+    const osdmVersion = parseFloat(bru.getEnvVar("osdmVersion"));
+    const purchaserSpec = firstPurchaserList.purchaser.map(purchaser => {
+      if (osdmVersion >= 3.4) {
+        return new PurchaserContact(
+          new DetailContact(
+            purchaser.purchaserFirstName, purchaser.purchaserLastName,
+            new Contact(purchaser.purchaserEmail, purchaser.purchaserPhoneNumber)
+          )
+        );
+      }
+      return new Purchaser(
+        new Detail(
+          purchaser.purchaserFirstName, purchaser.purchaserLastName,
+          purchaser.purchaserEmail, purchaser.purchaserPhoneNumber
+        )
+      );
+    });
+    validationLogger('[INFO] Pushed purchaserSpec to environment: ' + JSON.stringify(purchaserSpec));
+    bru.setEnvVar("bookingPurchaserSpecifications", JSON.stringify(purchaserSpec[0]));
+  }
+
+  // Passengers
+  jsonData.passengersList?.some(passengersList => {
+    if (passengersList.id !== scenario.passengersListId) return false;
+
+    validationLogger('[INFO] Found number of passengers: ' + passengersList.passengers.length);
+    bru.setEnvVar("offerPassengerNumber", passengersList.passengers.length);
+
+    const osdmVersion = parseFloat(bru.getEnvVar("osdmVersion"));
+    const offerPassengerSpecs = [];
+    const passengerSpecs     = [];
+    const passengerReferences = [];
+    const passengerAdditionalData = [];
+
+    passengersList.passengers.forEach(passenger => {
+      offerPassengerSpecs.push(new AnonymousPassengerSpec(
+        passenger.reference, passenger.type, passenger.dateOfBirth, passenger.gender || null
+      ));
+
+      const detail = osdmVersion > 3.4
+        ? new DetailContact(passenger.firstName, passenger.lastName,
+            new Contact(passenger.email || null, passenger.phoneNumber || null))
+        : new Detail(passenger.firstName, passenger.lastName,
+            passenger.email || null, passenger.phoneNumber || null);
+
+      passengerSpecs.push(new PassengerSpec(
+        passenger.reference, passenger.type, passenger.dateOfBirth,
+        passenger.gender ?? "X", detail
+      ));
+
+      passengerReferences.push(passenger.reference);
+
+      const defaults = {
+        updateFirstName:   passenger.firstName,
+        updateLastName:    passenger.lastName,
+        updateDateOfBirth: passenger.dateOfBirth,
+        updateEmail:       passenger.email,
+        updatePhoneNumber: passenger.phoneNumber,
+        updateGender:      passenger.gender ?? "X",
+      };
+
+      passengerAdditionalData.push({
+        updateFirstName:   passenger.updateFirstName   ?? defaults.updateFirstName,
+        updateLastName:    passenger.updateLastName    ?? defaults.updateLastName,
+        updateDateOfBirth: passenger.updateDateOfBirth ?? defaults.updateDateOfBirth,
+        updateEmail:       passenger.updateEmail       ?? defaults.updateEmail,
+        updatePhoneNumber: passenger.updatePhoneNumber ?? defaults.updatePhoneNumber,
+        updateGender:      passenger.updateGender      ?? defaults.updateGender,
+      });
+
+      const hasNoUpdates = [
+        passenger.updateFirstName, passenger.updateLastName, passenger.updateDateOfBirth,
+        passenger.updateEmail, passenger.updatePhoneNumber, passenger.updateGender
+      ].every(v => v == null);
+      if (hasNoUpdates) bru.setEnvVar("skipPatchPassengerRequest", "true");
+    });
+
+    validationLogger('[INFO] Pushed passengerSpec to environment: ' + JSON.stringify(passengerSpecs));
+    bru.setEnvVar("offerPassengerSpecifications",  JSON.stringify(offerPassengerSpecs));
+    bru.setEnvVar("bookingPassengerSpecifications", JSON.stringify(passengerSpecs));
+    bru.setEnvVar("bookingPassengerReferences",     JSON.stringify(passengerReferences));
+    bru.setEnvVar("passengerAdditionalData",        JSON.stringify(passengerAdditionalData));
+
+    passengerAdditionalData.forEach((data, index) => {
+      Object.entries(data).forEach(([key, value]) => bru.setEnvVar(`${key}_${index}`, value));
+    });
+    return true;
+  });
+
+  // Offer search criteria
+  const offerSearchCriteriaList = jsonData.offerSearchCriteriaList || [];
+  if (offerSearchCriteriaList.length === 0) {
+    validationLogger("[ERROR] offerSearchCriteriaList is empty or not an array.");
+  } else {
+    offerSearchCriteriaList.some(item => {
+      if (item.id !== scenario.offerSearchCriteriaListId) return false;
+      const criteria = (item.offerSearchCriteria || [])[0];
+      if (criteria) {
+        osdmOfferSearchCriteria(
+          criteria.currency          || null,
+          criteria.offerMode         || null,
+          criteria.requestedOfferParts,
+          criteria.flexibilities     || null,
+          criteria.serviceClass      || null,
+          criteria.travelClass       || null,
+          null
+        );
+      } else {
+        validationLogger(`[WARN] No offerSearchCriteria found for ID '${item.id}'`);
+      }
+      return true;
+    });
+  }
+
+  // Requested fulfillment options
+  const fulfillmentOptionsList = jsonData.requestedFulfillmentOptionsList || [];
+  if (fulfillmentOptionsList.length === 0) {
+    validationLogger("[INFO] requestedFulfillmentOptionsList is empty");
+  } else {
+    fulfillmentOptionsList.some(list => {
+      if (list.id !== scenario.requestedFulfillmentOptionsListId) return false;
+      const options = list.requestedFulfillmentOptions
+        .filter(o => o.fulfillmentType != null && o.fulfillmentMedia != null)
+        .map(o => new FulfillmentOption(o.fulfillmentType, o.fulfillmentMedia));
+      osdmFulfillmentOptions(options);
+      return true;
+    });
   }
 }
 
 // Function to set trip search criteria
 function osdmTripSearchCriteria(legDefinitions) {
-  test('Trip Search Criteria has at least one leg', function () {
+  test('Trip Search Criteria has at least one leg', () => {
     expect(legDefinitions).to.be.an("array");
     expect(legDefinitions.length).to.be.above(0);
-    if (legDefinitions.length === 0) return;
   });
 
   if (legDefinitions.length > 1) {
@@ -415,79 +333,51 @@ function osdmTripSearchCriteria(legDefinitions) {
   }
 
   const legDef = legDefinitions[0];
-
-  const carrierFilter = legDef.carrier ? new CarrierFilter([legDef.carrier], false) : null;
-  const vehicleFilter = new VehicleFilter([legDef.vehicleNumber], null, false);
-
-  const tripDataFilter = new TripDataFilter(carrierFilter, vehicleFilter);
-  const tripParameters = new TripParameters(tripDataFilter);
+  const startDateTime = legDef.startDateTime.substring(0, legDef.startDateTime.length - 6);
+  const origin = new StopPlaceRef(legDef.startStopPlaceRef);
+  const destination = new StopPlaceRef(legDef.endStopPlaceRef);
 
   const sandbox = bru.getEnvVar("api_base") || "";
-  let tripSearchCriteria;
-  if (sandbox.includes("paxone")) {
-    tripSearchCriteria = new TripSearchCriteria(
-      legDef.startDateTime.substring(0, legDef.startDateTime.length - 6),
-      new StopPlaceRef(legDef.startStopPlaceRef),
-      new StopPlaceRef(legDef.endStopPlaceRef),
-      null
-    );
-  } else {
-    tripSearchCriteria = new TripSearchCriteria(
-      legDef.startDateTime.substring(0, legDef.startDateTime.length - 6),
-      new StopPlaceRef(legDef.startStopPlaceRef),
-      new StopPlaceRef(legDef.endStopPlaceRef),
-      tripParameters
-    );
-  }
+  const carrierFilter = legDef.carrier ? new CarrierFilter([legDef.carrier], false) : null;
+  const tripParameters = sandbox.includes("paxone")
+    ? null
+    : new TripParameters(new TripDataFilter(carrierFilter, new VehicleFilter([legDef.vehicleNumber], null, false)));
 
-  bru.setEnvVar("offerTripSearchCriteria", JSON.stringify(tripSearchCriteria));
+  bru.setEnvVar("offerTripSearchCriteria", JSON.stringify(
+    new TripSearchCriteria(startDateTime, origin, destination, tripParameters)
+  ));
 }
 
 // Function to set trip specifications
 function osdmTripSpecification(legDefinitions) {
-  test('Trip Specification has at least one leg', function () {
+  test('Trip Specification has at least one leg', () => {
     expect(legDefinitions).to.be.an("array");
     expect(legDefinitions.length).to.be.above(0);
-    if (legDefinitions.length === 0) return;
   });
 
   bru.setEnvVar(TRIP.EXTERNAL_REF, uuid.v4());
 
-  const legSpecs = [];
+  const legSpecs = legDefinitions.map((legDef, i) => {
+    const legKey = TRIP.LEG_SPECIFICATION_REF_PATTERN.replace("%LEG_COUNT%", i + 1);
+    bru.setEnvVar(legKey, uuid.v4());
 
-  for (let n = 1; n <= legDefinitions.length; n++) {
-    const legKey = TRIP.LEG_SPECIFICATION_REF_PATTERN.replace("%LEG_COUNT%", n);
-    const legDef = legDefinitions[n - 1];
-
-    const boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime));
-    const alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef), new ServiceTime(legDef.endDateTime));
-
-    const productCategory = legDef.productCategoryRef === null
+    const productCategory = legDef.productCategoryRef == null
       ? null
       : new ProductCategory(legDef.productCategoryRef, legDef.productCategoryName, legDef.productCategoryShortName);
 
-    const datedJourney = new DatedJourney(productCategory, [legDef.vehicleNumber], [new NamedCompany(legDef.carrier)]);
-
-    const timedLegSpec = new TimedLegSpecification(
-      boardSpec,
-      alignSpec,
-      datedJourney
-    );
-
-    bru.setEnvVar(legKey, uuid.v4());
-
-    legSpecs.push(new TripLegSpecification(
+    return new TripLegSpecification(
       bru.getEnvVar(legKey),
-      timedLegSpec
-    ));
-  }
+      new TimedLegSpecification(
+        new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime)),
+        new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef),   new ServiceTime(legDef.endDateTime)),
+        new DatedJourney(productCategory, [legDef.vehicleNumber], [new NamedCompany(legDef.carrier)])
+      )
+    );
+  });
 
-  const tripSpecification = new TripSpecification(
-    bru.getEnvVar(TRIP.EXTERNAL_REF),
-    legSpecs
-  );
-
-  bru.setEnvVar("offerTripSpecifications", JSON.stringify([tripSpecification]));
+  bru.setEnvVar("offerTripSpecifications", JSON.stringify([
+    new TripSpecification(bru.getEnvVar(TRIP.EXTERNAL_REF), legSpecs)
+  ]));
 }
 
 // Function to set offer search criteria

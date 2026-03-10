@@ -1,0 +1,54 @@
+info:
+  name: Paxone access Token
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{api-host}}"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: "{\r
+
+      \    \"accountName\": \"{{client_id}}\",\r
+
+      \    \"accountSecret\": \"{{client_secret}}\"\r
+
+      }"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: "// Parse the response JSON\r
+
+        const response = res.getBody();\r
+
+        \r
+
+        // Check if the response contains the access_token\r
+
+        if (response.accessToken) {\r
+
+        \    // Set the access_token in the environment variable\r
+
+        \    bru.setEnvVar(\"access_token\", response.accessToken);\r
+
+        \    console.log(\"Access token saved to environment: \", response.accessToken);\r
+
+        } else {\r
+
+        \    // Log an error if access_token is not found\r
+
+        \    console.error(\"No access_token found in the response\");\r
+
+        }"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

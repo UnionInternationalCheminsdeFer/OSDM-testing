@@ -1,0 +1,54 @@
+info:
+  name: Turnit Token Access
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{api-host}}/connect/token"
+  body:
+    type: form-urlencoded
+    data:
+      - name: grant_type
+        value: client_credentials
+      - name: client_id
+        value: "{{client.id}}"
+      - name: client_secret
+        value: "{{client.secret}}"
+      - name: scope
+        value: retailer-api
+
+runtime:
+  scripts:
+    - type: after-response
+      code: "// Parse the response JSON\r
+
+        const response = res.getBody();\r
+
+        \r
+
+        // Check if the response contains the access_token\r
+
+        if (response.access_token) {\r
+
+        \    // Set the access_token in the environment variable\r
+
+        \    bru.setEnvVar(\"access_token\", response.access_token);\r
+
+        \    console.log(\"Access token saved to environment: \", response.access_token);\r
+
+        } else {\r
+
+        \    // Log an error if access_token is not found\r
+
+        \    console.error(\"No access_token found in the response\");\r
+
+        }"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: This endpoint is used to obtain an access token required for authorization when interacting with other API endpoints. The request includes client credentials and authentication parameters.

@@ -1,0 +1,34 @@
+info:
+  name: 16. DEL Exchange Offer
+  type: http
+  seq: 7
+
+http:
+  method: DELETE
+  url: "{{api_base}}/bookings/{{bookingId}}/exchange-operations/{{exchangeOperationId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Requestor
+      value: "{{requestor}}"
+    - name: version
+      value: "{{osdmVersion}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: 'console.log("⏩ [STEP] Executing request : " + req.getName());'
+    - type: after-response
+      code: |-
+        test("Status code is 204, offer is deleted", function () {
+            expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

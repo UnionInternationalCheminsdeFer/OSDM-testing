@@ -1,0 +1,60 @@
+info:
+  name: 12. GET Exchange Offer
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{api_base}}/bookings/{{bookingId}}/exchange-operations/{{exchangeOperationId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Requestor
+      value: "{{requestor}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: 'console.log("⏩ [STEP] Executing request : " + req.getName());'
+    - type: after-response
+      code: |-
+        const { validationLogger } = require(bru.getEnvVar("library_base")+"displays.js");
+        const { postPatchExchangeOperationsResponse } = require(bru.getEnvVar("library_base")+"exchanges.js");
+
+        // Validate HTTP response status
+        test("Status code is 200", () => {
+            expect(res.getStatus(), "[ERROR] Wrong response status").to.eql(200);
+        });
+
+        if (res.getStatus() !== 200) {
+            bru.runner.stopExecution();
+            throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+        }
+
+        // Parse JSON safely
+        let jsonData;
+        try {
+            jsonData = res.getBody();
+        } catch (e) {
+            validationLogger("Failed to parse JSON response");
+            test("JSON parsing should succeed", () => {
+                throw e;
+            });
+            bru.runner.stopExecution();
+            return;
+        }
+        if (!jsonData.exchangeOperation || jsonData.exchangeOperation.length === 0) {
+            throw new Error("⛔ Exiting script, no exchangeOffers available in the response");
+        }
+        test('Successfully received exchangeOffers', () => expect(res.getStatus()).to.eql(200));
+
+        postPatchExchangeOperationsResponse(jsonData, expectedexchangeOperationStatus = ["PREBOOKED"], expectedFulfillmentStatus=["CONFIRMED", "FULFILLED"]);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

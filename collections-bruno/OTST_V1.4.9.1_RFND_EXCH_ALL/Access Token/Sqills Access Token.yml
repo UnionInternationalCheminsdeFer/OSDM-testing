@@ -1,0 +1,53 @@
+info:
+  name: Sqills Access Token
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{api-host}}/oauth/v2/token"
+  headers:
+    - name: Authorization
+      value: Basic {{auth.key_secret}}
+  body:
+    type: json
+    data: |-
+      {
+          "grant_type": "https://com.sqills.s3.oauth.agent",
+          "username": "{{agent.username}}",
+          "password": "{{agent.password}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: "// Parse the response JSON\r
+
+        const response = res.getBody();\r
+
+        \r
+
+        // Check if the response contains the access_token\r
+
+        if (response.access_token) {\r
+
+        \    // Set the access_token in the environment variable\r
+
+        \    bru.setEnvVar(\"access_token\", response.access_token);\r
+
+        \    console.log(\"Access token saved to environment: \", response.access_token);\r
+
+        } else {\r
+
+        \    // Log an error if access_token is not found\r
+
+        \    console.error(\"No access_token found in the response\");\r
+
+        }"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

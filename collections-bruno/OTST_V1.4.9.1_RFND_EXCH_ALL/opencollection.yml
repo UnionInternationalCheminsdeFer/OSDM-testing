@@ -1,0 +1,131 @@
+opencollection: 1.0.0
+
+info:
+  name: OTST_V2.0_RFND_EXCH_ALL
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  scripts:
+    - type: before-request
+      code: |-
+        /*
+        Copyright UIC, Union Internationale des Chemins de fer
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+
+        No reproduction nor distribution shall be allowed without the following notice
+        “This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”
+        */
+
+        const { getScenarioData } = require(bru.getEnvVar("library_base") + "scenarioParser.js");
+
+        test(`API base is available : ${bru.getEnvVar("api_base")}`, function () {
+            expect(bru.getEnvVar("api_base")).to.not.be.null;
+            console.log(`API base is available : ${bru.getEnvVar("api_base")}`);
+        });
+
+        test(`Library base is available : ${bru.getEnvVar("library_base")}`, function () {
+            expect(bru.getEnvVar("library_base")).not.null;
+            console.log(`Library base is available : ${bru.getEnvVar("library_base")}`);
+        });
+
+        test(`Data file is available : ${bru.getEnvVar("data_base")}`, function () {
+            expect(bru.getEnvVar("data_base")).not.null;
+            console.log(`Data file is available : ${bru.getEnvVar("data_base")}`);
+        });
+
+        // Cannot check exact URL as the endpoint path varies among different API vendors
+        if (req.getUrl().toString().includes("/offers")) {
+            console.log(`
+            ####################################
+            # 🛠️  New Collection Execution 🛠️ #
+            ####################################
+            `);
+
+            console.log("🛠️ Cleaning all environment variables..");
+            const deleteList = [
+                // Scenario / trip
+                "loggingType", "scenarioType", "scenarioAction", "osdmVersion",
+                "desiredFlexibility", "accommodationSelection", "requiresPlaceSelection",
+                "overruleCode", "refundDate", "TripType",
+                "tripStartStopPlaceRef", "tripEndStopPlaceRef", "tripStartDatetime", "tripEndDatetime",
+                "tripOperatorCode", "tripVehicleNumber", "tripProductCategoryRef",
+                "tripProductCategoryName", "tripProductCategoryShortName",
+                // Offer
+                "offer", "offerId", "offers", "OfferCollectionRequest",
+                "offerSearchCriteria", "offerTripSearchCriteria", "offerTripSpecifications",
+                "offerFulfillmentOptions", "offerPassengerSpecifications",
+                "admissionReservationAncillaryOfferPartsIds",
+                "admissionReservationAncillaryOfferPartsAftersalesConditions",
+                "overallFlexibility", "coveredTripId", "minimalPrice",
+                "admissionPartsPrice", "reservationPartsPrice", "ancillaryPartsPrice",
+                "referencedAncillaryIds", "passengerCount",
+                // Booking
+                "BookingRequest", "bookingId",
+                "admissionReservationAncillaryBookingPartsIds",
+                "provisionalPrice", "provisionalPriceAmount",
+                "confirmedPriceAmount", "bookingConfirmedPrice",
+                // Passengers
+                "passengerIdList", "passengerId", "passengerSpecificationExternalRef",
+                "passengerAdditionalData", "bookingPassengerSpecifications",
+                "bookingPassengerReferences", "bookingPurchaserSpecifications",
+                "currentPassengerIndex", "skipPatchPassengerRequest",
+                "patchDateOfBirth", "patchFirstName", "patchLastName",
+                "patchEmail", "patchPhoneNumber", "patchGender",
+                // Place selection
+                "placeSelections", "layoutId", "preselectedCoach", "preselectedPlace",
+                "reservationId", "reservationIds", "tripLegCoverage",
+                // Fulfillment
+                "fulfillmentIds",
+                // Exchange / Refund
+                "exchangeOffersOfferId", "exchangeOperationId",
+                "requestExchangeOffersBodyData", "requestExchangeOperationsBodyData",
+                "refundOffersOfferId", "refundRefundAmount", "refundFee", "isRefundConfirmed",
+                "requestRefundOffersBodyData",
+                "afterSaleCondition_EXCHANGE_amount", "afterSaleCondition_EXCHANGE_currency", "afterSaleCondition_EXCHANGE_scale",
+                "afterSaleCondition_REFUND_amount",   "afterSaleCondition_REFUND_currency",   "afterSaleCondition_REFUND_scale",
+                // Misc
+                "data_base_tmp", "scriptContent", "swaggerJson"
+            ];
+            deleteList.forEach(key => bru.deleteEnvVar(key));
+            console.log("✅ All environment variables have been successfully cleared");
+
+            if (!bru.getEnvVar("osdmHelpers")) {
+                console.log("🛠️ Retrieving script libraries and saving in environment..");
+                await getScenarioData();
+            }
+        }
+
+        // SBB OSDM REQUIRED HEADERS
+        if (bru.getEnvVar("API") === "SBB") {
+            req.setHeader('accept-language', 'en');
+            req.setHeader('traceparent', bru.getEnvVar("traceparent"));
+            req.setHeader('tracestate', bru.getEnvVar("tracestate"));
+        }
+
+docs:
+  content: bru run --reporter-html report.html --env SMAPI-DB-OTST_SBB_Env --sandbox=developer
+  type: text/markdown
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

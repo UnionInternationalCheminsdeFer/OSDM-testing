@@ -139,7 +139,7 @@ function ensureAuthorizationOr403() {
       proxy: false
     }, function (err, res) {
       if (err) {
-        console.log("⛔ Authorization precheck error:", err);
+        //console.log("⛔ Authorization precheck error:", err);
         return; // do not stop run on precheck transport errors
       }
       const code = res && (res.code || res.status || res.statusCode);
@@ -178,8 +178,8 @@ function postOfferResponse(jsonData) {
 
   validateOfferSummary(selectedOffer);
   validatePassengers(jsonData);
-  validateTripsAndLegs(jsonData);
   validateOfferParts(selectedOffer);
+  validateTripsAndLegs(jsonData);
   validateAdmissions(selectedOffer);
   validateReservations(selectedOffer);
   validateAncillaries(selectedOffer);
@@ -265,8 +265,8 @@ function selectAndSetOffer(jsonData) {
   function validateSelectedOfferAdmission(selOffer, scenarioTypeStr, overallFlexibility) {
     if (!selOffer?.admissionOfferParts) return;
 
-    // Do nothing if not FULL_FLEXIBLE
-    if (overallFlexibility !== "FULL_FLEXIBLE") {
+    // Do nothing if not FULL_FLEXIBLE or SEMI_FLEXIBLE
+    if (overallFlexibility !== "FULL_FLEXIBLE" && overallFlexibility !== "SEMI_FLEXIBLE") {
       validationLogger(`[INFO] overallFlexibility is '${overallFlexibility}' - skipping admissionOfferParts validation`);
       return;
     }
@@ -303,17 +303,29 @@ function validateOfferSummary(selectedOffer) {
   const overallTravelClass = offerSummary.overallTravelClass;
 
   // Minimal price validation
-  test(`Offer summary - minimalPrice structure exists and is a number : ${minimalPrice}`, function () {
-    validationLogger(`[INFO] Offer summary - minimalPrice structure exists and is a number : ${minimalPrice}`);
+  test(`Offer summary - minimalPrice structure exists, is positive and is a number : ${minimalPrice}`, function () {
+    validationLogger(`[INFO] Offer summary - minimalPrice structure exists, is positive and is a number : ${minimalPrice}`);
     expect(minimalPrice).to.exist.and.is.a("number");
+    expect(minimalPrice).to.be.above(0);
   });
+
+  // minimalOriginalPrice structure (optional field)
+  const minimalOriginalPrice = offerSummary.minimalOriginalPrice;
+  if (minimalOriginalPrice) {
+    test(`Offer summary - minimalOriginalPrice structure is valid`, function () {
+      validationLogger(`[INFO] minimalOriginalPrice: ${minimalOriginalPrice.amount} ${minimalOriginalPrice.currency}`);
+      expect(minimalOriginalPrice.amount, "minimalOriginalPrice.amount should be a number").to.be.a("number");
+      expect(minimalOriginalPrice.amount, "minimalOriginalPrice.amount should be >= 0").to.be.at.least(0);
+      expect(minimalOriginalPrice.currency, "minimalOriginalPrice.currency should exist").to.exist.and.be.a("string");
+    });
+  }
 
   // Check all price fields (amount, currency, scale) exist in minimalPrice
   test(`Price fields exist (currency, scale) exist in minimalPrice`, () => {
+    validationLogger(`[INFO] Price fields (currency, scale) are present in minimalPrice`);
     ['currency', 'scale'].forEach(field => {
       expect(mini[field], `minimalPrice.${field} missing`).to.exist;
     });
-    validationLogger(`[INFO] Price fields (currency, scale) are present in minimalPrice`);
   });
 
   // Overall flexibility validation
@@ -323,11 +335,14 @@ function validateOfferSummary(selectedOffer) {
     bru.setEnvVar("overallFlexibility", overallFlexibility);
   });
 
-  // Overall service class validation
+  // overallServiceClass.type is a known value
+  const overallServiceClassType = offerSummary.overallServiceClass?.type;
+  if (overallServiceClassType) {
   test(`Offer summary - overallServiceClass is defined - overallServiceClass: ${overallServiceClass}`, function () {
     validationLogger(`[INFO] Offer summary - overallServiceClass is defined - overallServiceClass: ${overallServiceClass}`);
-    expect(overallServiceClass).to.be.a("string");
-  });
+      expect(overallServiceClassType).to.be.oneOf(["BEST", "HIGH", "STANDARD", "BASIC", "ANY_CLASS"]);
+    });
+  }
 
   // Overall travel class validation
   if (overallTravelClass) {
@@ -337,6 +352,36 @@ function validateOfferSummary(selectedOffer) {
     });
   } else {
     validationLogger(`[INFO] overallTravelClass is not present in offer summary → test skipped`);
+  }
+
+  // overallFlexibility is a known OSDM value
+  test(`Offer summary - overallFlexibility is a valid OSDM value: ${overallFlexibility}`, function () {
+    validationLogger(`[INFO] Offer summary - overallFlexibility valid value check: ${overallFlexibility}`);
+    expect(overallFlexibility).to.be.oneOf(["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"]);
+  });
+
+  // overallAccommodationType is a known value (optional field)
+  const overallAccommodationType = offerSummary.overallAccommodationType;
+  if (overallAccommodationType) {
+    test(`Offer summary - overallAccommodationType is a valid value: ${overallAccommodationType}`, function () {
+      validationLogger(`[INFO] Offer summary - overallAccommodationType: ${overallAccommodationType}`);
+      expect(overallAccommodationType).to.be.oneOf(["SEAT", "COUCHETTE", "BERTH", "VEHICLE", "STORAGE"]);
+    });
+  } else {
+    validationLogger(`[INFO] overallAccommodationType is not present in offer summary → test skipped`);
+  }
+
+  // preBookableUntil must be defined and in the future
+  const preBookableUntil = selectedOffer.preBookableUntil;
+  if (preBookableUntil) {
+    const preBookableDate = new Date(preBookableUntil);
+    test(`Offer preBookableUntil is a valid date in the future - preBookableUntil: ${preBookableUntil}`, function () {
+      validationLogger(`[INFO] preBookableUntil: ${preBookableUntil}`);
+      expect(!isNaN(preBookableDate.getTime()), "preBookableUntil should be a valid ISO date").to.be.true;
+      expect(preBookableDate.getTime(), "preBookableUntil should be in the future").to.be.above(Date.now());
+    });
+  } else {
+    validationLogger(`[INFO] preBookableUntil is not present → test skipped`);
   }
 }
 
@@ -352,14 +397,34 @@ function validatePassengers(jsonData) {
   });
 
   passengers.forEach((p, i) => {
-    test(`Passenger ${i + 1} type is defined - type: ${p.type}`, function () {
-      validationLogger(`[INFO] Passenger ${i + 1} type is defined - type: ${p.type}`);
-      expect(p.type).to.not.be.undefined;
+    // externalRef is defined
+    test(`Passenger ${i + 1} externalRef is defined - externalRef: ${p.externalRef}`, function () {
+      validationLogger(`[INFO] Passenger ${i + 1} externalRef: ${p.externalRef}`);
+      expect(p.externalRef, "externalRef should exist").to.exist.and.be.a("string");
     });
+
+    // type is a known OSDM value
+    test(`Passenger ${i + 1} type is a known OSDM value - type: ${p.type}`, function () {
+      validationLogger(`[INFO] Passenger ${i + 1} type valid value check: ${p.type}`);
+      expect(p.type).to.be.oneOf(["YOUNG_CHILD", "CHILD", "YOUTH", "ADULT", "SENIOR", "FAMILY_CHILD", "ACCOMP_PRM", "PRM_CHILD", "WHEELCHAIR", "PERSON", "PRM", "DOG", "PET", "LUGGAGE", "BICYCLE", "PRAM", "ACCOMP_DOG", "CAR", "MOTOCYCLE", "TRAILER"]);
+    });
+
+    // dateOfBirth is a valid date in the past (if present)
+    if (p.dateOfBirth) {
+      const dob = new Date(p.dateOfBirth);
+      test(`Passenger ${i + 1} dateOfBirth is a valid date in the past - dateOfBirth: ${p.dateOfBirth}`, function () {
+        validationLogger(`[INFO] Passenger ${i + 1} dateOfBirth: ${p.dateOfBirth}`);
+        expect(!isNaN(dob.getTime()), "dateOfBirth should be a valid ISO date").to.be.true;
+        expect(dob.getTime(), "dateOfBirth should be in the past").to.be.below(Date.now());
+      });
+    } else {
+      validationLogger(`[INFO] Passenger ${i + 1} no dateOfBirth → test skipped`);
+    }
 
     const reductionCards = p.appliedReductionCardTypes || [];
     test(`Passenger ${i + 1} reduction cards - reductionCards: ${JSON.stringify(reductionCards)}`, function () {
       validationLogger(`[INFO] Passenger ${i + 1} reduction cards - reductionCards: ${JSON.stringify(reductionCards)}`);
+      expect(Array.isArray(reductionCards), "appliedReductionCardTypes should be an array").to.be.true;
     });
   });
 }
@@ -374,8 +439,24 @@ function validateTripsAndLegs(jsonData) {
     expect(trips.length).to.be.above(0);
   });
 
+  // Capture trip ids and compare to coveredTripId
+  const tripIds = (jsonData.trips || []).map(trip => trip.id).filter(id => id !== undefined && id !== null);
+  validationLogger(`[INFO] tripIds found: ${JSON.stringify(tripIds)}`);
+  const coveredTripId = bru.getEnvVar("coveredTripId");
+  test(`selectedOffer.tripCoverage.coverageTripId if part of Trip ids - coveredTripId: ${coveredTripId}`, function () {
+    validationLogger(`[INFO] selectedOffer.tripCoverage.coverageTripId if part of Trip ids - coveredTripId: ${coveredTripId}`);
+    expect(tripIds).to.include(coveredTripId);
+  });
+
   trips.forEach((trip, tripIndex) => {
     const legs = trip.legs || [];
+
+    // direction is a known OSDM value
+    test(`Trip ${tripIndex + 1} direction is a known value - direction: ${trip.direction}`, function () {
+      validationLogger(`[INFO] Trip ${tripIndex + 1} direction: ${trip.direction}`);
+      expect(trip.direction).to.be.oneOf(["OUT_BOUND", "IN_BOUND"]);
+    });
+
     test(`Trip ${tripIndex + 1} has legs - length: ${legs.length}`, function () {
       validationLogger(`[INFO] Trip ${tripIndex + 1} has legs - length: ${legs.length}`);
       expect(legs.length).to.be.above(0);
@@ -458,6 +539,24 @@ function validateOfferParts(selectedOffer) {
     validationLogger(`[INFO] productFlex: ${productFlex.join(", ")}, Result: ${flexibilityResult}`);
     expect(overallFlex).to.eql(flexibilityResult);
   });
+
+  // capture coveredTripId if value exists
+  const coveredTripId = selectedOffer.tripCoverage && selectedOffer.tripCoverage.coveredTripId;
+  if (coveredTripId !== undefined && coveredTripId !== null) {
+    validationLogger(`[INFO] Covered Trip ID: ${coveredTripId}`);
+    bru.setEnvVar("coveredTripId", coveredTripId);
+  }
+
+  // Validate tripCoverage.coveredLegIds are non-empty strings (if present)
+  const coveredLegIds = selectedOffer.tripCoverage?.coveredLegIds || [];
+  if (coveredLegIds.length > 0) {
+    test(`Offer tripCoverage.coveredLegIds are non-empty strings - count: ${coveredLegIds.length}`, function () {
+      validationLogger(`[INFO] tripCoverage.coveredLegIds: ${JSON.stringify(coveredLegIds)}`);
+      coveredLegIds.forEach((legId, idx) => {
+        expect(legId, `coveredLegIds[${idx}] should be a string`).to.be.a("string");
+      });
+    });
+  }
 }
 
 // Admission validation
@@ -487,6 +586,15 @@ function validateAdmissions(selectedOffer) {
         expect(["NRT", "TLT", "IRT"]).to.include(type);
       });
 
+      // validFrom is a valid date
+      if (admission.validFrom) {
+        const validFrom = new Date(admission.validFrom);
+        test(`AdmissionOfferPart ${i + 1} validFrom is a valid date - validFrom: ${admission.validFrom}`, function () {
+          validationLogger(`[INFO] AdmissionOfferPart ${i + 1} validFrom: ${admission.validFrom}`);
+          expect(!isNaN(validFrom.getTime()), "validFrom should be a valid ISO date").to.be.true;
+        });
+      }
+
       // validUntil must be in the future
       const validUntil = new Date(admission.validUntil);
       test(`AdmissionOfferPart ${i + 1} validUntil is in the future - validUntil: ${validUntil}`, function () {
@@ -494,8 +602,54 @@ function validateAdmissions(selectedOffer) {
         expect(validUntil.getTime()).to.be.above(Date.now());
       });
 
+      // price structure is valid
+      test(`AdmissionOfferPart ${i + 1} price structure is valid - amount: ${admission.price?.amount}, currency: ${admission.price?.currency}`, function () {
+        validationLogger(`[INFO] AdmissionOfferPart ${i + 1} price: ${admission.price?.amount} ${admission.price?.currency}`);
+        expect(admission.price, "price should exist").to.be.an("object");
+        expect(admission.price.amount, "price.amount should be a number >= 0").to.be.a("number").and.at.least(0);
+        expect(admission.price.currency, "price.currency should exist").to.exist.and.be.a("string");
+        expect(admission.price.scale, "price.scale should be a number").to.be.a("number");
+      });
+
+      // offerMode is defined
+      if (admission.offerMode) {
+        test(`AdmissionOfferPart ${i + 1} offerMode is a known value - offerMode: ${admission.offerMode}`, function () {
+          validationLogger(`[INFO] AdmissionOfferPart ${i + 1} offerMode: ${admission.offerMode}`);
+          expect(admission.offerMode).to.be.oneOf(["INDIVIDUAL", "COLLECTIVE"]);
+        });
+      }
+
+      // appliedPassengerTypes each has a type and passengerRef
+      const appliedPassengerTypes = admission.appliedPassengerTypes || [];
+      if (appliedPassengerTypes.length > 0) {
+        test(`AdmissionOfferPart ${i + 1} appliedPassengerTypes are valid - count: ${appliedPassengerTypes.length}`, function () {
+          validationLogger(`[INFO] AdmissionOfferPart ${i + 1} appliedPassengerTypes count: ${appliedPassengerTypes.length}`);
+          appliedPassengerTypes.forEach((apt, aptIdx) => {
+            expect(apt.passengerRef, `appliedPassengerTypes[${aptIdx}].passengerRef should exist`).to.be.a("string");
+            expect(apt.type, `appliedPassengerTypes[${aptIdx}].type should be a known value`).to.be.oneOf([
+              "ADULT", "YOUTH", "SENIOR", "CHILD", "INFANT", "PERSON"
+            ]);
+          });
+        });
+      }
+
+      // isReusable is a boolean (if present)
+      if (admission.isReusable !== undefined) {
+        test(`AdmissionOfferPart ${i + 1} isReusable is a boolean - isReusable: ${admission.isReusable}`, function () {
+          validationLogger(`[INFO] AdmissionOfferPart ${i + 1} isReusable: ${admission.isReusable}`);
+          expect(admission.isReusable, "isReusable should be a boolean").to.be.a("boolean");
+        });
+      }
+
+      // passengerRefs: at least one
+      const passengerRefs = admission.passengerRefs || [];
+      test(`AdmissionOfferPart ${i + 1} passengerRefs has at least one entry`, function () {
+        validationLogger(`[INFO] AdmissionOfferPart ${i + 1} passengerRefs: ${JSON.stringify(passengerRefs)}`);
+        expect(passengerRefs.length).to.be.above(0);
+      });
+
       // Validate linkage to reservationOfferParts
-      const reservationsRefs = admission?.reservations?.flatMap(r => r.reservationsGroup?.reservationsRefs || []) || [];
+      const reservationsRefs = admission?.reservations?.flatMap(r => r.reservationGroup?.reservationRefs || []) || [];
       if (reservationsRefs.length > 0) {
         test(`Reservation linkage in admission with id ${admission.id}, reservationsRef ids should match reservationOfferParts ids`, () => {
           reservationsRefs.forEach(ref => {
@@ -583,7 +737,7 @@ function validateAdmissions(selectedOffer) {
       }
 
       // If FULL FLEXIBLE ticket, refundable and/or exchangeable must be YES
-      if (overallFlex === "FULL_FLEXIBLE") {
+      if (overallFlex === "FULL_FLEXIBLE" || overallFlex === "SEMI_FLEXIBLE") {
         const scenarioType = bru.getEnvVar("scenarioType") || "";
         if (scenarioType.includes("REFUND")) {
           test(`Admission part ${i + 1} refundable : ${admission.refundable}`, function () {
@@ -618,7 +772,41 @@ function validateReservations(selectedOffer) {
       admissionReservationAncillaryOfferPartsIds.push(reservation.id);
       bru.setEnvVar("admissionReservationAncillaryOfferPartsIds", admissionReservationAncillaryOfferPartsIds);
 
-      // Available Places, Numeric Availability per accommodation type
+      // price structure is valid
+      test(`ReservationOfferPart ${i + 1} price structure is valid - amount: ${reservation.price?.amount}, currency: ${reservation.price?.currency}`, function () {
+        validationLogger(`[INFO] ReservationOfferPart ${i + 1} price: ${reservation.price?.amount} ${reservation.price?.currency}`);
+        expect(reservation.price, "price should exist").to.be.an("object");
+        expect(reservation.price.amount, "price.amount should be a number >= 0").to.be.a("number").and.at.least(0);
+        expect(reservation.price.currency, "price.currency should exist").to.exist.and.be.a("string");
+        expect(reservation.price.scale, "price.scale should be a number").to.be.a("number");
+      });
+
+      // refundable and exchangeable are valid OSDM values
+      test(`ReservationOfferPart ${i + 1} refundable is a valid value - refundable: ${reservation.refundable}`, function () {
+        validationLogger(`[INFO] ReservationOfferPart ${i + 1} refundable: ${reservation.refundable}`);
+        expect(reservation.refundable).to.be.oneOf(["YES", "NO", "WITH_CONDITION"]);
+      });
+      test(`ReservationOfferPart ${i + 1} exchangeable is a valid value - exchangeable: ${reservation.exchangeable}`, function () {
+        validationLogger(`[INFO] ReservationOfferPart ${i + 1} exchangeable: ${reservation.exchangeable}`);
+        expect(reservation.exchangeable).to.be.oneOf(["YES", "NO", "WITH_CONDITION"]);
+      });
+
+      // offerMode is a known OSDM value (if present)
+      if (reservation.offerMode) {
+        test(`ReservationOfferPart ${i + 1} offerMode is a known value - offerMode: ${reservation.offerMode}`, function () {
+          validationLogger(`[INFO] ReservationOfferPart ${i + 1} offerMode: ${reservation.offerMode}`);
+          expect(reservation.offerMode).to.be.oneOf(["INDIVIDUAL", "COLLECTIVE"]);
+        });
+      }
+
+      // passengerRefs: at least one
+      const reservationPassengerRefs = reservation.passengerRefs || [];
+      test(`ReservationOfferPart ${i + 1} passengerRefs has at least one entry`, function () {
+        validationLogger(`[INFO] ReservationOfferPart ${i + 1} passengerRefs: ${JSON.stringify(reservationPassengerRefs)}`);
+        expect(reservationPassengerRefs.length).to.be.above(0);
+      });
+
+      // Available Places: accommodationType oneOf + tripLegCoverage structure
       const availablePlaces = reservation.availablePlaces || [];
       if (availablePlaces.length > 0) {
         test(`Reservation part ${i + 1} availablePlaces is an array and contains accommodationType and numericAvailability`, () => {
@@ -627,7 +815,13 @@ function validateReservations(selectedOffer) {
           availablePlaces.forEach((place, pIndex) => {
             validationLogger(`[INFO] availablePlaces[${pIndex}] accommodationType : ${place.accommodationType}, numericAvailability : ${place.numericAvailability}`);
             expect(typeof place.accommodationType).to.eql("string");
+            expect(place.accommodationType, `availablePlaces[${pIndex}].accommodationType should be a known OSDM value`).to.be.oneOf(	["SEAT", "COUCHETTE", "BERTH", "VEHICLE", "STORAGE"]);
             expect(typeof place.numericAvailability).to.eql("number");
+            // tripLegCoverage structure (if present)
+            if (place.tripLegCoverage) {
+              expect(place.tripLegCoverage.tripId, `availablePlaces[${pIndex}].tripLegCoverage.tripId should be a string`).to.be.a("string");
+              expect(place.tripLegCoverage.legId, `availablePlaces[${pIndex}].tripLegCoverage.legId should be a string`).to.be.a("string");
+            }
           });
         });
       } else {
@@ -858,17 +1052,12 @@ function handleAccommodationAndPlaceSelection(selectedOffer) {
   validationLogger("[INFO] ➤ handleAccommodationAndPlaceSelection");
 
   const accommodationSelection = bru.getEnvVar("accommodationSelection");
-  const requiresPlaceSelection = bru.getEnvVar("requiresPlaceSelection");
 
   if (accommodationSelection !== "COUCHETTE" && accommodationSelection !== "BERTH") {
     validationLogger(`[INFO] accommodationSelection is ${accommodationSelection}, skipping place selection`);
     return;
   }
-  if (requiresPlaceSelection !== true) {
-    // Bruno has no setNextRequest; set a flag to be consumed by your runner
-    bru.setGlobalEnvVar("nextRequest", "03. POST Create Booking");
-    bru.setGlobalEnvVar("skipPlaceMaps", true);
-  }
+
   const reservationParts = selectedOffer.reservationOfferParts || [];
   validationLogger(`[INFO] Reservation Offer Parts count: ${reservationParts.length}`);
 

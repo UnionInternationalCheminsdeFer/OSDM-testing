@@ -1,0 +1,68 @@
+info:
+  name: 17. GET Booking after Fulfillment
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{api_base}}/bookings/{{bookingId}}?embed=ALL"
+  headers:
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Requestor
+      value: "{{requestor}}"
+    - name: version
+      value: "{{osdmVersion}}"
+  params:
+    - name: embed
+      value: ALL
+      type: query
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: 'console.log("⏩ [STEP] Executing request : " + req.getName());'
+    - type: after-response
+      code: |-
+        const { validationLogger, displayFulFilledBooking } = require(bru.getEnvVar("library_base")+"displays.js");
+        const { postCreateBookingResponse } = require(bru.getEnvVar("library_base")+"bookings.js");
+
+        // Validate HTTP response status
+        test("Status code is 200", () => {
+            expect(res.getStatus(), "[ERROR] Wrong response status").to.eql(200);
+        });
+
+        if (res.getStatus() !== 200) {
+            bru.runner.stopExecution();
+            throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+        }
+
+        // Parse JSON safely
+        let jsonData;
+        try {
+            jsonData = res.getBody();
+        } catch (e) {
+            validationLogger("Failed to parse JSON response");
+            test("JSON parsing should succeed", () => {
+                throw e;
+            });
+            bru.runner.stopExecution();
+            return;
+        }
+        postCreateBookingResponse(
+        bru.getEnvVar("offer"),
+        jsonData,
+        expectedBookedOffersStatus=["FULFILLED", "CONFIRMED"],
+        expectedFulfillmentStatus=["EXCHANGED", "FULFILLED", "CONFIRMED", "CANCELLED"]);
+
+        displayFulFilledBooking(jsonData);
+        bru.runner.stopExecution();
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

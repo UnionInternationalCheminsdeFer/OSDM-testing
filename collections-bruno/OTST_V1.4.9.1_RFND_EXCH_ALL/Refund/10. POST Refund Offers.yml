@@ -1,0 +1,94 @@
+info:
+  name: 10. POST Refund Offers
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{api_base}}/bookings/{{bookingId}}/refund-offers"
+  headers:
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Requestor
+      value: "{{requestor}}"
+    - name: Content-Type2
+      value: application/json;version={{osdm-version}}
+      disabled: true
+  body:
+    type: json
+    data: "{{requestRefundOffersBodyData}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const { requestRefundOffersBody } = require(bru.getEnvVar("library_base")+"requestsBuilder.js");
+
+        console.log("⏩ [STEP] Executing request : " + req.getName());
+
+        if (bru.getEnvVar("refundDate") !== null) {
+            requestRefundOffersBody(bru.getEnvVar("overruleCode"), bru.getEnvVar("refundDate"));
+        } else {
+            requestRefundOffersBody(bru.getEnvVar("overruleCode"), null);
+        }
+    - type: after-response
+      code: |-
+        const { validationLogger } = require(bru.getEnvVar("library_base")+"displays.js");
+        const { postPatchRefundOfferResponse } = require(bru.getEnvVar("library_base")+"refunds.js");
+
+        // Validate HTTP response status
+        test("Status code is 200", () => {
+            expect(res.getStatus(), "[ERROR] Wrong response status").to.eql(200);
+        });
+
+        if (res.getStatus() !== 200) {
+            bru.runner.stopExecution();
+            throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+        }
+
+        // Parse JSON safely
+        let jsonData;
+        try {
+            jsonData = res.getBody();
+        } catch (e) {
+            validationLogger("Failed to parse JSON response");
+            test("JSON parsing should succeed", () => {
+                throw e;
+            });
+            bru.runner.stopExecution();
+            return;
+        }
+
+        // Ensure refundOffers is always an array with the expected structure
+        if (!jsonData.refundOffers) {
+            throw new Error("⛔ Exiting script, refundOffers property is missing in the response");
+        }
+
+        // Convert to array if it's not already (defensive programming)
+        if (!Array.isArray(jsonData.refundOffers)) {
+            jsonData.refundOffers = [jsonData.refundOffers];
+        }
+
+        // Validate array is not empty
+        if (jsonData.refundOffers.length === 0) {
+            throw new Error("⛔ Exiting script, no refundOffers available in the response");
+        }
+
+        // Normalize the array structure - ensure each offer has at least an id property
+        jsonData.refundOffers = jsonData.refundOffers.map(offer => {
+            if (!offer || typeof offer !== 'object') {
+                throw new Error("⛔ Invalid refundOffer item in array");
+            }
+            return offer;
+        });
+
+        postPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus=["PROPOSED"], expectedFulfillmentStatus=["CONFIRMED", "FULFILLED"]);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

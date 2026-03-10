@@ -1,0 +1,41 @@
+info:
+  name: 15. DEL Refund Offer
+  type: http
+  seq: 6
+
+http:
+  method: DELETE
+  url: "{{api_base}}/bookings/{{bookingId}}/refund-offers/{{refundOffersOfferId}}"
+  headers:
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Requestor
+      value: "{{requestor}}"
+  body:
+    type: json
+    data: "{}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: 'console.log("⏩ [STEP] Executing request : " + req.getName());'
+    - type: after-response
+      code: |-
+        if(bru.getEnvVar("isRefundConfirmed")) {
+            test("Status code is 404, refund offer has been confirmed", function () {
+                expect(res.getStatus()).to.equal(404);
+            });
+        } else {
+            test("Status code is 204, offer is deleted", function () {
+                expect(res.getStatus()).to.equal(204);
+            });
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

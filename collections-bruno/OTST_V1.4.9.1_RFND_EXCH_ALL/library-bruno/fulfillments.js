@@ -1,0 +1,174 @@
+// Import needed library files
+const display = require('./displays.js');
+
+module.exports = {
+  checkBookedOfferParts,
+  validatePassengers,
+  validatePurchaserDetails,
+  validateFulfillmentId,
+  validatePrices,
+  checkFulfillment,
+  getBookingFulfillmentResponse
+};
+
+// Utility function to check and iterate over booked offer parts
+function checkBookedOfferParts(bookedOffer, partType, bookingState) {
+  const parts = bookedOffer[partType];
+  if (Array.isArray(parts) && parts.length > 0) {
+    parts.forEach(bookedOfferPart => {
+      // checkGenericBookedOfferPart is expected to be globally available (from bookings.js)
+      checkGenericBookedOfferPart(bookedOfferPart, bookingState, partType);
+    });
+  }
+}
+
+// Function to validate passengers
+function validatePassengers(booking, offer) {
+  validationLogger("[INFO] ➤ validatePassengers");
+  offer.passengerRefs.forEach(passenger => {
+    const found = booking.passengers.some(bookedPassenger => {
+      return bookedPassenger.externalRef === passenger;
+    });
+
+    test(`Passenger ${passenger} with correct externalRef returned`, () => {
+      expect(found).to.equal(true);
+    });
+  });
+}
+
+// Function to validate purchaser details
+function validatePurchaserDetails(purchaserDetail) {
+  validationLogger("[INFO] ➤ validatePurchaserDetails");
+  if (purchaserDetail) {
+    test("Correct Purchaser is returned", () => {
+      expect(purchaserDetail.firstName).to.not.be.empty;
+      expect(purchaserDetail.lastName).to.not.be.empty;
+      expect(purchaserDetail.contact.email).to.not.be.empty;
+      expect(purchaserDetail.contact.phoneNumber).to.not.be.empty;
+    });
+  }
+}
+
+// Function to validate fulfillment IDs
+function validateFulfillmentId(booking) {
+  validationLogger("[INFO] ➤ validateFulfillmentId");
+  const fulfillmentsIdRaw = bru.getEnvVar("fulfillmentsIds");
+  if (fulfillmentsIdRaw) {
+    const expectedIds = JSON.parse(fulfillmentsIdRaw);
+    let actualIds = [];
+
+    if (booking.fulfillments && booking.fulfillments.length > 0) {
+      actualIds = booking.fulfillments.map(f => f.id);
+      actualIds.forEach((id, index) => {
+        test(`booking.fulfillments[${index}].id (${id}) should be one of expected fulfillments`, () => {
+          expect(id).to.be.oneOf(expectedIds);
+        });
+      });
+    }
+  }
+}
+
+// Function to validate prices
+function validatePrices(booking, fulfillmentState, totalPrice) {
+  validationLogger("[INFO] ➤ validatePrices");
+  if (fulfillmentState != null) {
+    bru.setEnvVar("bookingConfirmedPrice", booking.confirmedPrice.amount);
+    const bookingConfirmedPrice = bru.getEnvVar("bookingConfirmedPrice");
+    const provisionalPrice = bru.getEnvVar("provisionalPrice");
+
+    test(`Compare provisionalPrice = ${provisionalPrice} with bookingConfirmedPrice = ${bookingConfirmedPrice}`, () => {
+      expect(provisionalPrice).to.eql(bookingConfirmedPrice);
+    });
+    test(`Compare bookingConfirmedPrice = ${bookingConfirmedPrice} with Booking Admission + Reservation + Ancillaries + Fees + Fares = ${totalPrice}`, () => {
+      expect(bookingConfirmedPrice).to.eql(totalPrice);
+    });
+  } else {
+    bru.setEnvVar("provisionalPrice", booking.provisionalPrice.amount);
+    const provisionalPrice = bru.getEnvVar("provisionalPrice");
+
+    test(`Compare provisionalPrice = ${provisionalPrice} with Booking Admission + Reservation + Ancillaries + Fees + Fares = ${totalPrice}`, () => {
+      expect(provisionalPrice).to.eql(totalPrice);
+    });
+  }
+}
+
+// Function to check fulfillment details
+function checkFulfillment(booking, fulfillment) {
+  validationLogger("[INFO] ➤ checkFulfillment");
+  const currentDate = new Date();
+  const createdOn = new Date(fulfillment.createdOn);
+
+  test("Correct booking reference is returned on fulfillment", () => {
+    validationLogger(`[INFO] Booking reference in fulfillments : ${fulfillment.bookingRef}, expected booking id : ${booking.id}`);
+    expect(fulfillment.bookingRef).to.equal(booking.id);
+  });
+
+  test("ControlNumber is returned on fulfillment", () => {
+    validationLogger(`[INFO] Fulfillment controlNumber : ${fulfillment.controlNumber}`);
+    expect(fulfillment.controlNumber).to.exist;
+  });
+
+  test(`CreatedOn is returned on fulfillment`, () => {
+    validationLogger(`[INFO] Fulfillment createdOn : ${fulfillment.createdOn}`);
+    expect(currentDate.toDateString()).to.equal(createdOn.toDateString());
+  });
+
+  test(`Correct state AVAILABLE, ON_HOLD, FULFILLED or CONFIRMED is returned on fulfillment: ${fulfillment.status}`, () => {
+    validationLogger(`[INFO] Fulfillment status : ${fulfillment.status}`);
+    expect(["FULFILLED", "CONFIRMED", "ON_HOLD", "AVAILABLE"]).to.include(fulfillment.status);
+  });
+
+  const refundPartRefs = JSON.parse(bru.getEnvVar("idsAdmissionAncillariesReservationReference") || "[]");
+  let bookingPartIds = [];
+
+  if (fulfillment.bookingParts && fulfillment.bookingParts.length > 0) {
+    bookingPartIds = fulfillment.bookingParts.map(bp => bp.id);
+    test(`Each bookingPart id is included in idsAdmissionAncillariesReservationReference: ${refundPartRefs}`, () => {
+      bookingPartIds.forEach(bpId => {
+        expect(refundPartRefs, `Expected refundPartRefs to contain bookingPart id: ${bpId}`).to.include(bpId);
+      });
+    });
+  }
+}
+
+// Main function to check fulfilled booking
+function getBookingFulfillmentResponse(booking, offer, bookingState, fulfillmentState = undefined) {
+  booking.bookedOffers.forEach(bookedOffer => {
+    validationLogger(`[INFO] Checking bookedOffer ${bookedOffer.offerId}`);
+
+    // Check different parts of the booked offer
+    ['admissions', 'reservations', 'ancillaries', 'fees', 'fares'].forEach(partType => {
+      checkBookedOfferParts(bookedOffer, partType, bookingState);
+    });
+
+    // Fulfillment checks are performed after the loop below
+  });
+
+  // Check if the booking has fulfillments
+  if (booking.fulfillments && Array.isArray(booking.fulfillments) && booking.fulfillments.length > 0) {
+    booking.fulfillments.forEach(fulfillment => {
+      checkFulfillment(booking, fulfillment);
+    });
+  }
+
+  // Validate passengers
+  validatePassengers(booking, offer);
+
+  // Validate purchaser details
+  validatePurchaserDetails(booking.purchaser?.detail);
+
+  // Validate fulfillment ID
+  // TODO : Check if fulfillmentId[0] injected in POST refund, only the first one is correct
+  validateFulfillmentId(booking);
+
+  // Validate prices
+  const totalPrice = bru.getEnvVar("totalProvisionalOrBookingPrice") || 0;
+  validatePrices(booking, fulfillmentState, totalPrice);
+}
+
+// Expose to global for convenience in eval/require loader flows
+try {
+  Object.assign(globalThis, module.exports);
+} catch (e) {
+  // no-op
+}
