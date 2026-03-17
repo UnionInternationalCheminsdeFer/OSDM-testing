@@ -256,7 +256,7 @@
                     "operatorCode": "urn:uic:rics:1100"
                 },
                 {
-                    "origin": "urn:uic:stn:800152",
+                    "origin": "urn:uic:stn:8000152",
                     "destination": "urn:uic:stn:8000600",
                     "startDatetime": "%TRIP_DATE%T01:10:00+02:00",
                     "endDatetime": "%TRIP_DATE%T06:30:00+02:00",

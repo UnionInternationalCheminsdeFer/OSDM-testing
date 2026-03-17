@@ -1,0 +1,88 @@
+name: OTST_Paxone_Env
+variables:
+  - secret: true
+    name: client_id
+  - secret: true
+    name: client_secret
+  - secret: true
+    name: access_token
+  - name: api-host
+    value: https://staging.sandbox.paxone.app/api/v1/auth/user/token
+  - name: api_base
+    value: https://staging.sandbox.paxone.app/api/osdm
+  - name: library_base
+    value: ./library-bruno/
+  - name: data_base
+    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/data_base/paxone_datafile.json
+  - name: json_schema
+    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/json_validator/datafile.schema.json
+  - name: scenarioCode
+    value: OTST_EXCH_SRCH_CRIT_1ADT_1LEG
+  - name: osdmHelpers
+    value: ""
+  - name: data_base_tmp
+    value: ""
+  - name: loggingType
+    value: ""
+  - name: scenarioType
+    value: ""
+  - name: scenarioAction
+    value: ""
+  - name: osdmVersion
+    value: ""
+  - name: overruleCode
+    value: ""
+  - name: TripType
+    value: ""
+  - name: tripStartStopPlaceRef
+    value: ""
+  - name: tripEndStopPlaceRef
+    value: ""
+  - name: tripStartDatetime
+    value: ""
+  - name: tripEndDatetime
+    value: ""
+  - name: tripProductCategoryRef
+    value: ""
+  - name: tripProductCategoryName
+    value: ""
+  - name: tripProductCategoryShortName
+    value: ""
+  - name: offerTripSearchCriteria
+    value: ""
+  - name: bookingPurchaserSpecifications
+    value: ""
+  - name: offerPassengerNumber
+    value: ""
+  - name: offerPassengerSpecifications
+    value: ""
+  - name: bookingPassengerSpecifications
+    value: ""
+  - name: bookingPassengerReferences
+    value: ""
+  - name: passengerAdditionalData
+    value: ""
+  - name: updateFirstName_0
+    value: ""
+  - name: updateLastName_0
+    value: ""
+  - name: updateDateOfBirth_0
+    value: ""
+  - name: updateEmail_0
+    value: ""
+  - name: updatePhoneNumber_0
+    value: ""
+  - name: updateGender_0
+    value: ""
+  - name: offerSearchCriteria
+    value: ""
+  - name: OfferCollectionRequest
+    value: ""
+  - name: offerId
+    value: 26aa0ab385a14c9582b1f4e6b987202b
+  - name: overallFlexibility
+    value: SEMI_FLEXIBLE
+  - name: referencedAncillaryIds
+    value: '["b9a0fc25848a4895897640002cd93d6a"]'
+  - name: coveredTripId
+    value: "540646"

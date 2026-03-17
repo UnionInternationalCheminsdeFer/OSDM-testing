@@ -1,0 +1,97 @@
+name: OTST_Bileto_Env
+variables:
+  - secret: true
+    name: client_id
+  - secret: true
+    name: client_secret
+  - secret: true
+    name: access_token
+  - name: api_base
+    value: https://osdm-5.platform.bileto.zone/api
+  - name: library_base
+    value: ./library-bruno/
+  - name: data_file
+    value: <own value here>
+    disabled: true
+  - name: data_base
+    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/data_base/bileto_datafile.json
+  - name: json_schema
+    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/json_validator/datafile.schema.json
+  - name: ajvMinified
+    value: ""
+  - name: scenarioCode
+    value: OTST_EXCH_SRCH_CRIT_1ADT_1LEG
+  - name: osdmHelpers
+    value: ""
+  - name: data_base_tmp
+    value: ""
+  - name: loggingType
+    value: ""
+  - name: osdmVersion
+    value: ""
+  - name: scenarioType
+    value: ""
+  - name: scenarioAction
+    value: ""
+  - name: overruleCode
+    value: ""
+  - name: refundDate
+    value: ""
+  - name: desiredFlexibility
+    value: ""
+  - name: accommodationSelection
+    value: ""
+  - name: requiresPlaceSelection
+    value: ""
+  - name: TripType
+    value: ""
+  - name: tripStartStopPlaceRef
+    value: ""
+  - name: tripEndStopPlaceRef
+    value: ""
+  - name: tripStartDatetime
+    value: ""
+  - name: tripEndDatetime
+    value: ""
+  - name: tripVehicleNumber
+    value: ""
+  - name: tripOperatorCode
+    value: ""
+  - name: tripProductCategoryRef
+    value: ""
+  - name: tripProductCategoryName
+    value: ""
+  - name: tripProductCategoryShortName
+    value: ""
+  - name: offerTripSearchCriteria
+    value: ""
+  - name: bookingPurchaserSpecifications
+    value: ""
+  - name: offerPassengerNumber
+    value: ""
+  - name: offerPassengerSpecifications
+    value: ""
+  - name: bookingPassengerSpecifications
+    value: ""
+  - name: bookingPassengerReferences
+    value: ""
+  - name: passengerAdditionalData
+    value: ""
+  - name: updateFirstName_0
+    value: ""
+  - name: updateLastName_0
+    value: ""
+  - name: updateDateOfBirth_0
+    value: ""
+  - name: updateEmail_0
+    value: ""
+  - name: updatePhoneNumber_0
+    value: ""
+  - name: updateGender_0
+    value: ""
+  - name: offerSearchCriteria
+    value: ""
+  - name: offerFulfillmentOptions
+    value: ""
+  - name: OfferCollectionRequest
+    value: ""
