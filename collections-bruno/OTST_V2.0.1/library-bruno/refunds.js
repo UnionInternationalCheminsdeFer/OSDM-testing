@@ -1,5 +1,6 @@
 // Import needed library files
 const display = require('./displays.js');
+const { bruTest: test } = require('./testCapture.js');
 
 module.exports = {
   postPatchRefundOfferResponse,
@@ -111,6 +112,15 @@ function validateRefundOfferResponse(refundOffer, index, expectedRefundOperation
     validationLogger(`[WARNING] Refund offer[${index}] validUntil has invalid date format: ${refundOffer.validUntil}`);
   }
 
+  // E1: validFrom must be before or equal to validUntil (OSDM: temporal order required)
+  if (!isNaN(validFrom.getTime()) && !isNaN(validUntil.getTime())) {
+    test(`Refund offer[${index}] validFrom is before or equal to validUntil (OSDM: temporal order)`, () => {
+      expect(validFrom.getTime()).to.be.at.most(validUntil.getTime(),
+        `validFrom (${refundOffer.validFrom}) is after validUntil (${refundOffer.validUntil})`);
+      validationLogger(`[INFO] Refund offer[${index}] temporal order OK: validFrom=${refundOffer.validFrom} ≤ validUntil=${refundOffer.validUntil}`);
+    });
+  }
+
   // Validate appliedOverruleCode
   const overruleCode = bru.getEnvVar("overruleCode");
   validateRefundAppliedOverruleCode(refundOffer.appliedOverruleCode, overruleCode);
@@ -149,6 +159,13 @@ function validateRefundOfferResponse(refundOffer, index, expectedRefundOperation
     expect(refundOffer.refundFee.currency).to.be.a('string');
     expect(refundOffer.refundFee.scale).to.be.a('number');
     expect(refundOffer.refundFee.amount).to.be.at.least(0);
+  });
+
+  // E3: fulfillments must be a non-empty array (OSDM: RefundOffer.fulfillments minItems:1)
+  test(`Refund offer[${index}] fulfillments is a non-empty array (OSDM: minItems:1)`, () => {
+    expect(refundOffer.fulfillments).to.be.an('array').with.lengthOf.at.least(1,
+      `refundOffer.fulfillments must not be empty`);
+    validationLogger(`[INFO] Refund offer[${index}] has ${refundOffer.fulfillments?.length} fulfillment(s)`);
   });
 
   // Validate reimbursementStatus
@@ -243,10 +260,15 @@ function validateRefundableAmountLocal(refundOffer, overruleCode, confirmedPrice
       validationLogger(`[INFO] Refundable amount is 0 as expected (no valid overrule code)`);
     });
   } else {
-    const expectedRefundableAmount = Number(confirmedPriceAmount) - Number(refundOffer.refundFee.amount);
-    test(`Refundable amount is valid: ${refundOffer.refundableAmount.amount} = ${confirmedPriceAmount} - ${refundOffer.refundFee.amount}`, () => {
-      expect(refundOffer.refundableAmount.amount).to.equal(expectedRefundableAmount);
-      validationLogger(`[INFO] Refundable amount calculation verified: ${refundOffer.refundableAmount.amount} = ${confirmedPriceAmount} - ${refundOffer.refundFee.amount}`);
+    // E2: Use integer arithmetic to avoid floating-point rounding errors on monetary values
+    const _scale       = Math.pow(10, refundOffer.refundableAmount?.scale || 2);
+    const _feeInt      = Math.round(refundOffer.refundFee.amount * _scale);
+    const _refundInt   = Math.round(refundOffer.refundableAmount.amount * _scale);
+    const _confirmedInt = Math.round(Number(confirmedPriceAmount) * _scale);
+    test(`Refund financial identity: refundFee(${refundOffer.refundFee.amount}) + refundableAmount(${refundOffer.refundableAmount.amount}) = confirmedPrice(${confirmedPriceAmount}) (OSDM: integer arithmetic)`, () => {
+      expect(_feeInt + _refundInt).to.eql(_confirmedInt,
+        `Financial identity broken: fee(${_feeInt}) + refundable(${_refundInt}) ≠ confirmed(${_confirmedInt})`);
+      validationLogger(`[INFO] Financial identity verified (scaled): ${_feeInt} + ${_refundInt} = ${_confirmedInt}`);
     });
   }
 }
@@ -352,6 +374,20 @@ function getBookingRefundResponse(response, scenarioType) {
       expect(booking).to.have.property("refundOffers").that.is.an("array");
       expect(booking.refundOffers).to.be.empty;
     });
+    // E4: After a confirmed refund, affected booking parts must have transitioned to REFUNDED status
+    if (bru.getEnvVar("isRefundConfirmed") === "true") {
+      const _allParts = (booking.bookedOffers || [])
+        .flatMap(bo => [...(bo.admissions||[]), ...(bo.reservations||[]), ...(bo.ancillaries||[])]);
+      if (_allParts.length > 0) {
+        test(`All booked offer parts are in REFUNDED or FULFILLED status after confirmed refund (OSDM: status transition)`, () => {
+          _allParts.forEach((part, i) => {
+            expect(['REFUNDED','FULFILLED'], `Part[${i}] status should be REFUNDED, got '${part.status}'`)
+              .to.include(part.status);
+          });
+          validationLogger(`[INFO] All ${_allParts.length} parts verified as post-refund status`);
+        });
+      }
+    }
   }
 }
 

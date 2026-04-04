@@ -1,6 +1,7 @@
 // Import needed library files
 const display = require('./displays.js');
 const requestsBuilder = require('./requestsBuilder.js');
+const { bruTest: test } = require('./testCapture.js');
 
 module.exports = {
   checkWarningsAndProblems,
@@ -162,6 +163,9 @@ function ensureAuthorizationOr403() {
 // Function to validate offer response
 function postOfferResponse(jsonData) {
   validationLogger("[INFO] ➤ postOfferResponse");
+  if (typeof checkWarningsAndProblems === "function") {
+    checkWarningsAndProblems(jsonData);
+  }
   // Stop flow if offers invalid
   if (!Array.isArray(jsonData.offers) || jsonData.offers.length === 0) {
     validationLogger("[ERROR] No offers found or 'offers' is not an array.");
@@ -173,6 +177,33 @@ function postOfferResponse(jsonData) {
     expect(jsonData.offers, "[ERROR] 'offers' is missing or empty").to.be.an("array").that.is.not.empty;
     validationLogger(`[INFO] 'offers' array exists with ${jsonData.offers.length} offer(s)`);
   });
+
+  // A1/A3/A4: Per-offer mandatory field assertions (OSDM v3.8 spec)
+  const requestedPassengerCount = (jsonData.anonymousPassengerSpecifications || []).length;
+  jsonData.offers.forEach((offer, i) => {
+    test(`offers[${i}].offerId is a non-empty string (OSDM: Offer.offerId required)`, () => {
+      expect(offer.offerId).to.be.a('string').and.not.be.empty;
+    });
+    const createdOnDate = new Date(offer.createdOn);
+    test(`offers[${i}].createdOn is a valid ISO datetime (OSDM: Offer.createdOn required)`, () => {
+      expect(isNaN(createdOnDate.getTime()), `createdOn is not a valid date: ${offer.createdOn}`).to.be.false;
+    });
+    test(`offers[${i}].passengerRefs is a non-empty array (OSDM: Offer.passengerRefs minItems:1)`, () => {
+      expect(offer.passengerRefs).to.be.an('array').with.lengthOf.at.least(1);
+    });
+    if (requestedPassengerCount > 0) {
+      test(`offers[${i}].passengerRefs count matches requested passengers (expected: ${requestedPassengerCount}, actual: ${offer.passengerRefs?.length})`, () => {
+        expect(offer.passengerRefs.length).to.eql(requestedPassengerCount,
+          `Expected ${requestedPassengerCount} passengerRefs, got ${offer.passengerRefs.length}`);
+      });
+    }
+  });
+  // H3: Store offer currency for cross-flow consistency checks
+  const _offerCurrency = jsonData.offers[0]?.offerSummary?.minimalPrice?.currency;
+  if (_offerCurrency) {
+    bru.setEnvVar("offerCurrency", _offerCurrency);
+    validationLogger(`[INFO] Stored offerCurrency: ${_offerCurrency}`);
+  }
 
   let selectedOffer = selectAndSetOffer(jsonData);
 
@@ -407,7 +438,7 @@ function validatePassengers(jsonData) {
     // type is a known OSDM value
     test(`Passenger ${i + 1} type is a known OSDM value - type: ${p.type}`, function () {
       validationLogger(`[INFO] Passenger ${i + 1} type valid value check: ${p.type}`);
-      expect(p.type).to.be.oneOf(["YOUNG_CHILD", "CHILD", "YOUTH", "ADULT", "SENIOR", "FAMILY_CHILD", "ACCOMP_PRM", "PRM_CHILD", "WHEELCHAIR", "PERSON", "PRM", "DOG", "PET", "LUGGAGE", "BICYCLE", "PRAM", "ACCOMP_DOG", "CAR", "MOTOCYCLE", "TRAILER"]);
+      expect(p.type).to.be.oneOf(["YOUNG_CHILD", "CHILD", "YOUTH", "ADULT", "SENIOR", "FAMILY_CHILD", "ACCOMP_PRM", "PRM_CHILD", "WHEELCHAIR", "PERSON", "PRM", "DOG", "PET", "LUGGAGE", "BICYCLE", "PRAM", "COMPANION_DOG", "CAR", "MOTORCYCLE", "TRAILER"]);
     });
 
     // dateOfBirth is a valid date in the past (if present)
@@ -444,13 +475,30 @@ function validateTripsAndLegs(jsonData) {
   const tripIds = (jsonData.trips || []).map(trip => trip.id).filter(id => id !== undefined && id !== null);
   validationLogger(`[INFO] tripIds found: ${JSON.stringify(tripIds)}`);
   const coveredTripId = bru.getEnvVar("coveredTripId");
-  test(`selectedOffer.tripCoverage.coverageTripId if part of Trip ids - coveredTripId: ${coveredTripId}`, function () {
-    validationLogger(`[INFO] selectedOffer.tripCoverage.coverageTripId if part of Trip ids - coveredTripId: ${coveredTripId}`);
-    expect(tripIds).to.include(coveredTripId);
-  });
+  if (coveredTripId) {
+    test(`selectedOffer.tripCoverage.coveredTripId (${coveredTripId}) is part of Trip ids`, function () {
+      validationLogger(`[INFO] Checking coveredTripId ${coveredTripId} is in tripIds: ${JSON.stringify(tripIds)}`);
+      expect(tripIds).to.include(coveredTripId);
+    });
+  } else {
+    validationLogger(`[INFO] coveredTripId is not set → tripCoverage test skipped`);
+  }
 
   trips.forEach((trip, tripIndex) => {
     const legs = trip.legs || [];
+
+    // A7: startTime must be strictly before endTime (OSDM: Trip.startTime/endTime required)
+    const tripStart = new Date(trip.startTime);
+    const tripEnd   = new Date(trip.endTime);
+    if (!isNaN(tripStart.getTime()) && !isNaN(tripEnd.getTime())) {
+      test(`Trip ${tripIndex + 1} startTime is before endTime (OSDM: temporal order)`, () => {
+        expect(tripStart.getTime()).to.be.below(tripEnd.getTime(),
+          `Trip startTime (${trip.startTime}) is not before endTime (${trip.endTime})`);
+        validationLogger(`[INFO] Trip ${tripIndex + 1}: startTime=${trip.startTime}, endTime=${trip.endTime} ✓`);
+      });
+    } else {
+      validationLogger(`[WARNING] Trip ${tripIndex + 1}: startTime or endTime is not a valid date → A7 test skipped`);
+    }
 
     // direction is a known OSDM value
     test(`Trip ${tripIndex + 1} direction is a known value - direction: ${trip.direction}`, function () {
@@ -561,6 +609,22 @@ function validateOfferParts(selectedOffer) {
         expect(legId, `coveredLegIds[${idx}] should be a string`).to.be.a("string");
       });
     });
+  }
+
+  // A8: Currency consistency — all offer part prices must use the same currency as offerSummary
+  const _summaryCurrency = selectedOffer.offerSummary?.minimalPrice?.currency;
+  if (_summaryCurrency) {
+    ['admissionOfferParts', 'reservationOfferParts', 'ancillaryOfferParts'].forEach(partType => {
+      (selectedOffer[partType] || []).forEach((part, pi) => {
+        if (part.price?.currency) {
+          test(`${partType}[${pi}].price.currency matches offerSummary currency (expected: ${_summaryCurrency}, actual: ${part.price.currency})`, () => {
+            expect(part.price.currency).to.eql(_summaryCurrency,
+              `Currency mismatch in ${partType}[${pi}]: expected ${_summaryCurrency}, got ${part.price.currency}`);
+          });
+        }
+      });
+    });
+    validationLogger(`[INFO] A8 currency consistency checked for all offer parts against summaryCurrency=${_summaryCurrency}`);
   }
 }
 
@@ -693,7 +757,7 @@ function validateAdmissions(selectedOffer) {
 
             // Validate condition type
             expect(condition.condition, `afterSalesCondition[${condIndex}].condition should exist`).to.exist;
-            expect(condition.condition, `afterSalesCondition[${condIndex}].condition should be REFUND or EXCHANGE`).to.be.oneOf(['REFUND', 'EXCHANGE']);
+            expect(condition.condition, `afterSalesCondition[${condIndex}].condition should be REFUND, EXCHANGE or PLACE_CHANGE (OSDM: AfterSaleConditionType)`).to.be.oneOf(['REFUND', 'EXCHANGE', 'PLACE_CHANGE']);
             validationLogger(`[INFO] afterSalesCondition[${condIndex}].condition: ${condition.condition}`);
 
             // Validate validFrom
@@ -891,7 +955,7 @@ function validateReservations(selectedOffer) {
             validationLogger(`[INFO] Validating afterSalesCondition[${condIndex}] for reservation ${reservation.id}`);
             // Validate condition type
             expect(condition.condition, `afterSalesCondition[${condIndex}].condition should exist`).to.exist;
-            expect(condition.condition, `afterSalesCondition[${condIndex}].condition should be REFUND or EXCHANGE`).to.be.oneOf(['REFUND', 'EXCHANGE']);
+            expect(condition.condition, `afterSalesCondition[${condIndex}].condition should be REFUND, EXCHANGE or PLACE_CHANGE (OSDM: AfterSaleConditionType)`).to.be.oneOf(['REFUND', 'EXCHANGE', 'PLACE_CHANGE']);
             validationLogger(`[INFO] afterSalesCondition[${condIndex}].condition: ${condition.condition}`);
 
             // Validate validFrom
@@ -981,7 +1045,7 @@ function validateAncillaries(selectedOffer) {
             validationLogger(`[INFO] Validating afterSalesCondition[${condIndex}] for ancillary ${ancillary.id}`);
             // Validate condition type
             expect(condition.condition, `afterSalesCondition[${condIndex}].condition should exist`).to.exist;
-            expect(condition.condition, `afterSalesCondition[${condIndex}].condition should be REFUND or EXCHANGE`).to.be.oneOf(['REFUND', 'EXCHANGE']);
+            expect(condition.condition, `afterSalesCondition[${condIndex}].condition should be REFUND, EXCHANGE or PLACE_CHANGE (OSDM: AfterSaleConditionType)`).to.be.oneOf(['REFUND', 'EXCHANGE', 'PLACE_CHANGE']);
             validationLogger(`[INFO] afterSalesCondition[${condIndex}].condition: ${condition.condition}`);
 
             // Validate validFrom

@@ -1,24 +1,22 @@
-name: OTST_Paxone_Env
+name: OTST_Benerail_Env
 variables:
   - secret: true
-    name: client_id
+    name: Ocp-Apim-Subscription-Key
   - secret: true
-    name: client_secret
+    name: requestor
   - secret: true
     name: access_token
-  - name: api-host
-    value: https://staging.sandbox.paxone.app/api/v1/auth/user/token
+  - name: x-bnds-backend
+    value: c03
   - name: api_base
-    value: https://staging.sandbox.paxone.app/api/osdm
+    value: https://benerail-stg-apim.azure-api.net/acc/osdm
   - name: data_file
     value: <own value here>
     disabled: true
   - name: library_base
     value: ./library-bruno/
   - name: data_base
-    value: http://localhost:8080/data_base/paxone_datafile.json
+    value: http://localhost:8080/data_base/benerail_datafile.json
   - name: json_schema
     value: https://github.com/UnionInternationalCheminsdeFer/OSDM-testing/tree/Bruno-Enhancements/collections-bruno/OTST_V2.0.1/json_validator/datafile.schema.json
 
-  - name: scenariosToRunIndex
-    value: "0"

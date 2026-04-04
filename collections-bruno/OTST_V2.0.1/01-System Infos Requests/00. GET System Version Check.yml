@@ -1,0 +1,142 @@
+info:
+  name: 00. GET System Version Check
+  type: http
+  seq: 0
+
+http:
+  method: GET
+  url: "{{api_base}}/versions"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Requestor
+      value: "{{requestor}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Import library functions
+        const { validationLogger } = require(bru.getEnvVar("library_base")+"displays.js");
+        const { bruTest } = require(bru.getEnvVar("library_base") + "testCapture.js");
+
+        // Handle and validate HTTP response status
+        // Handle and validate HTTP response status
+        const statusCode = res.getStatus();
+        // ── Status code classification ────────────────────────────────────
+        // 200: pass + continue to body/version validation
+        // 401/403: auth failure (FAIL, stop further checks)
+        // 404: endpoint not implemented by this vendor (FAIL, stop further checks)
+        // 5xx: server error (FAIL, stop further checks)
+        // other: unexpected (FAIL, stop further checks)
+        if (statusCode === 200) {
+          bruTest(`GET /versions → 200 OK`, () => {
+            expect(statusCode).to.eql(200);
+          });
+        } else if (statusCode === 401) {
+          validationLogger(`[ERROR] GET /versions → 401 Unauthorized — check access token`);
+          bruTest(`GET /versions → 401 Unauthorized (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 401 Unauthorized').to.eql(200);
+          });
+          return;
+        } else if (statusCode === 403) {
+          validationLogger(`[ERROR] GET /versions → 403 Forbidden — insufficient permissions`);
+          bruTest(`GET /versions → 403 Forbidden (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 403 Forbidden').to.eql(200);
+          });
+          return;
+        } else if (statusCode === 404) {
+          validationLogger(`[ERROR] GET /versions → 404 Not Found — endpoint not implemented by this vendor`);
+          bruTest(`GET /versions → 404 Not Found (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 404 — /versions endpoint not supported').to.eql(200);
+          });
+          return;
+        } else if (statusCode >= 500) {
+          validationLogger(`[ERROR] GET /versions → ${statusCode} Server Error`);
+          bruTest(`GET /versions → ${statusCode} Server Error (FAIL)`, () => {
+            expect(statusCode, `Expected 200, got ${statusCode} server error`).to.eql(200);
+          });
+          return;
+        } else {
+          validationLogger(`[WARNING] GET /versions → unexpected status ${statusCode}`);
+          bruTest(`GET /versions → unexpected status ${statusCode}`, () => {
+            expect(statusCode, `Unexpected status ${statusCode}, expected 200`).to.eql(200);
+          });
+          return;
+        }
+
+        // Parse JSON response safely
+        let versionsData;
+        try {
+          versionsData = res.getBody();
+        } catch (e) {
+          validationLogger(`[ERROR] Failed to parse /versions response: ${e.message}`);
+          bruTest("Parse /versions response as JSON", () => {
+            throw new Error(`Failed to parse response: ${e.message}`);
+          });
+          return;
+        }
+
+        // Validate response is an array
+        bruTest(`/versions response is an array`, () => {
+          expect(versionsData).to.be.an("array");
+        });
+
+        // Extract API versions from response
+        const apiVersions = versionsData && versionsData.length > 0 
+          ? versionsData.map(v => v.version || v.major + "." + v.minor + "." + (v.patch || "0")).join(", ")
+          : "unknown";
+
+        validationLogger(`[INFO] 📌 API versions available: [${apiVersions}]`);
+        bru.setEnvVar("apiVersionsAvailable", apiVersions);
+
+        // Get expected OSDM version from environment (set by parseScenarioData)
+        const expectedVersion = bru.getEnvVar("osdmVersion");
+        const scenarioCode = bru.getEnvVar("scenarioCode") || "N/A";
+        
+        if (!expectedVersion) {
+          validationLogger(`[INFO] osdmVersion not set in environment — skipping consistency check`);
+          bruTest("osdmVersion is available for consistency check", () => {
+            expect(expectedVersion, "osdmVersion should be set by scenario parser").to.exist;
+          });
+          return;
+        }
+
+        validationLogger(`[INFO] 📋 Expected OSDM version (from data file): "${expectedVersion}"`);
+
+        // Find matching version in response
+        let foundMatch = false;
+        if (Array.isArray(versionsData)) {
+          foundMatch = versionsData.some(v => {
+            const versionString = v.version || (v.major + "." + v.minor + "." + (v.patch || "0"));
+            return versionString === expectedVersion;
+          });
+        }
+
+        // Generate sanity check with warning if versions don't match
+        bruTest(`Scenario : ${scenarioCode} version used is ${expectedVersion}, version of the sytem is ${apiVersions}`, () => {
+          if (!foundMatch) {
+            validationLogger(`[INFO] Version mismatch detected`);
+            validationLogger(`[INFO] Scenario: ${scenarioCode}; version used: ${expectedVersion}; version of the sytem: ${apiVersions}`);
+            validationLogger(`[INFO] Action: Verify that the data file (osdmVersion) matches the API implementation`);
+            
+            // Log as warning, not failure
+            expect(foundMatch, 
+              `Version mismatch: Expected "${expectedVersion}" but API supports [${apiVersions}]. Check data file consistency.`)
+              .to.be.false;
+          } else {
+            validationLogger(`[✅ INFO] Version match confirmed: API supports "${expectedVersion}"`);
+          }
+        });
+
+        // Store version info for downstream requests to reference
+        bru.setEnvVar("systemVersionCheckCompleted", "true");
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,7 +1,7 @@
 opencollection: 1.0.0
 
 info:
-  name: OTST_V2.0_RFND_EXCH_ALL
+  name: OTST_V2.0.1_RFND_EXCH_ALL
 config:
   proxy:
     inherit: true
@@ -34,33 +34,143 @@ request:
         “This material is copyrighted by UIC, Union Internationale des Chemins de fer © 2023  – 2024 , OSDM is a trademark belonging to UIC, and any use of this trademark is strictly prohibited unless otherwise agreed by UIC.”
         */
 
+        // ── SMART RUN FILTER + MAIN BEFORE-REQUEST ────────────────────────────
+        // Labeled block: break RUNSCRIPT jumps to the closing brace, skipping
+        // all remaining bru.* calls.  This is critical because bru.runner.skipRequest()
+        // clears the bru context — any bru.getEnvVar() call after it returns undefined.
+        // By calling skipRequest() as the LAST statement before break, we avoid that.
+        //
+        // ACCESS TOKEN filter
+        //   Only the token whose name contains the active sandbox name runs.
+        //   e.g. active env = OTST_Chaps_Env → only "Chaps access Token" executes.
+        //
+        // SCENARIO FOLDER filter (driven by scenarioType env var)
+        //   SALE          → Common Requests only (Place Map excluded)
+        //   SALE+PLACEMAP → Common Requests incl. Place Map
+        //   REFUND        → Common Requests + Refund  (Exchange excluded)
+        //   EXCHANGE      → Common Requests + Exchange (Refund excluded)
+        RUNSCRIPT: {
+
+        // ── Per-request console capture for HTML report ─────────────────────
+        // Captures console.log/warn/error messages emitted during this request
+        // so they can be rendered in the request "Console Log" sub-section.
+        try {
+          bru.setVar('__rptLogs', '[]');
+
+          if (!globalThis.__rptConsolePatched) {
+            const _origLog = console.log.bind(console);
+            const _origWarn = console.warn ? console.warn.bind(console) : _origLog;
+            const _origError = console.error ? console.error.bind(console) : _origLog;
+
+            globalThis.__rptOrigConsole = {
+              log: _origLog,
+              warn: _origWarn,
+              error: _origError
+            };
+
+            function _capture(level, args) {
+              try {
+                const msg = args.map(a => {
+                  if (typeof a === 'string') return a;
+                  try { return JSON.stringify(a); } catch (_e) { return String(a); }
+                }).join(' ');
+
+                const existing = JSON.parse(bru.getVar('__rptLogs') || '[]');
+                existing.push({ level, message: msg });
+                bru.setVar('__rptLogs', JSON.stringify(existing));
+              } catch (_e) {
+                // Never block request execution on log capture issues
+              }
+            }
+
+            console.log = function () {
+              const args = Array.from(arguments);
+              _capture('log', args);
+              return _origLog.apply(console, args);
+            };
+            console.warn = function () {
+              const args = Array.from(arguments);
+              _capture('warn', args);
+              return _origWarn.apply(console, args);
+            };
+            console.error = function () {
+              const args = Array.from(arguments);
+              _capture('error', args);
+              return _origError.apply(console, args);
+            };
+
+            globalThis.__rptConsolePatched = true;
+          }
+        } catch (_lcErr) {
+          // Continue without console capture if sandbox blocks patching
+        }
+
+        // ── 1. Smart run filter ───────────────────────────────────────────────
+        try {
+          var _rn = ''; try { _rn = String(req.getName()).toLowerCase(); } catch (_e) {}
+          var _ru = String(req.getUrl ? req.getUrl() : (req.url || '')).toLowerCase();
+          var _sandbox = String(typeof bru.getEnvName === 'function' ? bru.getEnvName() : '')
+                           .replace(/^OTST_/i, '').replace(/_Env$/i, '').toLowerCase();
+
+          var _isToken    = _rn.includes('token') || _rn.includes('access');
+          var _isPlaceMap = _ru.includes('place-map') || _rn.includes('place map');
+          var _isRefund   = _ru.includes('refund')   && !_isToken;
+          var _isExchange = _ru.includes('exchange') && !_isToken;
+          var _st         = (bru.getEnvVar('scenarioType') || '').toUpperCase().trim();
+
+          var _skipReason = null;
+          if (_isToken && _sandbox && _rn && !_rn.includes(_sandbox)) {
+            _skipReason = 'not for "' + _sandbox + '" sandbox';
+          } else if (_st === 'SALE'         && (_isPlaceMap || _isRefund || _isExchange)) { _skipReason = 'not in SALE scope'; }
+            else if (_st === 'SALE+PLACEMAP' && (_isRefund || _isExchange))               { _skipReason = 'not in SALE+PLACEMAP scope'; }
+            else if (_st === 'REFUND'        && _isExchange)                              { _skipReason = 'Exchange excluded for REFUND scenario'; }
+            else if (_st === 'EXCHANGE'      && _isRefund)                                { _skipReason = 'Refund excluded for EXCHANGE scenario'; }
+
+          if (_skipReason) {
+            console.log('[INFO] ⏭️  Skipping [' + (_rn || _ru) + '] — ' + _skipReason);
+            // skipRequest() MUST be the last bru call — it clears the bru context.
+            // break RUNSCRIPT immediately after so no further bru.* calls run.
+            if (bru.runner && typeof bru.runner.skipRequest === 'function') bru.runner.skipRequest();
+            break RUNSCRIPT;
+          }
+        } catch (_sfErr) {
+          console.log('[INFO] Smart run filter error: ' + (_sfErr && _sfErr.message));
+        }
+
+        // ── 2. Normal before-request (only reaches here for non-skipped requests) ──
+
         const { getScenarioData } = require(bru.getEnvVar("library_base") + "scenarioParser.js");
 
-        test(`API base is available : ${bru.getEnvVar("api_base")}`, function () {
-            expect(bru.getEnvVar("api_base")).to.not.be.null;
-            console.log(`API base is available : ${bru.getEnvVar("api_base")}`);
-        });
+        // ── Reset test accumulator for this request ───────────────────────────
+        // bruTest() in library files accumulates results into bru.setVar('__rptTests').
+        // bru.setVar is shared across ALL script phases for a single request,
+        // so the global after-response can read everything that ran.
+        try {
+          const { resetTests } = require(bru.getEnvVar("library_base") + "testCapture.js");
+          resetTests();
+        } catch (_te) { bru.setVar('__rptTests', '[]'); }
 
-        test(`Library base is available : ${bru.getEnvVar("library_base")}`, function () {
-            expect(bru.getEnvVar("library_base")).not.null;
-            console.log(`Library base is available : ${bru.getEnvVar("library_base")}`);
-        });
+        // ── Init HTML report at scenario start (/versions), with safe fallback ──
+        // This prevents report entries from previous scenarios leaking into the
+        // current scenario HTML when multiple scenarios run in sequence.
+        try {
+          const _rqName = String(req.getName ? req.getName() : '').toLowerCase();
+          const _rqUrl = String(req.getUrl ? req.getUrl() : (req.url || '')).toLowerCase();
+          const _isScenarioStart = /\/versions(\?|$)/.test(_rqUrl)
+            || _rqName.includes('system version check');
 
-        test(`Data file is available : ${bru.getEnvVar("data_base")}`, function () {
-            expect(bru.getEnvVar("data_base")).not.null;
-            console.log(`Data file is available : ${bru.getEnvVar("data_base")}`);
-        });
-
-        // Cannot check exact URL as the endpoint path varies among different API vendors
-        if (req.getUrl().toString().includes("/offers")) {
-            console.log(`
-            ####################################
-            # 🛠️  New Collection Execution 🛠️ #
-            ####################################
-            `);
-
-            console.log("🛠️ Cleaning all environment variables..");
-            const deleteList = [
+          // ── __reportInitDone uses setEnvVar (not setVar) so it persists across ALL
+          // requests within a single run.  bru.setVar is request-scoped and would
+          // reset to undefined between requests, causing initReport() — and the
+          // destructive .report_tmp.json delete — to fire on every request instead
+          // of only once at the /versions scenario-start.
+          if (_isScenarioStart || bru.getEnvVar('__reportInitDone') !== 'true') {
+            if (_isScenarioStart) {
+              // ── Full env reset + scenario data pre-load at collection start ──
+              // Calling getScenarioData() here (not at /offers) ensures osdmVersion
+              // is set before 00. GET System Version Check executes (seq:0).
+              console.log("🛠️  New Collection Execution — clearing env vars and loading scenario data...");
+              const _deleteList = [
                 // Scenario / trip
                 "loggingType", "scenarioType", "scenarioAction", "osdmVersion",
                 "desiredFlexibility", "accommodationSelection", "requiresPlaceSelection",
@@ -102,15 +212,69 @@ request:
                 "afterSaleCondition_EXCHANGE_amount", "afterSaleCondition_EXCHANGE_currency", "afterSaleCondition_EXCHANGE_scale",
                 "afterSaleCondition_REFUND_amount",   "afterSaleCondition_REFUND_currency",   "afterSaleCondition_REFUND_scale",
                 // Misc
-                "data_base_tmp", "scriptContent", "swaggerJson"
-            ];
-            deleteList.forEach(key => bru.deleteEnvVar(key));
-            console.log("✅ All environment variables have been successfully cleared");
-
-            if (!bru.getEnvVar("osdmHelpers")) {
-                console.log("🛠️ Retrieving script libraries and saving in environment..");
+                "data_base_tmp", "scriptContent", "swaggerJson",
+                "scenarioCode"
+              ];
+              _deleteList.forEach(key => bru.deleteEnvVar(key));
+              console.log("✅ All environment variables cleared");
+              // ── Ensure scenariosToRunIndex exists — initialize to 0 if missing ──
+              // Each Bruno environment file is isolated. Switching environments (e.g.
+              // Chaps → Paxone) activates a fresh set of env vars. If the new env file
+              // does not define scenariosToRunIndex (first use, or manually deleted),
+              // parseScenarioData would still default to 0 via its || "0" fallback,
+              // but it would NOT persist the var to the file for subsequent runs.
+              // This guard writes the var explicitly so it is visible and editable
+              // in the environment file after the very first collection run.
+              if (bru.getEnvVar('scenariosToRunIndex') == null || bru.getEnvVar('scenariosToRunIndex') === '') {
+                bru.setEnvVar('scenariosToRunIndex', '0');
+                console.log('[INFO] scenariosToRunIndex was not set — initialized to 0 for this environment');
+              }
+              try {
                 await getScenarioData();
+                console.log("✅ Scenario data loaded — osdmVersion: " + (bru.getEnvVar("osdmVersion") || "not set"));
+              } catch (_gsErr) {
+                console.log("[WARNING] getScenarioData at collection start failed: " + (_gsErr && _gsErr.message));
+              }
             }
+
+            const { initReport } = require(bru.getEnvVar("library_base") + "reportGenerator.js");
+            initReport(bru.getEnvVar("library_base"));
+            bru.setEnvVar('__reportInitDone', 'true');  // persists across requests in this run
+            console.log(_isScenarioStart
+              ? "📊 HTML report initialised for this scenario."
+              : "📊 HTML report initialised for this run.");
+          }
+        } catch (_rErr) {
+          console.log("[WARNING] Report init error: " + (_rErr && _rErr.message));
+        }
+
+        test(`API base is available : ${bru.getEnvVar("api_base")}`, function () {
+            expect(bru.getEnvVar("api_base")).to.not.be.null;
+            console.log(`API base is available : ${bru.getEnvVar("api_base")}`);
+        });
+
+        test(`Library base is available : ${bru.getEnvVar("library_base")}`, function () {
+            expect(bru.getEnvVar("library_base")).not.null;
+            console.log(`Library base is available : ${bru.getEnvVar("library_base")}`);
+        });
+
+        test(`Data file is available : ${bru.getEnvVar("data_base")}`, function () {
+            expect(bru.getEnvVar("data_base")).not.null;
+            console.log(`Data file is available : ${bru.getEnvVar("data_base")}`);
+        });
+
+        // Initialise scenario data only on the root collection offer search endpoint.
+        // Using a broad "/offers" match also catches "/refund-offers" and
+        // "/exchange-offers", which would wrongly advance scenariosToRunIndex
+        // again within the same collection run.
+        if (/\/offers(\?|$)/.test(req.getUrl().toString().toLowerCase())) {
+            // Scenario data was already loaded at collection start (/versions).
+            // Only log the milestone here for traceability.
+            console.log(`
+            ####################################
+            # 🛠️  POST Get Offer — ${bru.getEnvVar("scenarioCode") || "N/A"} 🛠️ #
+            ####################################
+            `);
         }
 
         // SBB OSDM REQUIRED HEADERS
@@ -118,6 +282,102 @@ request:
             req.setHeader('accept-language', 'en');
             req.setHeader('traceparent', bru.getEnvVar("traceparent"));
             req.setHeader('tracestate', bru.getEnvVar("tracestate"));
+        }
+
+        } // end RUNSCRIPT
+    - type: after-response
+      code: |-
+        // ── Shared response status ────────────────────────────────────────────
+        const _rptStatus = res && (typeof res.getStatus === 'function' ? res.getStatus() : res.status);
+
+        // ── H1/H2: run via bruTest so results accumulate in __rptTests ────────
+        try {
+          const { bruTest: _bruTest } = require(bru.getEnvVar("library_base") + "testCapture.js");
+
+          // H1: Content-Type check (OSDM spec)
+          if (_rptStatus && _rptStatus !== 204 && _rptStatus !== 304) {
+            const _ct = (res.headers || {})['content-type'] || (res.headers || {})['Content-Type'] || '';
+            _bruTest(`[OSDM] Content-Type is application/json`, () => {
+              expect(_ct, `Expected application/json, got: '${_ct}'`).to.include('application/json');
+            });
+          }
+
+          // H2: RFC 9457 Problem object on error responses (OSDM spec)
+          if (_rptStatus && [400, 401, 403, 404, 409, 415, 500, 501, 503].includes(_rptStatus)) {
+            let _eb;
+            try { _eb = res.json ? res.json() : JSON.parse(res.body || res.getBody()); } catch (_pe) {}
+            if (_eb && typeof _eb === 'object') {
+              _bruTest(`[OSDM] Error body (${_rptStatus}) is a valid RFC 9457 Problem object`, () => {
+                expect(_eb).to.be.an('object');
+                expect(_eb.status).to.be.a('number');
+                if (_eb.title !== undefined) expect(_eb.title).to.be.a('string').and.not.be.empty;
+              });
+            }
+          }
+        } catch (_e) { console.log(`[WARNING] H1/H2 check: ${_e && _e.message}`); }
+
+        // ── HTML Report: append this request/response ─────────────────────────
+        // __rptTests was accumulated via bruTest() across ALL script phases for this request.
+        try {
+          const { appendRequest } = require(bru.getEnvVar("library_base") + "reportGenerator.js");
+
+          const _rawEnvName = (typeof bru.getEnvName === 'function' ? bru.getEnvName() : null)
+            || bru.getEnvVar("api_base") || "Unknown";
+          const _envName  = _rawEnvName.replace(/^OTST_/i, '').replace(/_Env$/i, '');
+          const _dateStr  = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+          const _rptMethod = req.getMethod ? req.getMethod() : (req.method || '');
+          const _rptUrl    = req.getUrl    ? req.getUrl()    : (req.url    || '');
+          const _rptName   = (req && typeof req.getName === 'function' ? req.getName() : '') || '';
+
+          let _rptReqBody = '';
+          try { _rptReqBody = req.getBody ? req.getBody() : (req.body || ''); } catch (_be) {}
+
+          let _rptResBody = '';
+          try {
+            const _rb = res.getBody ? res.getBody() : null;
+            _rptResBody = _rb != null ? JSON.stringify(_rb) : (res.body || '');
+          } catch (_re) { _rptResBody = res.body || ''; }
+
+          const _isAuth = /\/(token|login|auth|logon|oauth)/.test(_rptUrl.toLowerCase().split('?')[0])
+            || /(token|access|auth|login|oauth)/.test(_rptName.toLowerCase());
+
+          // Collect ALL request headers for the report
+          let _rptReqHeaders = {};
+          try { _rptReqHeaders = req.headers || {}; } catch (_he) {}
+
+          // Read ALL accumulated test results from bru.setVar (survives across all script phases)
+          let _testResults = [];
+          try { _testResults = JSON.parse(bru.getVar('__rptTests') || '[]'); } catch (_te) {}
+
+          // Read per-request console logs captured in global before-request
+          let _consoleLogs = [];
+          try { _consoleLogs = JSON.parse(bru.getVar('__rptLogs') || '[]'); } catch (_le) {}
+
+          const _htmlPath = appendRequest({
+            envName:        _envName,
+            dateStr:        _dateStr,
+            scenarioCode:   bru.getEnvVar("scenarioCode")   || '',
+            scenarioType:   bru.getEnvVar("scenarioType")   || '',
+            scenarioAction: bru.getEnvVar("scenarioAction") || '',
+            osdmVersion:    bru.getEnvVar("osdmVersion")    || '',
+            requestName:    _rptName
+                              || _rptUrl.split('?')[0].split(/\//).filter(Boolean).slice(-1)[0] || _rptMethod,
+            requestMethod:  _rptMethod,
+            requestUrl:     _rptUrl,
+            requestHeaders: _rptReqHeaders,
+            requestBody:    _rptReqBody,
+            responseStatus: _rptStatus,
+            responseHeaders:res.headers || {},
+            responseBody:   _rptResBody,
+            responseTime:   (res.responseTime != null ? res.responseTime : 0),
+            group:          _isAuth ? 'auth' : 'osdm',
+            testResults:    _testResults,
+            consoleLogs:    _consoleLogs
+          });
+
+          if (_htmlPath) console.log(`[INFO] 📊 Report updated → ${_htmlPath} (${_testResults.length} assertions)`);
+        } catch (_re) {
+          console.log(`[WARNING] Report generation error: ${_re && _re.message}`);
         }
 
 docs:

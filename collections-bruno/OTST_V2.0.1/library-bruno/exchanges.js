@@ -1,5 +1,6 @@
 // Import needed library files
 const display = require('./displays.js');
+const { bruTest: test } = require('./testCapture.js');
 
 module.exports = {
   postPatchExchangeOffersResponse,
@@ -93,6 +94,26 @@ function validateExchangeOfferResponse(exchangeOffer, index, expectedFulfillment
     expect(exchangeOffer.offerId).to.exist;
   });
 
+  // F2: preBookableUntil must be a valid future datetime (OSDM: ExchangeOffer.preBookableUntil required)
+  if (exchangeOffer.preBookableUntil) {
+    const _pbu = new Date(exchangeOffer.preBookableUntil);
+    test(`Exchange offer[${index}].preBookableUntil is a valid future datetime (OSDM: required)`, () => {
+      expect(isNaN(_pbu.getTime()), `preBookableUntil is not a valid date: ${exchangeOffer.preBookableUntil}`).to.be.false;
+      expect(_pbu.getTime()).to.be.above(Date.now(),
+        `preBookableUntil is in the past: ${exchangeOffer.preBookableUntil}`);
+      validationLogger(`[INFO] Exchange offer[${index}].preBookableUntil: ${exchangeOffer.preBookableUntil} ✓`);
+    });
+  } else {
+    validationLogger(`[INFO] Exchange offer[${index}].preBookableUntil absent → test skipped`);
+  }
+
+  // F4: admissionOfferParts must be non-empty (OSDM: ExchangeOffer.admissionOfferParts required)
+  test(`Exchange offer[${index}].admissionOfferParts is a non-empty array (OSDM: required field)`, () => {
+    expect(exchangeOffer.admissionOfferParts).to.be.an('array').with.lengthOf.at.least(1,
+      `exchangeOffer.admissionOfferParts must not be empty`);
+    validationLogger(`[INFO] Exchange offer[${index}] has ${exchangeOffer.admissionOfferParts?.length} admissionOfferPart(s)`);
+  });
+
   // Validate offer structure
   test(`Exchange offer[${index}] has required properties offerSummary, exchangeFee, exchangePrice`, () => {
     validationLogger(`[INFO] Exchange offer[${index}] has required properties offerSummary, exchangeFee, exchangePrice`);
@@ -120,16 +141,19 @@ function validateExchangeOfferResponse(exchangeOffer, index, expectedFulfillment
       validationLogger(`[INFO] Exchange offer[${index}] has amount to be paid: ${exchangeOffer.amountToBePaid.amount}`);
       expect(exchangeOffer.amountToBePaid.amount).to.be.a('number');
     });
-    // Compare amountToBePaid with = exchangePrice + exchangeFee - confirmedPriceAmount
-    const confirmedPriceAmount = Number(bru.getEnvVar("confirmedPriceAmount"));
-    const expectedAmountToBePaid = exchangeOffer.exchangePrice.amount + exchangeOffer.exchangeFee.amount - confirmedPriceAmount;
-    test(`Exchange offer[${index}] correctly calculated expectedAmountToBePaid (exchangePrice.amount + exchangeFee.amount - confirmedPriceAmount) : expected : ${expectedAmountToBePaid}, and exchangeOffer.amountToBePaid.amount : actual : ${exchangeOffer.amountToBePaid.amount}`, () => {
-      validationLogger(`[INFO] exchangePrice.amount = ${exchangeOffer.exchangePrice.amount}`);
-      validationLogger(`[INFO] exchangeFee.amount = ${exchangeOffer.exchangeFee.amount}`);
-      validationLogger(`[INFO] confirmedPriceAmount = ${confirmedPriceAmount}`);
-      validationLogger(`[INFO] Total expectedAmountToBePaid (exchangeOffer.exchangePrice.amount + exchangeOffer.exchangeFee.amount - confirmedPriceAmount) = ${expectedAmountToBePaid}`);
-      validationLogger(`[INFO] Exchange offer[${index}] correctly calculated expectedAmountToBePaid (exchangePrice.amount + exchangeFee.amount - confirmedPriceAmount) : expected : ${expectedAmountToBePaid}, and exchangeOffer.amountToBePaid.amount : actual : ${exchangeOffer.amountToBePaid.amount}`);
-      expect(exchangeOffer.amountToBePaid.amount).to.eql(expectedAmountToBePaid);
+    // F1: Use integer arithmetic to avoid floating-point errors (OSDM financial identity)
+    const _confirmedPriceAmount = Number(bru.getEnvVar("confirmedPriceAmount"));
+    const _scale     = Math.pow(10, exchangeOffer.exchangePrice?.scale || 2);
+    const _exPriceInt = Math.round(exchangeOffer.exchangePrice.amount * _scale);
+    const _exFeeInt   = Math.round(exchangeOffer.exchangeFee.amount * _scale);
+    const _confInt    = Math.round(_confirmedPriceAmount * _scale);
+    const _toPayInt   = Math.round(exchangeOffer.amountToBePaid.amount * _scale);
+    test(`Exchange offer[${index}] amountToBePaid = exchangePrice + exchangeFee - confirmedPrice (OSDM financial identity, integer arithmetic)`, () => {
+      validationLogger(`[INFO] exchangePrice=${exchangeOffer.exchangePrice.amount}, exchangeFee=${exchangeOffer.exchangeFee.amount}, confirmedPrice=${_confirmedPriceAmount}`);
+      validationLogger(`[INFO] Expected amountToBePaid (scaled) = ${_exPriceInt} + ${_exFeeInt} - ${_confInt} = ${_exPriceInt + _exFeeInt - _confInt}`);
+      expect(_toPayInt).to.eql(_exPriceInt + _exFeeInt - _confInt,
+        `amountToBePaid(${_toPayInt}) ≠ exchangePrice(${_exPriceInt}) + exchangeFee(${_exFeeInt}) - confirmedPrice(${_confInt})`);
+      validationLogger(`[INFO] Exchange financial identity verified: amountToBePaid=${exchangeOffer.amountToBePaid.amount}`);
     });
   } else {
     validationLogger(`[WARN] Exchange offer[${index}] amountToBePaid is missing`);

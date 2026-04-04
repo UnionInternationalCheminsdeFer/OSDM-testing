@@ -1,7 +1,6 @@
 // Import needed library files
 const display = require('./displays.js');
 
-const uuid = require('uuid');
 
 module.exports = {
   setAuthToken,
@@ -11,10 +10,32 @@ module.exports = {
   validateDataFileJsonWithTemplate
 };
 
+function resolveAjvConstructor() {
+  try {
+    const AjvModule = require("ajv");
+    return AjvModule.default || AjvModule;
+  } catch (e) {
+    // Fallback to env-provided AJV script in Bruno sandbox environments.
+  }
+
+  const scriptContent = bru.getEnvVar("scriptContent");
+  if (!scriptContent) {
+    throw new Error("AJV scriptContent not found in env and local 'ajv' dependency is unavailable");
+  }
+
+  const factory = new Function(`${String(scriptContent)}; return typeof Ajv !== 'undefined' ? Ajv : null;`);
+  const AjvFromScript = factory();
+  if (!AjvFromScript) {
+    throw new Error("AJV constructor was not exported by scriptContent");
+  }
+  return AjvFromScript;
+}
+
 // Function to set the authentication token
 function setAuthToken(responseBody) {
   try {
     let jsonData;
+    validationLogger("[INFO] Token Resp body",jsonData);
     if (responseBody) {
       jsonData = typeof responseBody === 'string' ? JSON.parse(responseBody) : responseBody;
     } else if (typeof res !== 'undefined' && typeof res.getBody === 'function') {
@@ -27,7 +48,7 @@ function setAuthToken(responseBody) {
       bru.setEnvVar(GV.ACCESS_TOKEN, jsonData.access_token);
       validationLogger("[INFO] Access token set");
     } else {
-      validationLogger("[WARNING] access_token not found in response");
+      validationLogger("[WARNING] PHE access_token not found in response");
     }
   } catch (e) {
     console.error("setAuthToken error:", e && e.stack ? e.stack : e);
@@ -151,14 +172,13 @@ function swaggerSchemaValidator({ schema, requestHeaders, requestBody, responseH
       return;
     }
 
-    // Load AJV from env script
-    let scriptContent = bru.getEnvVar("scriptContent");
-    if (!scriptContent) {
-      console.error("❌ AJV scriptContent not found in env; run swaggerSchemaValidatorContent first");
+    let Ajv;
+    try {
+      Ajv = resolveAjvConstructor();
+    } catch (e) {
+      console.error("❌ Failed to initialize AJV:", e && e.message ? e.message : e);
       return;
     }
-    // Inject AJV into scope
-    eval(scriptContent); // defines Ajv
 
     // Request body validation
     if (pathSchema.requestBody?.content?.["application/json"]) {

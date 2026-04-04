@@ -12,105 +12,15 @@ variables:
     value: https://sqills-osdm-test.osdm-s3-adapter.s3p.cloud
   - name: api-host
     value: https://api.sqills-osdm-test.cloud.sqills.com
+  - name: data_file
+    value: <own value here>
+    disabled: true
   - name: library_base
     value: ./library-bruno/
   - name: data_base
-    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/data_base/sqills_datafile.json
+    value: http://localhost:8080/data_base/sqills_datafile.json
   - name: json_schema
-    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/json_validator/datafile.schema.json
-  - name: scenarioCode
-    value: OTST_EXCH_SRCH_CRIT_1ADT_1LEG
-  - name: osdmHelpers
-    value: ""
-  - name: data_base_tmp
-    value: ""
-  - name: loggingType
-    value: ""
-  - name: osdmVersion
-    value: ""
-  - name: scenarioType
-    value: ""
-  - name: scenarioAction
-    value: ""
-  - name: overruleCode
-    value: ""
-  - name: refundDate
-    value: ""
-  - name: desiredFlexibility
-    value: ""
-  - name: accommodationSelection
-    value: ""
-  - name: requiresPlaceSelection
-    value: ""
-  - name: TripType
-    value: ""
-  - name: tripStartStopPlaceRef
-    value: ""
-  - name: tripEndStopPlaceRef
-    value: ""
-  - name: tripStartDatetime
-    value: ""
-  - name: tripEndDatetime
-    value: ""
-  - name: tripVehicleNumber
-    value: ""
-  - name: tripOperatorCode
-    value: ""
-  - name: tripProductCategoryRef
-    value: ""
-  - name: tripProductCategoryName
-    value: ""
-  - name: tripProductCategoryShortName
-    value: ""
-  - name: offerTripSearchCriteria
-    value: ""
-  - name: bookingPurchaserSpecifications
-    value: ""
-  - name: offerPassengerNumber
-    value: ""
-  - name: offerPassengerSpecifications
-    value: ""
-  - name: bookingPassengerSpecifications
-    value: ""
-  - name: bookingPassengerReferences
-    value: ""
-  - name: passengerAdditionalData
-    value: ""
-  - name: updateFirstName_0
-    value: ""
-  - name: updateLastName_0
-    value: ""
-  - name: updateDateOfBirth_0
-    value: ""
-  - name: updateEmail_0
-    value: ""
-  - name: updatePhoneNumber_0
-    value: ""
-  - name: updateGender_0
-    value: ""
-  - name: offerSearchCriteria
-    value: ""
-  - name: offerFulfillmentOptions
-    value: ""
-  - name: OfferCollectionRequest
-    value: ""
-  - name: offer
-    value: ""
-  - name: offerId
-    value: ""
-  - name: offers
-    value: ""
-  - name: overallFlexibility
-    value: ""
-  - name: passengerCount
-    value: ""
-  - name: minimalPrice
-    value: ""
-  - name: admissionPartsPrice
-    value: ""
-  - name: reservationPartsPrice
-    value: ""
-  - name: ancillaryPartsPrice
-    value: ""
-  - name: admissionReservationAncillaryOfferPartsIds
-    value: ""
+    value: https://github.com/UnionInternationalCheminsdeFer/OSDM-testing/tree/Bruno-Enhancements/collections-bruno/OTST_V2.0.1/json_validator/datafile.schema.json
+
+  - name: scenariosToRunIndex
+    value: "0"

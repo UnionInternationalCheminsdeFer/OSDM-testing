@@ -1,0 +1,7 @@
+info:
+  name: 01-System Infos Requests
+  type: folder
+  seq: 1
+
+request:
+  auth: inherit

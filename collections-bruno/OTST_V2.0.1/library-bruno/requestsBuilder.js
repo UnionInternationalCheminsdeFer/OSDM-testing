@@ -17,9 +17,8 @@ function buildOfferCollectionRequest() {
 
   const body = {};
 
-  if (!isPaxone) {
-    body.objectType = "OfferCollectionRequest";
-  }
+  // objectType is NOT a property of OfferCollectionRequest in the OSDM spec
+  // (additionalProperties: false) — sending it causes VALIDATION_ERROR on strict implementations.
 
   if (tripType === "SPECIFICATION") {
     body.tripSpecifications = JSON.parse(bru.getEnvVar("offerTripSpecifications"));
@@ -31,8 +30,11 @@ function buildOfferCollectionRequest() {
   body.offerSearchCriteria = JSON.parse(bru.getEnvVar("offerSearchCriteria"));
 
   const fulfillmentOptions = bru.getEnvVar("offerFulfillmentOptions");
-  if (!isPaxone || fulfillmentOptions) {
-    body.requestedFulfillmentOptions = JSON.parse(fulfillmentOptions);
+  const parsedFulfillmentOptions = (fulfillmentOptions != null && fulfillmentOptions !== '')
+    ? JSON.parse(fulfillmentOptions)
+    : [];
+  if (!isPaxone || parsedFulfillmentOptions.length > 0) {
+    body.requestedFulfillmentOptions = parsedFulfillmentOptions;
   }
 
   bru.setEnvVar("OfferCollectionRequest", JSON.stringify(body));
@@ -140,19 +142,44 @@ function requestRefundOffersBody(overruleCode, refundDate = null) {
 function requestExchangeOffersBody(overruleCode) {
   validationLogger("[INFO] ➤ requestExchangeOffersBody");
 
-  const updateGender_0 = bru.getEnvVar('updateGender_0');
-
-  const body = {
-    fulfillmentIds: parseFulfillmentIds(),
-    tripSearchCriteria: JSON.parse(bru.getEnvVar('offerTripSearchCriteria')),
-    offerSearchCriteria: JSON.parse(bru.getEnvVar('offerSearchCriteria')),
-    anonymousPassengerSpecifications: [{
+  // Build anonymousPassengerSpecifications dynamically from offerPassengerSpecifications
+  // so multi-passenger exchange scenarios send one entry per passenger.
+  // Previously hardcoded to index 0 only — any additional passengers were silently dropped.
+  let anonymousPassengerSpecifications;
+  try {
+    const passengerSpecs = JSON.parse(bru.getEnvVar('offerPassengerSpecifications') || '[]');
+    if (!Array.isArray(passengerSpecs) || passengerSpecs.length === 0) {
+      throw new Error('offerPassengerSpecifications is empty or not an array');
+    }
+    anonymousPassengerSpecifications = passengerSpecs.map(function(spec, i) {
+      const updateGender = bru.getEnvVar('updateGender_' + i);
+      const entry = {
+        externalRef: spec.externalRef || String(i + 1).padStart(5, '0'),
+        dateOfBirth: bru.getEnvVar('updateDateOfBirth_' + i) || spec.dateOfBirth || null,
+        age: spec.age != null ? spec.age : 0,
+        type: spec.type || "PERSON"
+      };
+      if (updateGender != null) entry.gender = updateGender;
+      return entry;
+    });
+    validationLogger("[INFO] Built anonymousPassengerSpecifications for " + passengerSpecs.length + " passenger(s)");
+  } catch (_e) {
+    validationLogger('[WARNING] requestExchangeOffersBody: could not build passenger specs from offerPassengerSpecifications (' + _e.message + ') — falling back to single-passenger');
+    const updateGender_0 = bru.getEnvVar('updateGender_0');
+    anonymousPassengerSpecifications = [{
       externalRef: "00001",
       dateOfBirth: bru.getEnvVar('updateDateOfBirth_0'),
       age: 0,
       type: "PERSON",
       ...(updateGender_0 != null && { gender: updateGender_0 })
-    }],
+    }];
+  }
+
+  const body = {
+    fulfillmentIds: parseFulfillmentIds(),
+    tripSearchCriteria: JSON.parse(bru.getEnvVar('offerTripSearchCriteria')),
+    offerSearchCriteria: JSON.parse(bru.getEnvVar('offerSearchCriteria')),
+    anonymousPassengerSpecifications,
     ...(overruleCode != null && { overruleCode })
   };
 

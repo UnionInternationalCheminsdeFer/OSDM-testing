@@ -1,4 +1,5 @@
 const { validationLogger } = require('./displays.js');
+const { bruTest: test } = require('./testCapture.js');
 
 module.exports = {
   patchMultiPassengerResponse
@@ -22,6 +23,36 @@ function patchMultiPassengerResponse(response, passengerIndex) {
   if (passengerIndex >= totalPassengers) {
     validationLogger("[INFO] ✅ All passengers already processed. Skipping further validation.");
     return;
+  }
+
+  // G2: passenger.type must be a valid OSDM PassengerType enum value (OSDM: Passenger.type)
+  const _validPassengerTypes = ['YOUNG_CHILD','CHILD','YOUTH','ADULT','SENIOR','FAMILY_CHILD',
+    'ACCOMP_PRM','PRM_CHILD','WHEELCHAIR','PERSON','PRM','DOG','PET','LUGGAGE',
+    'BICYCLE','PRAM','COMPANION_DOG','CAR','MOTORCYCLE','TRAILER'];
+  const _passengerType = response.passenger?.type;
+  if (_passengerType !== undefined) {
+    test(`Passenger ${passengerIndex} - type '${_passengerType}' is a valid OSDM PassengerType`, () => {
+      expect(_validPassengerTypes).to.include(_passengerType,
+        `'${_passengerType}' is not a valid OSDM PassengerType`);
+    });
+  }
+
+  // G1: passenger.id must remain a non-empty string after PATCH (OSDM: id must not change)
+  const _passengerId = response.passenger?.id;
+  test(`Passenger ${passengerIndex} - id is a non-empty string after PATCH (OSDM: Passenger.id immutable)`, () => {
+    expect(_passengerId).to.be.a('string').and.not.be.empty;
+    validationLogger(`[INFO] Passenger ${passengerIndex} id after PATCH: ${_passengerId}`);
+  });
+  // G1: id must still be in the list from the original booking
+  const _passengerIdListRaw = bru.getEnvVar("passengerIdList");
+  const _passengerIdList = _passengerIdListRaw
+    ? (Array.isArray(_passengerIdListRaw) ? _passengerIdListRaw : JSON.parse(_passengerIdListRaw))
+    : [];
+  if (_passengerIdList.length > 0 && _passengerId) {
+    test(`Passenger ${passengerIndex} - id unchanged after PATCH (still in booking passengerIdList)`, () => {
+      expect(_passengerIdList).to.include(_passengerId,
+        `Passenger id '${_passengerId}' is not in the original booking passengerIdList`);
+    });
   }
 
   validationLogger(`[INFO] Comparing passenger ${passengerIndex} values with expected values from data file.`);

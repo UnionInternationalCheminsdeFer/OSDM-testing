@@ -1,5 +1,6 @@
 // Import needed library files
 const display = require('./displays.js');
+const { bruTest: test } = require('./testCapture.js');
 
 module.exports = {
   checkBookedOfferParts,
@@ -10,6 +11,22 @@ module.exports = {
   checkFulfillment,
   getBookingFulfillmentResponse
 };
+
+function checkGenericBookedOfferPart(bookedOfferPart, bookingState, partType) {
+  test(`${partType} booked offer part is an object`, () => {
+    expect(bookedOfferPart).to.be.an("object").that.is.not.empty;
+  });
+
+  test(`${partType} booked offer part has id`, () => {
+    expect(bookedOfferPart.id).to.be.a("string").and.not.be.empty;
+  });
+
+  if (bookingState != null) {
+    test(`${partType} booked offer part status is valid`, () => {
+      expect(bookedOfferPart.status).to.be.a("string").and.not.be.empty;
+    });
+  }
+}
 
 // Utility function to check and iterate over booked offer parts
 function checkBookedOfferParts(bookedOffer, partType, bookingState) {

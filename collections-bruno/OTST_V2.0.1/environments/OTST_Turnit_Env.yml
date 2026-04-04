@@ -12,81 +12,15 @@ variables:
     value: https://api.sandbox.turnit.tech/retailer
   - name: api-host
     value: https://identity.sandbox.turnit.tech
+  - name: data_file
+    value: <own value here>
+    disabled: true   
   - name: library_base
     value: ./library-bruno/
   - name: data_base
-    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/data_base/turnit_datafile.json
+    value: http://localhost:8080/data_base/turnit_datafile.json
   - name: json_schema
-    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/refs/heads/exch_dev/json_validator/datafile.schema.json
-  - name: scenarioCode
-    value: OTST_EXCH_SRCH_CRIT_1ADT_1LEG_COUCHETTE
-  - name: osdmHelpers
-    value: ""
-  - name: data_base_tmp
-    value: ""
-  - name: loggingType
-    value: INFO
-  - name: scenarioType
-    value: EXCHANGE
-  - name: osdmVersion
-    value: 3.0.5
-  - name: desiredFlexibility
-    value: FULL_FLEXIBLE
-  - name: accommodationSelection
-    value: COUCHETTE
-  - name: overruleCode
-    value: PAYMENT_FAILURE
-  - name: TripType
-    value: SEARCH
-  - name: tripStartStopPlaceRef
-    value: urn:uic:stn:8000600
-  - name: tripEndStopPlaceRef
-    value: urn:uic:stn:8000152
-  - name: tripStartDatetime
-    value: 2026-03-04T00:00:00+02:00
-  - name: tripEndDatetime
-    value: 2026-03-04T00:00:00+02:00
-  - name: offerTripSearchCriteria
-    value: '{"departureTime":"2026-03-04T00:00:00","origin":{"objectType":"StopPlaceRef","stopPlaceRef":"urn:uic:stn:8000600"},"destination":{"objectType":"StopPlaceRef","stopPlaceRef":"urn:uic:stn:8000152"},"parameters":{"dataFilter":{"carrierFilter":null,"vehicleFilter":{"vehicleNumbers":[null],"lineNumbers":null,"exclude":false}}}}'
-  - name: bookingPurchaserSpecifications
-    value: '{"detail":{"firstName":"JohnPurchaser","lastName":"DoePurchaser","email":"emailPurchaser@email.com","phoneNumber":"+33612345678"}}'
-  - name: offerPassengerSpecifications
-    value: '[{"externalRef":"00001","type":"PERSON","dateOfBirth":"1999-01-01"}]'
-  - name: bookingPassengerSpecifications
-    value: '[{"externalRef":"00001","type":"PERSON","dateOfBirth":"1999-01-01","detail":{"firstName":"John","lastName":"Doe","email":"email@email.com","phoneNumber":"+33612345678"}}]'
-  - name: bookingPassengerReferences
-    value: '["00001"]'
-  - name: passengerAdditionalData
-    value: '[{"updateFirstName":"JohnUpdate","updateLastName":"Doe","updateDateOfBirth":"1999-01-01","updateEmail":"email@email.com","updatePhoneNumber":"+33612345678","updateGender":"X"}]'
-  - name: updateFirstName_0
-    value: JohnUpdate
-  - name: updateLastName_0
-    value: Doe
-  - name: updateDateOfBirth_0
-    value: 1999-01-01
-  - name: updateEmail_0
-    value: email@email.com
-  - name: updatePhoneNumber_0
-    value: "+33612345678"
-  - name: updateGender_0
-    value: X
-  - name: offerSearchCriteria
-    value: '{"currency":"EUR","offerMode":"INDIVIDUAL","requestedOfferParts":["RESERVATION","ADMISSION","ANCILLARY"],"flexibilities":["FULL_FLEXIBLE","SEMI_FLEXIBLE","NON_FLEXIBLE"],"serviceClassTypes":["STANDARD"],"travelClasses":["SECOND"]}'
-  - name: offerFulfillmentOptions
-    value: '[{"type":"ETICKET","media":"PDF_A4"}]'
-  - name: OfferCollectionRequest
-    value: '{"objectType": "OfferCollectionRequest","tripSearchCriteria" : {"departureTime":"2026-03-04T00:00:00","origin":{"objectType":"StopPlaceRef","stopPlaceRef":"urn:uic:stn:8000600"},"destination":{"objectType":"StopPlaceRef","stopPlaceRef":"urn:uic:stn:8000152"},"parameters":{"dataFilter":{"carrierFilter":null,"vehicleFilter":{"vehicleNumbers":[null],"lineNumbers":null,"exclude":false}}}},"anonymousPassengerSpecifications" : [{"externalRef":"00001","type":"PERSON","dateOfBirth":"1999-01-01"}],"offerSearchCriteria" : {"currency":"EUR","offerMode":"INDIVIDUAL","requestedOfferParts":["RESERVATION","ADMISSION","ANCILLARY"],"flexibilities":["FULL_FLEXIBLE","SEMI_FLEXIBLE","NON_FLEXIBLE"],"serviceClassTypes":["STANDARD"],"travelClasses":["SECOND"]},"requestedFulfillmentOptions" : [{"type":"ETICKET","media":"PDF_A4"}]}'
-  - name: offerId
-    value: 1c6f663d-0c8d-460e-99f4-32c39bdfe145
-  - name: overallFlexibility
-    value: FULL_FLEXIBLE
-  - name: referencedAncillaryIds
-    value: "[]"
-  - name: coveredTripId
-    value: 9cb6792d-3cdc-45b5-bbd4-4b48eb9df847
-  - name: reservationIds
-    value: '["8ae45c0b-96ad-43b9-9d05-7dfc3593d503"]'
-  - name: reservationId
-    value: 8ae45c0b-96ad-43b9-9d05-7dfc3593d503
-  - name: tripLegCoverage
-    value: '[{"tripId":"9cb6792d-3cdc-45b5-bbd4-4b48eb9df847","legId":"ab842d35-6c46-4516-a0e1-39f63a480110"}]'
+    value: https://github.com/UnionInternationalCheminsdeFer/OSDM-testing/tree/Bruno-Enhancements/collections-bruno/OTST_V2.0.1/json_validator/datafile.schema.json
+
+  - name: scenariosToRunIndex
+    value: "0"

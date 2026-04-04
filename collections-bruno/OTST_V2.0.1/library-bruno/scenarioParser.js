@@ -5,7 +5,13 @@ const models = require('./model.js');
 
 // scenarioParser-bruno.js
 
-const uuid = require('uuid');
+// Pure-JS UUID v4 generator — no external package, works in all Bruno sandbox modes
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
 
 module.exports = {
   getScenarioData,
@@ -16,23 +22,77 @@ module.exports = {
   osdmFulfillmentOptions
 };
 
+// Helper: stringify any error (bru.sendRequest gives plain objects, not JS Errors)
+function _errMsg(e) {
+  if (!e) return 'Unknown error';
+  if (typeof e === 'string') return e;
+  if (e.message) return e.message;
+  if (e.code || e.status) return `code=${e.code || e.status} ${e.message || JSON.stringify(e)}`;
+  try { return JSON.stringify(e); } catch (_) { return String(e); }
+}
+
+// Normalize to OffsetDateTime string (required for TripSpecifications in this suite):
+// - "...Z"       -> "...+00:00"
+// - "...Z+02:00" -> "...+02:00" (broken source format seen in some data files)
+// - "..." local  -> "...+00:00"
+function toOffsetDateTime(raw) {
+  if (typeof raw !== 'string') return raw;
+  let v = raw.trim();
+
+  v = v.replace(/Z([+-]\d{2}:\d{2})$/, '$1');
+  if (/Z$/i.test(v)) {
+    v = v.replace(/Z$/i, '+00:00');
+  }
+  if (!/[+-]\d{2}:\d{2}$/.test(v) && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(v)) {
+    v = `${v}+00:00`;
+  }
+  return v;
+}
+
+// Normalize to LocalDateTime string (TripSearchCriteria rule for non-Bileto):
+// - strips trailing offset and any trailing Z.
+function toLocalDateTime(raw) {
+  const normalized = toOffsetDateTime(raw);
+  if (typeof normalized !== 'string') return normalized;
+  return normalized.replace(/[+-]\d{2}:\d{2}$/, '').replace(/Z$/i, '');
+}
+
 // Helper: GET JSON via Bruno's sendRequest
 function getJson(url) {
+  // Normalize double-slashes in path (e.g. http://host//path → http://host/path)
+  const cleanUrl = url.replace(/([^:])\/\/+/g, '$1/');
+  if (cleanUrl !== url) {
+    validationLogger(`[INFO] 🔧 data_base URL had double-slash, normalized: "${cleanUrl}"`);
+  }
   return new Promise((resolve, reject) => {
-    bru.sendRequest({ url, method: "GET", proxy: false }, function (err, res) {
-      if (err) return reject(err);
+    bru.sendRequest({ url: cleanUrl, method: "GET", proxy: false }, function (err, res) {
+      if (err) return reject(new Error(`Network error fetching data file: ${_errMsg(err)}`));
       const status = res.status || res.statusCode || 200;
       if (status < 200 || status >= 300) {
-        return reject(new Error(`HTTP ${status} for ${url}`));
+        return reject(new Error(`HTTP ${status} fetching data file from: ${cleanUrl}`));
       }
       try {
         const body = res.data;
         const json = typeof body === "string" ? JSON.parse(body) : body;
         resolve(json);
       } catch (e) {
-        reject(e);
+        reject(new Error(`Failed to parse data file JSON: ${_errMsg(e)}`));
       }
     });
+  });
+}
+
+// Set systemInfoParameters env vars from data file root level.
+// This allows System Info request files (e.g. coach deck layouts by ID)
+// to use env vars populated from the data file at collection start.
+function setSystemInfoParameters(jsonData) {
+  const params = jsonData.systemInfoParameters;
+  if (!params || typeof params !== 'object') return;
+  Object.keys(params).forEach(function(key) {
+    const value = params[key];
+    // Set null values as null (not as the string "null")
+    bru.setEnvVar(key, value === null ? null : String(value));
+    validationLogger('[INFO] systemInfoParameters: ' + key + ' = ' + (value === null ? 'null' : value));
   });
 }
 
@@ -43,8 +103,8 @@ async function validateDataFileJsonWithTemplateSafe(json) {
   }
   try {
     const validators = require("./validators.js");
-    if (validators && typeof validators.validateJsonWithTemplate === "function") {
-      return validators.validateJsonWithTemplate(json);
+    if (validators && typeof validators.validateDataFileJsonWithTemplate === "function") {
+      return validators.validateDataFileJsonWithTemplate(json);
     }
   } catch (e) {
     // ignore if validators not found; optional validation
@@ -78,7 +138,7 @@ async function getScenarioData() {
       validationLogger("[DEBUG] 🪲 getScenarioData after fetch");
       parseScenarioData(jsonData);
     } catch (err) {
-      validationLogger(`[ERROR] ${err && err.message ? err.message : err}`);
+      validationLogger(`[ERROR] ${_errMsg(err)}`);
       throw err;
     }
   } else {
@@ -95,8 +155,10 @@ async function getScenarioData() {
 
 // Function to parse scenario data from JSON
 function parseScenarioData(jsonData) {
-  // const plusDays = parseInt(bru.getEnvVar("departureDateFromToday")) || 0;
-  const plusDays = 10;
+  // Apply root-level systemInfoParameters as env vars (e.g. masterDataLayoutId)
+  setSystemInfoParameters(jsonData);
+
+  const plusDays = parseInt(bru.getEnvVar("departureDateFromToday"), 10) || 10;
   const today = new Date();
   today.setDate(today.getDate() + plusDays);
 
@@ -108,10 +170,79 @@ function parseScenarioData(jsonData) {
     pad(today.getMonth() + 1) + "-" +
     pad(today.getDate());
 
+  // ── Resolve which scenario to run ────────────────────────────────────────
+  // scenariosToRun (data file root) is the sole source of truth:
+  //   "ALL"                   → all scenarios in the file, in order
+  //   ["code1","code2",...]   → only those codes, in that order
+  //
+  // An index counter (scenariosToRunIndex env var) advances on each collection run.
+  // This lets you click "Run Collection" N times and each run picks the next scenario.
+  // The index wraps back to 0 after the last scenario so the cycle repeats.
+  //
+  // NOTE: The scenarioCode env var static initial value in environment files is no longer
+  // used as a fallback. scenarioCode is only written at runtime by this function after
+  // the scenario is resolved from scenariosToRun.
+  const allCodes = (jsonData.scenarios || []).map(s => s.code);
+  let scenarioCode = null; // always resolved from scenariosToRun — no env var fallback
+
+  if (jsonData.scenariosToRun == null) {
+    throw new Error(
+      `[ERROR] ❌ scenariosToRun is missing from the data file. ` +
+      `Add "scenariosToRun": "ALL" or a list of scenario codes to the root of the data file.`
+    );
+  }
+
+  // Build effective list
+  let effectiveList;
+  if (jsonData.scenariosToRun === "ALL") {
+    effectiveList = allCodes.slice();
+  } else {
+    // Accept either a JSON array OR a comma-separated string:
+    //   ["code1","code2"]  →  array
+    //   "code1,code2"      →  split on comma
+    const rawList = Array.isArray(jsonData.scenariosToRun)
+      ? jsonData.scenariosToRun
+      : String(jsonData.scenariosToRun).split(',').map(s => s.trim()).filter(Boolean);
+
+    if (rawList.length === 0) {
+      effectiveList = allCodes.slice();
+      validationLogger(`[WARNING] ⚠️ scenariosToRun was empty — falling back to ALL`);
+    } else {
+      effectiveList = rawList.filter(c => {
+        if (!allCodes.includes(c)) {
+          validationLogger(`[WARNING] ⚠️ scenariosToRun: code "${c}" not found in scenarios list — skipped`);
+          return false;
+        }
+        return true;
+      });
+    }
+  }
+
+  if (effectiveList.length === 0) {
+    throw new Error(
+      `[ERROR] ❌ scenariosToRun resolved to an empty list. ` +
+      `Check that the codes in scenariosToRun match the codes in the scenarios array of the data file.`
+    );
+  }
+
+  // Read current index (persists across collection runs via env var)
+  let idx = parseInt(bru.getEnvVar("scenariosToRunIndex") || "0", 10);
+  if (isNaN(idx) || idx < 0 || idx >= effectiveList.length) idx = 0;
+
+  scenarioCode = effectiveList[idx];
+
+  // Advance index; wrap to 0 after the last scenario
+  const nextIdx = (idx + 1) >= effectiveList.length ? 0 : idx + 1;
+  bru.setEnvVar("scenariosToRunIndex", String(nextIdx));
+
+  validationLogger(
+    `[INFO] 🎯 scenariosToRun [${idx + 1}/${effectiveList.length}]: selected "${scenarioCode}"` +
+    (nextIdx === 0 ? " — last in list, index reset to 0 for next run" : ` — next run will pick index ${nextIdx}`)
+  );
+
   let dataFileIndex = 0;
   const dataFileLength = (jsonData.scenarios || []).length;
   let foundCorrectDataSet = false;
-  const scenarioCode = bru.getEnvVar("scenarioCode");
 
   while (foundCorrectDataSet === false && dataFileIndex < dataFileLength) {
     const scenario = jsonData.scenarios[dataFileIndex];
@@ -122,7 +253,18 @@ function parseScenarioData(jsonData) {
       bru.setEnvVar("scenarioCode", scenario.code);
       bru.setEnvVar("scenarioType", ["", "null"].includes(scenario.scenarioType) ? null : scenario.scenarioType);
       bru.setEnvVar("scenarioAction", ["", "null"].includes(scenario.scenarioAction) ? null : scenario.scenarioAction);
-      bru.setEnvVar("osdmVersion", ["", "null"].includes(scenario.osdmVersion) ? null : scenario.osdmVersion);
+
+      // osdmVersion priority: scenario value (data file) > environment file value > null
+      // The data file is the per-scenario source of truth; the env file is the fallback
+      // when the scenario does not explicitly define an osdmVersion.
+      const _envFileOsdmVersion = bru.getEnvVar("osdmVersion");
+      const _scenarioOsdmVersion = (scenario.osdmVersion && !["", "null"].includes(String(scenario.osdmVersion)))
+        ? String(scenario.osdmVersion)
+        : null;
+      const _effectiveOsdmVersion = _scenarioOsdmVersion || _envFileOsdmVersion || null;
+      bru.setEnvVar("osdmVersion", _effectiveOsdmVersion);
+      validationLogger(`[INFO] 🔢 osdmVersion — data file: "${_scenarioOsdmVersion}", env file: "${_envFileOsdmVersion}", effective: "${_effectiveOsdmVersion}" (data file takes priority)`);
+      validationLogger(`[INFO] 📋 Scenario selected: "${scenario.code}" ; Scenario Type: "${bru.getEnvVar("scenarioType")}" ; Scenario Action: "${bru.getEnvVar("scenarioAction")}" ; OSDM version: "${_effectiveOsdmVersion}"`);
       bru.setEnvVar("desiredFlexibility", ["", "null"].includes(scenario.desiredFlexibility) ? null : scenario.desiredFlexibility);
       bru.setEnvVar("accommodationSelection", ["", "null"].includes(scenario.accommodationSelection) ? null : scenario.accommodationSelection);
       bru.setEnvVar("requiresPlaceSelection", ["", "null"].includes(scenario.requiresPlaceSelection) ? null : scenario.requiresPlaceSelection);
@@ -417,23 +559,43 @@ function osdmTripSearchCriteria(legDefinitions) {
   const legDef = legDefinitions[0];
 
   const carrierFilter = legDef.carrier ? new CarrierFilter([legDef.carrier], false) : null;
-  const vehicleFilter = new VehicleFilter([legDef.vehicleNumber], null, false);
+  const vehicleFilter = legDef.vehicleNumber ? new VehicleFilter([legDef.vehicleNumber], null, false) : null;
 
-  const tripDataFilter = new TripDataFilter(carrierFilter, vehicleFilter);
-  const tripParameters = new TripParameters(tripDataFilter);
+  const tripDataFilter = (carrierFilter || vehicleFilter) ? new TripDataFilter(carrierFilter, vehicleFilter) : null;
+  const tripParameters = tripDataFilter ? new TripParameters(tripDataFilter) : null;
+
+  // TripSearchCriteria must use LocalDateTime (no offset, no trailing Z)
+  // for all providers except Bileto.
+  const _osdmVersionRaw = bru.getEnvVar("osdmVersion");
+  const _osdmVersionForDatetime = parseFloat(_osdmVersionRaw || "0");
+  let _startDateTime = toLocalDateTime(legDef.startDateTime);
+
+  // Bileto exception: keep OffsetDateTime in TripSearchCriteria.
+  const _apiBase = bru.getEnvVar("api_base") || "";
+  if (_apiBase.includes("bileto")) {
+    _startDateTime = toOffsetDateTime(legDef.startDateTime);
+    validationLogger(`[INFO] Bileto exception — TripSearchCriteria uses OffsetDateTime: "${_startDateTime}"`);
+  }
+
+  validationLogger(
+    `[INFO] 📅 TripSearchCriteria datetime — osdmVersion: "${_osdmVersionRaw}" (parsed: ${_osdmVersionForDatetime}) → ` +
+    (_apiBase.includes("bileto")
+      ? `OffsetDateTime format (Bileto exception) → "${_startDateTime}"`
+      : `LocalDateTime format (offset/Z stripped) → "${_startDateTime}" (raw: "${legDef.startDateTime}")`)
+  );
 
   const sandbox = bru.getEnvVar("api_base") || "";
   let tripSearchCriteria;
   if (sandbox.includes("paxone")) {
     tripSearchCriteria = new TripSearchCriteria(
-      legDef.startDateTime.substring(0, legDef.startDateTime.length - 6),
+      _startDateTime,
       new StopPlaceRef(legDef.startStopPlaceRef),
       new StopPlaceRef(legDef.endStopPlaceRef),
       null
     );
   } else {
     tripSearchCriteria = new TripSearchCriteria(
-      legDef.startDateTime.substring(0, legDef.startDateTime.length - 6),
+      _startDateTime,
       new StopPlaceRef(legDef.startStopPlaceRef),
       new StopPlaceRef(legDef.endStopPlaceRef),
       tripParameters
@@ -451,7 +613,7 @@ function osdmTripSpecification(legDefinitions) {
     if (legDefinitions.length === 0) return;
   });
 
-  bru.setEnvVar(TRIP.EXTERNAL_REF, uuid.v4());
+  bru.setEnvVar(TRIP.EXTERNAL_REF, randomUUID());
 
   const legSpecs = [];
 
@@ -459,8 +621,19 @@ function osdmTripSpecification(legDefinitions) {
     const legKey = TRIP.LEG_SPECIFICATION_REF_PATTERN.replace("%LEG_COUNT%", n);
     const legDef = legDefinitions[n - 1];
 
-    const boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(legDef.startDateTime));
-    const alignSpec = new AlignSpecification(new StopPlaceRef(legDef.endStopPlaceRef), new ServiceTime(legDef.endDateTime));
+    // TripSpecifications should use OffsetDateTime and must not use trailing Z.
+    const _specStartDateTime = toOffsetDateTime(legDef.startDateTime);
+    const _specEndDateTime = toOffsetDateTime(legDef.endDateTime);
+
+    if (_specStartDateTime !== legDef.startDateTime || _specEndDateTime !== legDef.endDateTime) {
+      validationLogger(
+        `[INFO] 📅 TripSpecification datetime normalized: start "${legDef.startDateTime}" -> "${_specStartDateTime}", ` +
+        `end "${legDef.endDateTime}" -> "${_specEndDateTime}"`
+      );
+    }
+
+    const boardSpec = new BoardSpecification(new StopPlaceRef(legDef.startStopPlaceRef), new ServiceTime(_specStartDateTime));
+    const alignSpec = new AlightSpecification(new StopPlaceRef(legDef.endStopPlaceRef), new ServiceTime(_specEndDateTime));
 
     const productCategory = legDef.productCategoryRef === null
       ? null
@@ -474,7 +647,7 @@ function osdmTripSpecification(legDefinitions) {
       datedJourney
     );
 
-    bru.setEnvVar(legKey, uuid.v4());
+    bru.setEnvVar(legKey, randomUUID());
 
     legSpecs.push(new TripLegSpecification(
       bru.getEnvVar(legKey),

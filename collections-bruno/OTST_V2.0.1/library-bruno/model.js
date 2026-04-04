@@ -230,7 +230,7 @@ var BoardSpecification = class {
   }
 };
 
-var AlignSpecification = class {
+var AlightSpecification = class {
   constructor(stopPlaceRef, serviceArrival) {
     this.stopPlaceRef = stopPlaceRef;
     this.serviceArrival = serviceArrival;
@@ -316,7 +316,7 @@ const exported = {
   NamedCompany,
   ProductCategory,
   BoardSpecification,
-  AlignSpecification,
+  AlightSpecification,
   StopPlaceRef,
   ServiceTime,
   TripSearchCriteria,

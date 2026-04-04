@@ -1,4 +1,5 @@
 ﻿const { validationLogger } = require('./displays.js');
+const { bruTest: test } = require('./testCapture.js');
 
 module.exports = {
   postCreateBookingResponse,
@@ -245,6 +246,14 @@ function validateOfferParts(offerParts, bookedParts, partType, expectedBookedOff
       validationLogger(`[INFO] ${partType}[${index}]: status: ${bookedPart.status}`);
     });
 
+    // B6: Status must be a known OSDM BookingPartStatus enum value
+    const _validBookingPartStatuses = ['PREBOOKED','ON_HOLD','CONFIRMED','FULFILLED',
+      'CANCELLED','RELEASED','REFUNDED','EXCHANGE_ONGOING','EXCHANGED','ERROR'];
+    test(`${partType}[${index}].status '${bookedPart.status}' is a valid OSDM BookingPartStatus`, () => {
+      expect(_validBookingPartStatuses).to.include(bookedPart.status,
+        `'${bookedPart.status}' is not a valid BookingPartStatus enum value`);
+    });
+
     validatePartPrices(offerParts, bookedParts, partType);
     validatePartDates(part, bookedPart, partType, index);
     validateAfterSalesConditions(part, bookedPart, partType, index);
@@ -270,12 +279,19 @@ function postCreateBookingResponse(selectedOffer, jsonData, expectedBookedOffers
     validationLogger(`[INFO] 'booking' object exists`);
   });
 
-  test(`Booking Id : ${booking.id} and Booking code : ${booking.bookingCode} are returned`, () => {
-    validationLogger(`[INFO] Booking Id : ${booking.id} and Booking code : ${booking.bookingCode} are returned`);
+  test(`booking.id is a non-empty string (OSDM: Booking.id required)`, () => {
+    validationLogger(`[INFO] booking.id: ${booking.id}`);
     expect(booking.id).to.be.a('string').and.not.be.empty;
-    expect(booking.bookingCode).to.be.a('string').and.not.be.empty;
   });
   bru.setEnvVar("bookingId", booking.id);
+  if (booking.bookingCode !== undefined && booking.bookingCode !== null) {
+    test(`booking.bookingCode is a non-empty string when present`, () => {
+      validationLogger(`[INFO] booking.bookingCode: ${booking.bookingCode}`);
+      expect(booking.bookingCode).to.be.a('string').and.not.be.empty;
+    });
+  } else {
+    validationLogger(`[INFO] booking.bookingCode is absent (optional per OSDM spec)`);
+  }
 
   // Collect passenger IDs
   const passengerIdList = [];
@@ -302,6 +318,25 @@ function postCreateBookingResponse(selectedOffer, jsonData, expectedBookedOffers
     validationLogger(`[WARNING] Invalid date - bookingDate: ${booking.createdOn}, offerDate: ${selectedOffer.createdOn}`);
   }
 
+  // B2: confirmationTimeLimit must be a valid future datetime when present (OSDM)
+  if (booking.confirmationTimeLimit) {
+    const confirmLimit = new Date(booking.confirmationTimeLimit);
+    test(`booking.confirmationTimeLimit is a valid future datetime (OSDM: must confirm before this deadline)`, () => {
+      expect(isNaN(confirmLimit.getTime()), `confirmationTimeLimit is not a valid date`).to.be.false;
+      expect(confirmLimit.getTime()).to.be.above(Date.now(),
+        `confirmationTimeLimit is already in the past: ${booking.confirmationTimeLimit}`);
+      validationLogger(`[INFO] booking.confirmationTimeLimit: ${booking.confirmationTimeLimit}`);
+    });
+  } else {
+    validationLogger(`[INFO] booking.confirmationTimeLimit absent → test skipped`);
+  }
+
+  // B3: bookedOffers must be non-empty (OSDM: a booking must contain at least one BookedOffer)
+  test(`booking.bookedOffers is a non-empty array (OSDM: required)`, () => {
+    expect(booking.bookedOffers).to.be.an('array').with.lengthOf.at.least(1);
+    validationLogger(`[INFO] booking.bookedOffers count: ${booking.bookedOffers?.length}`);
+  });
+
   // Price structure checks
   const prov      = booking.provisionalPrice;
   const mini      = selectedOffer.offerSummary.minimalPrice;
@@ -325,6 +360,23 @@ function postCreateBookingResponse(selectedOffer, jsonData, expectedBookedOffers
     validationLogger(`[INFO] provisionalPrice and confirmedPrice fields present`);
   });
 
+  // B4: Both prices must use the same currency (OSDM: currency must be consistent within a booking)
+  if (prov?.currency && confirmed?.currency) {
+    test(`provisionalPrice.currency matches confirmedPrice.currency (OSDM: currency consistency)`, () => {
+      expect(confirmed.currency).to.eql(prov.currency,
+        `Currency mismatch: provisional=${prov.currency}, confirmed=${confirmed.currency}`);
+      validationLogger(`[INFO] Currency consistent across prices: ${prov.currency}`);
+    });
+  }
+  // H3: Offer currency must carry through to booking (OSDM: cross-flow currency consistency)
+  const _offerCurrency = bru.getEnvVar("offerCurrency");
+  if (_offerCurrency && prov?.currency) {
+    test(`booking.provisionalPrice.currency matches offer currency (expected: ${_offerCurrency}, actual: ${prov.currency})`, () => {
+      expect(prov.currency).to.eql(_offerCurrency,
+        `Booking currency (${prov.currency}) differs from offer currency (${_offerCurrency})`);
+    });
+  }
+
   const requestName = req?.getName?.() ?? "";
   if (requestName === "03. POST Create Booking" || requestName === "07. GET Booking before Fulfillments") {
     test(`provisionalPrice matches minimalPrice: ${prov.amount} ${prov.currency} (scale: ${prov.scale})`, () => {
@@ -346,14 +398,28 @@ function postCreateBookingResponse(selectedOffer, jsonData, expectedBookedOffers
   // Check that booking has the same number of passengers as expected from the offer
   const expectedPassengerCount = Number(bru.getEnvVar("passengerCount") || 0);
   const actualPassengerCount = (booking.passengers || []).length;
-  test(`Booking contains expected number of passengers - expected: ${expectedPassengerCount}, actual: ${actualPassengerCount}`, () => {
+  test(`Booking contains exactly the expected number of passengers - expected: ${expectedPassengerCount}, actual: ${actualPassengerCount}`, () => {
     validationLogger(`[INFO] Booking passenger count - expected: ${expectedPassengerCount}, actual: ${actualPassengerCount}`);
     if (expectedPassengerCount > 0) {
-      expect(actualPassengerCount).to.be.at.least(expectedPassengerCount);
+      expect(actualPassengerCount).to.eql(expectedPassengerCount,
+        `Expected exactly ${expectedPassengerCount} passengers, got ${actualPassengerCount}`);
     } else {
       expect(actualPassengerCount).to.be.above(0);
     }
   });
+
+  // C2: fulfillmentStatus (OSDM v3.8 new field) must be a valid FulfillmentSummaryStatus enum when present
+  const _validFulfillmentSummaryStatuses = ['UNISSUED','PARTIALLY_ISSUED','ISSUED',
+    'PARTIALLY_USED','COMPLETELY_USED','REFUNDED','CANCELLED','EXPIRED'];
+  if (booking.fulfillmentStatus !== undefined) {
+    test(`booking.fulfillmentStatus '${booking.fulfillmentStatus}' is a valid FulfillmentSummaryStatus (OSDM v3.8)`, () => {
+      expect(_validFulfillmentSummaryStatuses).to.include(booking.fulfillmentStatus,
+        `'${booking.fulfillmentStatus}' is not a valid FulfillmentSummaryStatus`);
+      validationLogger(`[INFO] booking.fulfillmentStatus: ${booking.fulfillmentStatus}`);
+    });
+  } else {
+    validationLogger(`[INFO] booking.fulfillmentStatus absent (optional in OSDM v3.8) → test skipped`);
+  }
 }
 
 function validateFulfillments(fulfillments, index, expectedFulfillmentStatus) {
@@ -374,11 +440,13 @@ function validateFulfillments(fulfillments, index, expectedFulfillmentStatus) {
   });
 
   fulfillments.forEach((fulfillment, idx) => {
+    if (fulfillment?.id) {
+      fulfillmentIds.push(fulfillment.id);
+    }
+
     test(`Fulfillment[${idx}] id exists`, () => {
       expect(fulfillment.id).to.be.a("string").and.not.be.empty;
       validationLogger(`[INFO] Fulfillment[${idx}] id exists: ${fulfillment.id}`);
-      fulfillmentIds.push(fulfillment.id);
-      bru.setEnvVar("fulfillmentIds", fulfillmentIds);
     });
 
     test(`Fulfillment[${idx}] bookingRef exists`, () => {
@@ -386,17 +454,26 @@ function validateFulfillments(fulfillments, index, expectedFulfillmentStatus) {
       validationLogger(`[INFO] Fulfillment[${idx}] bookingRef exists: ${fulfillment.bookingRef}`);
     });
 
-    if (expectedStatuses.includes("FULFILLED") || expectedStatuses.includes("CONFIRMED")) {
-      const createdOnDate = new Date(fulfillment.createdOn);
-      if (!isNaN(createdOnDate.getTime())) {
-        test(`Fulfillment[${idx}] createdOn exists`, () => {
-          expect(fulfillment.createdOn).to.be.a("string").and.not.be.empty;
-          expect(createdOnDate.getTime()).to.be.at.most(Date.now());
-          validationLogger(`[INFO] Fulfillment[${idx}] createdOn exists: ${fulfillment.createdOn}`);
-        });
-      } else {
-        validationLogger(`[WARNING] Fulfillment[${idx}] createdOn has invalid date format: ${fulfillment.createdOn}`);
-      }
+    // D3: bookingRef must match the current bookingId (OSDM: Fulfillment.bookingRef required)
+    const _currentBookingId = bru.getEnvVar("bookingId");
+    if (_currentBookingId && fulfillment.bookingRef) {
+      test(`Fulfillment[${idx}].bookingRef matches current bookingId (expected: ${_currentBookingId}, actual: ${fulfillment.bookingRef})`, () => {
+        expect(fulfillment.bookingRef).to.eql(_currentBookingId,
+          `bookingRef '${fulfillment.bookingRef}' does not match bookingId '${_currentBookingId}'`);
+        validationLogger(`[INFO] Fulfillment[${idx}].bookingRef matches bookingId ✓`);
+      });
+    }
+
+    // D4: createdOn must always be a valid ISO datetime (OSDM: Fulfillment.createdOn required)
+    const createdOnDate = new Date(fulfillment.createdOn);
+    if (!isNaN(createdOnDate.getTime())) {
+      test(`Fulfillment[${idx}] createdOn is a valid datetime at or before now`, () => {
+        expect(fulfillment.createdOn).to.be.a("string").and.not.be.empty;
+        expect(createdOnDate.getTime()).to.be.at.most(Date.now());
+        validationLogger(`[INFO] Fulfillment[${idx}] createdOn: ${fulfillment.createdOn}`);
+      });
+    } else {
+      validationLogger(`[WARNING] Fulfillment[${idx}] createdOn has invalid date format: ${fulfillment.createdOn}`);
     }
 
     test(`Fulfillment[${idx}] status comparison - expected: ${expectedFulfillmentStatus}, actual: ${fulfillment.status}`, () => {
@@ -406,6 +483,14 @@ function validateFulfillments(fulfillments, index, expectedFulfillmentStatus) {
       } else {
         expect(fulfillment.status).to.eql(expectedFulfillmentStatus);
       }
+    });
+
+    // D1: status must be a valid OSDM FulfillmentStatus enum value
+    const _validFulfillmentStatuses = ['AVAILABLE','USED','PARTIALLY_USED','RESERVED',
+      'EXCHANGED','REFUNDED','RELEASED','CANCELLED','EXPIRED'];
+    test(`Fulfillment[${idx}].status '${fulfillment.status}' is a valid OSDM FulfillmentStatus`, () => {
+      expect(_validFulfillmentStatuses).to.include(fulfillment.status,
+        `'${fulfillment.status}' is not a valid FulfillmentStatus enum value`);
     });
 
     if (fulfillment.controlNumber != null) {
@@ -439,7 +524,23 @@ function validateFulfillments(fulfillments, index, expectedFulfillmentStatus) {
         });
       });
     }
+
+    // D2: Check fulfillmentDocumentRefs (v3.8 field, replaces deprecated fulfillmentDocuments)
+    const _hasLegacyDocs = Array.isArray(fulfillment.fulfillmentDocuments) && fulfillment.fulfillmentDocuments.length > 0;
+    const _hasDocRefs    = Array.isArray(fulfillment.fulfillmentDocumentRefs) && fulfillment.fulfillmentDocumentRefs.length > 0;
+    if (_hasDocRefs) {
+      test(`Fulfillment[${idx}].fulfillmentDocumentRefs are non-empty strings (OSDM v3.8: replaces fulfillmentDocuments)`, () => {
+        fulfillment.fulfillmentDocumentRefs.forEach((ref, ri) => {
+          expect(ref).to.be.a('string').and.not.be.empty;
+        });
+        validationLogger(`[INFO] Fulfillment[${idx}] has ${fulfillment.fulfillmentDocumentRefs.length} fulfillmentDocumentRef(s)`);
+      });
+    } else if (!_hasLegacyDocs) {
+      validationLogger(`[INFO] Fulfillment[${idx}] has no document refs or documents (may be pre-issuance state)`);
+    }
   });
+
+  bru.setEnvVar("fulfillmentIds", JSON.stringify(fulfillmentIds));
 }
 
 // Expose to global for convenience in eval/require loader flows

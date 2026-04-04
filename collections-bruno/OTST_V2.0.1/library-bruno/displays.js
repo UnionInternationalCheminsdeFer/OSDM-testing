@@ -8,9 +8,11 @@ module.exports = {
 // Function to log validation messages based on logging type (env-scoped)
 function validationLogger(message) {
   var loggingType = bru.getEnvVar("loggingType") || "INFO";
+  var shouldLog = false;
+  
   switch (loggingType) {
     case "FULL":
-      console.log(message);
+      shouldLog = true;
       break;
     case "INFO":
       if (
@@ -19,7 +21,7 @@ function validationLogger(message) {
         message.includes("[WARNING]") ||
         message.includes("[ERROR]")
       ) {
-        console.log(message);
+        shouldLog = true;
       }
       break;
     case "WARN":
@@ -28,24 +30,43 @@ function validationLogger(message) {
         message.includes("[WARNING]") ||
         message.includes("[ERROR]")
       ) {
-        console.log(message);
+        shouldLog = true;
       }
       break;
     case "ERROR":
       if (message.includes("[ERROR]")) {
-        console.log(message);
+        shouldLog = true;
       }
       break;
     case "DEBUG":
       if (message.includes("[DEBUG]") || message.includes("[INFO]")) {
-        console.log(message);
+        shouldLog = true;
       }
       break;
     default:
       if (message.includes("[INFO]")) {
-        console.log(message);
+        shouldLog = true;
       }
       break;
+  }
+  
+  if (shouldLog) {
+    // Print to console
+    console.log(message);
+    
+    // ALSO capture to report logs (for HTML report)
+    try {
+      var existing = JSON.parse(bru.getVar('__rptLogs') || '[]');
+      // Extract log level from message if possible
+      var level = 'log';
+      if (message.includes('[ERROR]')) level = 'error';
+      else if (message.includes('[WARN]')) level = 'warn';
+      else if (message.includes('[WARNING]')) level = 'warn';
+      else if (message.includes('[INFO]')) level = 'info';
+      
+      existing.push({ level: level, message: message });
+      bru.setVar('__rptLogs', JSON.stringify(existing));
+    } catch (_e) {}
   }
 }
 

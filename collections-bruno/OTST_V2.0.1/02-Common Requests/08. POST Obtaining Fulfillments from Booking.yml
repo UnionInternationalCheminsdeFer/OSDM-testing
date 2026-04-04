@@ -1,0 +1,59 @@
+info:
+  name: 08. POST Obtaining Fulfillments from Booking
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{api_base}}/bookings/{{bookingId}}/fulfillments"
+  headers:
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Requestor
+      value: "{{requestor}}"
+  body:
+    type: json
+    data: "{}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: 'console.log("⏩ [STEP] Executing request : " + req.getName());'
+    - type: after-response
+      code: |-
+        const { validationLogger } = require(bru.getEnvVar("library_base")+"displays.js");
+        const { validateFulfillments } = require(bru.getEnvVar("library_base")+"bookings.js");
+
+        // Validate HTTP response status
+        test('Status code is 200 or 202', () => {
+            expect([200, 202]).to.include(res.getStatus());
+        });
+
+        if (![200, 202].includes(res.getStatus())) {
+            bru.runner.stopExecution();
+            throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+        }
+
+        // Parse JSON safely
+        let jsonData;
+        try {
+            jsonData = res.getBody();
+        } catch (e) {
+            validationLogger("Failed to parse JSON response");
+            test("JSON parsing should succeed", () => {
+                throw e;
+            });
+            bru.runner.stopExecution();
+            return;
+        }
+
+        validateFulfillments(jsonData.fulfillments, 0, expectedFulfillmentStatus=["FULFILLED", "CONFIRMED"])
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
