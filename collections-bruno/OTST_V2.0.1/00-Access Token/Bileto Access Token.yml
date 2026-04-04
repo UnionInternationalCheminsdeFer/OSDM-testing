@@ -5,20 +5,19 @@ info:
 
 http:
   method: POST
-  url: "{{api_base}}/oauth/token?grant_type=client_credentials&client_id={{client_id}}&client_secret={{client_secret}}"
+  url: "{{api_base}}/oauth/token"
   headers:
     - name: Accept
       value: application/json
-  params:
-    - name: grant_type
-      value: client_credentials
-      type: query
-    - name: client_id
-      value: "{{client_id}}"
-      type: query
-    - name: client_secret
-      value: "{{client_secret}}"
-      type: query
+  body:
+    type: form-urlencoded
+    data:
+      - name: grant_type
+        value: client_credentials
+      - name: client_id
+        value: "{{client_id}}"
+      - name: client_secret
+        value: "{{client_secret}}"
   auth: inherit
 
 runtime:
