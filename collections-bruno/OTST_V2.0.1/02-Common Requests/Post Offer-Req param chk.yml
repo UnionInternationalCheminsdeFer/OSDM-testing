@@ -1,0 +1,349 @@
+info:
+  name: POST Offer-Req param chk
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{api_base}}/offers"
+  headers:
+    - name: Content-Type
+      value: application/json;version={{osdmVersion}}
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Requestor
+      value: "{{requestor}}"
+  body:
+    type: json
+    data: "{{OfferCollectionRequest}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const { postOfferResponsePreRequest } = require(bru.getEnvVar("library_base") + "offers.js");
+        postOfferResponsePreRequest();
+
+    - type: after-response
+      code: |-
+        const { validationLogger } = require(bru.getEnvVar("library_base") + "displays.js");
+        const { bruTest } = require(bru.getEnvVar("library_base") + "testCapture.js");
+
+        function deepClone(obj) {
+          return JSON.parse(JSON.stringify(obj));
+        }
+
+        function resolveVars(str) {
+          if (str == null) return str;
+          return String(str).replace(/\{\{([^}]+)\}\}/g, (m, varName) => {
+            const v = bru.getEnvVar(String(varName).trim());
+            return v == null ? "" : String(v);
+          });
+        }
+
+        function getReqHeadersAsArray() {
+          const headers = [];
+          
+          // Try to get headers from req object (Bruno's after-response context)
+          try {
+            if (req && req.getHeaders && typeof req.getHeaders === "function") {
+              const hdrObj = req.getHeaders();
+              if (hdrObj && typeof hdrObj.getAll === "function") {
+                hdrObj.getAll().forEach(h => {
+                  headers.push({ key: h.key, value: resolveVars(h.value) });
+                });
+                validationLogger(`[DEBUG] Got headers from getHeaders().getAll(): ${headers.length} headers`);
+                return headers;
+              }
+              if (hdrObj && typeof hdrObj.entries === "function") {
+                for (const h of hdrObj.entries()) {
+                  headers.push({ key: h.key, value: resolveVars(h.value) });
+                }
+                validationLogger(`[DEBUG] Got headers from getHeaders().entries(): ${headers.length} headers`);
+                return headers;
+              }
+            }
+          } catch (e) {
+            validationLogger(`[DEBUG] req.getHeaders() failed: ${e.message}, trying alternative methods`);
+          }
+          
+          // Fallback: manually build headers from request definition
+          try {
+            const contentType = res.getHeader("content-type") ? "application/json;version={{osdmVersion}}" : "application/json;version={{osdmVersion}}";
+            headers.push({ key: "Content-Type", value: resolveVars(contentType) });
+            headers.push({ key: "Accept", value: "application/json" });
+            headers.push({ key: "Authorization", value: resolveVars("Bearer {{access_token}}") });
+            headers.push({ key: "Requestor", value: resolveVars("{{requestor}}") });
+            validationLogger(`[DEBUG] Built headers manually via fallback: ${headers.length} headers`);
+          } catch (e) {
+            validationLogger(`[DEBUG] Manual header build failed: ${e.message}`);
+          }
+          
+          return headers;
+        }
+
+        function extractProblems(body) {
+          if (!body || typeof body !== "object") return [];
+          return Array.isArray(body.problems) ? body.problems : [];
+        }
+
+        function hasPointerOrDetail(problemList, hints) {
+          const haystack = (problemList || []).map(p => {
+            const ptr = (p.pointers || []).map(x => `${x.requestPointer || ""} ${x.code || ""}`).join(" ");
+            return `${p.code || ""} ${p.type || ""} ${p.title || ""} ${p.detail || ""} ${ptr}`.toLowerCase();
+          }).join("\n");
+          return hints.some(h => haystack.includes(String(h).toLowerCase()));
+        }
+
+        function classify(status, problems, hints, transportError) {
+          if (transportError) return "TRANSPORT_ERROR";
+          if (status >= 200 && status < 300) return "SUPPORTED";
+          if ((status === 400 || status === 422) && hasPointerOrDetail(problems, hints)) {
+            return "NOT_SUPPORTED_OR_REJECTED";
+          }
+          if (status === 400 || status === 422) return "REJECTED_UNKNOWN_REASON";
+          if (status >= 500) return "PROVIDER_ERROR";
+          return "INCONCLUSIVE";
+        }
+
+        function sendOfferProbe(url, method, headers, body) {
+          validationLogger(`[DEBUG] sendOfferProbe called with URL: ${url}, Method: ${method}`);
+          return new Promise((resolve) => {
+            const resolvedUrl = resolveVars(url);
+            const resolvedMethod = resolveVars(method || "POST");
+            validationLogger(`[DEBUG] After variable resolution - URL: ${resolvedUrl}, Method: ${resolvedMethod}`);
+
+            bru.sendRequest(
+              {
+                url: resolvedUrl,
+                method: resolvedMethod,
+                header: headers,
+                data: body,
+                proxy: false
+              },
+              function (err, probeRes) {
+                validationLogger(`[DEBUG] sendRequest callback fired for ${resolvedUrl}`);
+                if (err) {
+                  let errMsg = "Unknown transport error";
+                  try {
+                    errMsg = err.message || JSON.stringify(err);
+                  } catch (_) {}
+                  validationLogger(`[DEBUG] sendRequest error: ${errMsg}`);
+                  resolve({ err: errMsg, status: 0, body: null });
+                  return;
+                }
+                const status = probeRes.status || probeRes.statusCode || probeRes.code || 0;
+                validationLogger(`[DEBUG] sendRequest got status: ${status}`);
+                const raw = probeRes.data;
+                let parsed = raw;
+                if (typeof raw === "string") {
+                  try { parsed = JSON.parse(raw); } catch (_) {}
+                }
+                resolve({ err: null, status, body: parsed });
+              }
+            );
+          });
+        }
+
+        (async function runOfferParamCheck() {
+          try {
+            validationLogger(`[DEBUG] Starting Offer parameter check procedure...`);
+            
+            const baselineStatus = res.getStatus();
+            bruTest("Offer baseline request executed", () => {
+              expect(baselineStatus).to.be.a("number");
+            });
+            validationLogger(`[DEBUG] Baseline response status: ${baselineStatus}`);
+
+            if (baselineStatus < 200 || baselineStatus >= 300) {
+              bruTest("Offer baseline status is 2xx (required before parameter probing)", () => {
+                expect(baselineStatus).to.be.within(200, 299);
+              });
+              validationLogger(`[ERROR] Baseline /offers failed with ${baselineStatus}; skipping parameter checks.`);
+              return;
+            }
+
+            let baseBody;
+            try {
+              const offerJsonStr = bru.getEnvVar("OfferCollectionRequest");
+              validationLogger(`[DEBUG] OfferCollectionRequest env var length: ${offerJsonStr ? offerJsonStr.length : 0}`);
+              baseBody = JSON.parse(offerJsonStr);
+              validationLogger(`[DEBUG] Parsed baseBody: ${JSON.stringify(Object.keys(baseBody)).substring(0, 100)}`);
+            } catch (e) {
+              validationLogger(`[ERROR] Failed to parse OfferCollectionRequest: ${e.message}`);
+              bruTest("OfferCollectionRequest env var must be valid JSON", () => {
+                throw e;
+              });
+              return;
+            }
+
+            const url = req.getUrl();
+            const method = req.getMethod();
+            const headers = getReqHeadersAsArray();
+            validationLogger(`[DEBUG] Probe URL: ${url}, Method: ${method}, Headers count: ${headers.length}`);
+
+          // OfferCollectionRequest parameters tested one by one (excluding trip/passenger fields).
+          const cases = [
+            {
+              key: "offerSearchCriteria.requestedOfferParts",
+              hints: ["requestedofferparts", "offersearchcriteria", "offerparttype"],
+              apply: b => { b.offerSearchCriteria = { requestedOfferParts: ["ADMISSION", "RESERVATION"] }; }
+            },
+            {
+              key: "offerSearchCriteria.productTags",
+              hints: ["producttags", "offersearchcriteria"],
+              apply: b => { b.offerSearchCriteria = { productTags: ["RESPLUS"] }; }
+            },
+            {
+              key: "offerSearchCriteria.productSelections",
+              hints: ["productselections", "productrequestofferselection"],
+              apply: b => { b.offerSearchCriteria = { productSelections: [{ productCode: "PT00AD", numberOfItems: 1 }] }; }
+            },
+            {
+              key: "offerSearchCriteria.flexibilities",
+              hints: ["flexibilities", "offersearchcriteria", "flexibility"],
+              apply: b => { b.offerSearchCriteria = { flexibilities: ["NON_FLEXIBLE"] }; }
+            },
+            {
+              key: "offerSearchCriteria.travelClasses",
+              hints: ["travelclasses", "travelclass", "offersearchcriteria"],
+              apply: b => { b.offerSearchCriteria = { travelClasses: ["SECOND"] }; }
+            },
+            {
+              key: "offerSearchCriteria.serviceClassTypes",
+              hints: ["serviceclasstypes", "serviceclass", "offersearchcriteria"],
+              apply: b => { b.offerSearchCriteria = { serviceClassTypes: ["STANDARD"] }; }
+            },
+            {
+              key: "offerSearchCriteria.offerMode",
+              hints: ["offermode", "offersearchcriteria"],
+              apply: b => { b.offerSearchCriteria = { offerMode: "INDIVIDUAL" }; }
+            },
+            {
+              key: "offerSearchCriteria.currency",
+              hints: ["currency", "offersearchcriteria"],
+              apply: b => { b.offerSearchCriteria = { currency: "EUR" }; }
+            },
+            {
+              key: "offerSearchCriteria.inboundDate",
+              hints: ["inbounddate", "offersearchcriteria"],
+              apply: b => { b.offerSearchCriteria = { inboundDate: "2030-01-15T10:00:00+01:00" }; }
+            },
+            {
+              key: "requestedFulfillmentOptions",
+              hints: ["requestedfulfillmentoptions", "fulfillment"],
+              apply: b => { b.requestedFulfillmentOptions = [{ fulfillmentType: "ETICKET", fulfillmentMedia: "UIC_PDF" }]; }
+            },
+            {
+              key: "corporateCodes",
+              hints: ["corporatecodes", "corporate"],
+              apply: b => { b.corporateCodes = ["CORP-TEST"]; }
+            },
+            {
+              key: "promotionCodes",
+              hints: ["promotioncodes", "promotion"],
+              apply: b => { b.promotionCodes = ["PROMO-TEST"]; }
+            },
+            {
+              key: "embed",
+              hints: ["embed", "offercollectionresponsecontent"],
+              apply: b => { b.embed = ["OFFERS", "TRIPS"]; }
+            },
+            {
+              key: "tripResponseParameters",
+              hints: ["tripresponseparameters", "trip"],
+              apply: b => { b.tripResponseParameters = {}; }
+            },
+            {
+              key: "nonTripSearchCriteria",
+              hints: ["nontripsearchcriteria", "trip"],
+              apply: b => { b.nonTripSearchCriteria = {}; }
+            },
+            {
+              key: "requestedSections",
+              hints: ["requestedsections", "section"],
+              apply: b => { b.requestedSections = [{ from: 0, to: 0 }]; }
+            },
+            {
+              key: "inboundTripIds",
+              hints: ["inboundtripids", "inbound"],
+              apply: b => { b.inboundTripIds = ["inbound-trip-id-probe"]; }
+            },
+            {
+              key: "inboundTripSpecifications",
+              hints: ["inboundtripspecifications", "tripspecification", "inbound"],
+              apply: b => { b.inboundTripSpecifications = [{ externalRef: "inbound-probe", legs: [] }]; }
+            }
+          ];
+
+          const results = [];
+
+          for (const c of cases) {
+            try {
+              const probeBody = deepClone(baseBody);
+
+              // Keep trip and anonymousPassengerSpecifications as-is, add exactly one tested parameter.
+              c.apply(probeBody);
+              validationLogger(`[DEBUG] Testing parameter: ${c.key}`);
+
+              const r = await sendOfferProbe(url, method, headers, probeBody);
+              validationLogger(`[DEBUG] Parameter ${c.key} probe completed with status: ${r.status}, error: ${r.err || "none"}`);
+              
+              const problems = extractProblems(r.body);
+              const classification = classify(r.status, problems, c.hints, r.err);
+
+              results.push({
+                parameter: c.key,
+                status: r.status,
+                classification,
+                transportError: r.err || null,
+                problems: problems.map(p => ({ code: p.code, title: p.title, detail: p.detail }))
+              });
+
+              bruTest(`Offer param probe executed: ${c.key}`, () => {
+                expect(r.status).to.be.a("number");
+              });
+
+              bruTest(`Offer param probe has no transport error: ${c.key}`, () => {
+                expect(r.err, `Transport failure for ${c.key}: ${r.err || "n/a"}`).to.eql(null);
+              });
+
+              bruTest(`Offer param probe did not trigger provider 5xx: ${c.key}`, () => {
+                expect(r.status, `Unexpected 5xx for ${c.key}`).to.not.be.within(500, 599);
+              });
+            } catch (caseErr) {
+              validationLogger(`[ERROR] Failed to test parameter ${c.key}: ${caseErr.message}`);
+              results.push({
+                parameter: c.key,
+                status: 0,
+                classification: "ERROR",
+                transportError: caseErr.message,
+                problems: []
+              });
+            }
+          }
+
+          bru.setEnvVar("offerReqParamChkResults", JSON.stringify(results));
+
+          const supported = results.filter(x => x.classification === "SUPPORTED").length;
+          const rejected = results.filter(x => x.classification === "NOT_SUPPORTED_OR_REJECTED" || x.classification === "REJECTED_UNKNOWN_REASON").length;
+          const inconclusive = results.length - supported - rejected;
+
+          validationLogger(`[INFO] Offer parameter support check done: supported=${supported}, rejected=${rejected}, inconclusive=${inconclusive}`);
+          results.forEach(x => {
+            validationLogger(`[INFO] [${x.classification}] ${x.parameter} -> HTTP ${x.status}${x.transportError ? ` | transport=${x.transportError}` : ""}`);
+          });
+        } catch (err) {
+          validationLogger(`[FATAL] Offer parameter check crashed: ${err.message}`);
+          validationLogger(`[FATAL] Stack: ${err.stack}`);
+        }
+        })();
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

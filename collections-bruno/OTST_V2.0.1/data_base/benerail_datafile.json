@@ -9,7 +9,8 @@
         "OTST_EXCH_SRCH_CRIT_1ADT_1LEG"
     ],
     "systemInfoParameters": {
-        "masterDataLayoutId": null
+               "coachId": null,
+               "productId": null
     },
     "scenarios": [
         {

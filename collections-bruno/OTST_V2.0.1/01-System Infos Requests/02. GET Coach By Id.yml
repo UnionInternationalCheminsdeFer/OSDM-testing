@@ -1,0 +1,136 @@
+info:
+  name: 02. GET Coach By Id
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{api_base}}/{{coachLayoutsResource}}/{{coachId}}"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Requestor
+      value: "{{requestor}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const DEFAULT_LATEST_VERSION = '3.9.0';
+
+        function parseVersion(v) {
+          if (v == null) return null;
+          const m = String(v).trim().match(/(\d+)\.(\d+)(?:\.(\d+))?/);
+          if (!m) return null;
+          return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3] || 0) };
+        }
+
+        function score(v) {
+          return (v.major * 1000000) + (v.minor * 1000) + v.patch;
+        }
+
+        function pickLatestFromList(raw) {
+          if (!raw) return null;
+          return String(raw)
+            .split(',')
+            .map(s => parseVersion(s))
+            .filter(Boolean)
+            .sort((a, b) => score(b) - score(a))[0] || null;
+        }
+
+        const apiVersion = parseVersion(bru.getEnvVar('apiVersion'));
+        const apiVersionFromVersions = pickLatestFromList(bru.getEnvVar('apiVersionsAvailable'));
+        const scenarioVersion = parseVersion(bru.getEnvVar('osdmVersion'));
+        const effective = apiVersion || apiVersionFromVersions || scenarioVersion || parseVersion(DEFAULT_LATEST_VERSION);
+
+        const isCoachDeck = score(effective) >= score({ major: 3, minor: 8, patch: 0 });
+        bru.setVar('coachLayoutsResource', isCoachDeck ? 'coach-deck-layouts' : 'coach-layouts');
+
+        const cfgCoachId = bru.getEnvVar('coachId');
+        const coachMissing = cfgCoachId == null || String(cfgCoachId).trim() === '' || /^null$/i.test(String(cfgCoachId).trim());
+        if (coachMissing) {
+          let candidates = [];
+          try { candidates = JSON.parse(bru.getEnvVar('coachListCandidateIds') || '[]'); } catch (_e) {}
+          candidates = Array.isArray(candidates) ? candidates.filter(Boolean) : [];
+
+          if (candidates.length > 0) {
+            const randomCoachId = candidates[Math.floor(Math.random() * candidates.length)];
+            bru.setEnvVar('coachId', String(randomCoachId));
+            console.log(`[INFO] coachId was null; picked random id from GET Coach response: ${randomCoachId}`);
+          }
+        }
+
+    - type: after-response
+      code: |-
+        const { validationLogger } = require(bru.getEnvVar("library_base") + "displays.js");
+        const { bruTest } = require(bru.getEnvVar("library_base") + "testCapture.js");
+
+        const resource = bru.getVar('coachLayoutsResource') || 'coach-layouts';
+        const endpoint = `/${resource}/{id}`;
+        const layoutId = bru.getEnvVar("coachId");
+        const statusCode = res.getStatus();
+
+        const coachListReady = String(bru.getEnvVar('coachListHasValidData') || '').toLowerCase() === 'true';
+        if (!coachListReady) {
+          validationLogger(`[ERROR] GET ${endpoint} prerequisite failed: GET Coach did not return valid list data`);
+          bruTest(`GET ${endpoint} prerequisite: GET Coach succeeded with valid body`, () => {
+            throw new Error('GET Coach did not provide valid data; cannot validate By-Id endpoint');
+          });
+          return;
+        }
+
+        // ── Guard: if coachId is null/empty, skip endpoint validation but report it as failed ──
+        const coachMissing = layoutId == null || String(layoutId).trim() === '' || /^null$/i.test(String(layoutId).trim());
+        if (coachMissing) {
+          validationLogger(`[WARNING] ❌ Test skipped as not Coach value was configured`);
+          bruTest(`GET ${endpoint} validation skipped`, () => {
+            throw new Error('Test skipped as not Coach value was configured');
+          });
+          return;
+        }
+
+        // ── Status code classification ────────────────────────────────────
+        if (statusCode === 200) {
+          bruTest(`GET ${endpoint} → 200 OK`, () => {
+            expect(statusCode).to.eql(200);
+          });
+          let body;
+          try { body = res.getBody(); } catch (_e) {}
+          bruTest(`GET ${endpoint} response body is present`, () => {
+            expect(body, 'Response body should not be null/undefined').to.exist;
+          });
+          validationLogger(`[INFO] GET ${endpoint} → 200 OK, ID=${layoutId}`);
+
+        } else if (statusCode === 401) {
+          validationLogger(`[ERROR] GET ${endpoint} → 401 Unauthorized — check access token`);
+          bruTest(`GET ${endpoint} → 401 Unauthorized (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 401 Unauthorized').to.eql(200);
+          });
+
+        } else if (statusCode === 403) {
+          validationLogger(`[ERROR] GET ${endpoint} → 403 Forbidden — insufficient permissions`);
+          bruTest(`GET ${endpoint} → 403 Forbidden (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 403 Forbidden').to.eql(200);
+          });
+
+        } else if (statusCode === 404) {
+          validationLogger(`[ERROR] GET ${endpoint} → 404 Not Found — ID=${layoutId} not found or endpoint not supported`);
+          bruTest(`GET ${endpoint} → 404 Not Found (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 404').to.eql(200);
+          });
+
+        } else if (statusCode >= 500) {
+          validationLogger(`[ERROR] GET ${endpoint} → ${statusCode} Server Error`);
+          bruTest(`GET ${endpoint} → ${statusCode} Server Error (FAIL)`, () => {
+            expect(statusCode, `Expected 200, got ${statusCode} server error`).to.eql(200);
+          });
+
+        } else {
+          validationLogger(`[WARNING] GET ${endpoint} → unexpected status ${statusCode}`);
+          bruTest(`GET ${endpoint} → unexpected status ${statusCode}`, () => {
+            expect(statusCode, `Unexpected status ${statusCode}, expected 200`).to.eql(200);
+          });
+        }

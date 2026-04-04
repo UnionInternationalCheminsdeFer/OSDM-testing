@@ -1,10 +1,10 @@
 info:
-  name: 06. GET Passenger
+  name: 03. PATCH Multi Passenger
   type: http
-  seq: 5
+  seq: 3
 
 http:
-  method: GET
+  method: PATCH
   url: "{{api_base}}/bookings/{{bookingId}}/passengers/{{passengerId}}"
   headers:
     - name: Authorization
@@ -13,6 +13,24 @@ http:
       value: application/json;version={{osdmVersion}}
     - name: Requestor
       value: "{{requestor}}"
+  body:
+    type: json
+    data: |-
+      {
+        "id": "{{passengerId}}",
+        "externalRef": "{{passengerSpecificationExternalRef}}",
+        "dateOfBirth": "{{patchDateOfBirth}}",
+        "type": "PERSON",
+        "gender": "{{patchGender}}",
+        "detail": {
+          "firstName": "{{patchFirstName}}",
+          "lastName": "{{patchLastName}}",
+          "contact": {
+            "email": "{{patchEmail}}",
+            "phoneNumber": "{{patchPhoneNumber}}"
+          }
+        }
+      }
   auth: inherit
 
 runtime:
@@ -21,19 +39,21 @@ runtime:
       code: |-
         console.log("⏩ [STEP] Executing request : " + req.getName());
 
-        const totalPassengers = bru.getEnvVar("offerPassengerNumber") || 0;
-        const currentIndex    = bru.getEnvVar("currentPassengerIndex") || 0;
+        const passengerIdList             = bru.getEnvVar("passengerIdList");
+        const passengerAdditionalData     = JSON.parse(bru.getEnvVar("passengerAdditionalData") || "[]");
+        const bookingPassengerSpecs       = JSON.parse(bru.getEnvVar("bookingPassengerSpecifications") || "[]");
+        const bookingPassengerReferences  = JSON.parse(bru.getEnvVar("bookingPassengerReferences") || "[]");
+        const totalPassengers             = bru.getEnvVar("offerPassengerNumber") || 0;
+        const currentIndex                = bru.getEnvVar("currentPassengerIndex") || 0;
 
-        if (currentIndex >= totalPassengers) return;
+        if (currentIndex >= totalPassengers) {
+            console.log("✅ All passengers processed");
+            return;
+        }
 
-        const passengerIdList            = bru.getEnvVar("passengerIdList");
-        const passengerAdditionalData    = JSON.parse(bru.getEnvVar("passengerAdditionalData") || "[]");
-        const bookingPassengerSpecs      = JSON.parse(bru.getEnvVar("bookingPassengerSpecifications") || "[]");
-        const bookingPassengerReferences = JSON.parse(bru.getEnvVar("bookingPassengerReferences") || "[]");
-
-        const passengerId     = passengerIdList[currentIndex];
-        const data            = passengerAdditionalData[currentIndex];
-        const passengersRef   = bookingPassengerReferences[currentIndex];
+        const passengerId   = passengerIdList[currentIndex];
+        const data          = passengerAdditionalData[currentIndex];
+        const passengersRef = bookingPassengerReferences[currentIndex];
         const passengerGender = bookingPassengerSpecs[currentIndex];
 
         bru.setEnvVar("passengerId",                      passengerId);
@@ -78,7 +98,8 @@ runtime:
         if (currentIndex < totalPassengers) {
             bru.runner.setNextRequest(req.getName());
         } else {
-            bru.runner.setNextRequest("07. GET Booking before Fulfillments");
+            bru.runner.setNextRequest("06. GET Passenger");
+            bru.setEnvVar("currentPassengerIndex", 0);
         }
 
 settings:

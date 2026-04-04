@@ -11,7 +11,8 @@
         "OTST_EXCH_SRCH_CRIT_1ADT_1LEG_COUCHETTE"
     ],
     "systemInfoParameters": {
-        "masterDataLayoutId": null
+        "coachId": null,
+        "productId": null
     },
     "scenarios": [
         {

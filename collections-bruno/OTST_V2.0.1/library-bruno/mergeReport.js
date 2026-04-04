@@ -178,11 +178,31 @@ function prettyJson(raw) {
   try { return JSON.stringify(JSON.parse(raw), null, 2); } catch (_) { return String(raw); }
 }
 
+function maskHeaderValue(name, value) {
+  const key = String(name || '').toLowerCase();
+  const raw = value == null ? '' : String(value);
+  const maskTail = 'xxxxxxxxxxxxxxxxx';
+
+  if (key === 'authorization' && /^bearer\s+/i.test(raw)) {
+    const token = raw.replace(/^bearer\s+/i, '').trim();
+    const first3 = token.slice(0, 3);
+    return `Bearer ${first3}${maskTail}`;
+  }
+
+  if (key === 'requestor') {
+    const trimmed = raw.trim();
+    if (!trimmed || /^null$/i.test(trimmed)) return raw;
+    return `${trimmed.slice(0, 3)}${maskTail}`;
+  }
+
+  return raw;
+}
+
 function headerTable(hdrs) {
   if (!hdrs || !Object.keys(hdrs).length) return '<em style="color:#90a4ae">no headers captured</em>';
   return '<table class="hdrtbl">' +
     Object.entries(hdrs).map(([k, v]) =>
-      `<tr><td class="hdrk">${esc(k)}</td><td class="hdrv">${esc(v)}</td></tr>`
+      `<tr><td class="hdrk">${esc(k)}</td><td class="hdrv">${esc(maskHeaderValue(k, v))}</td></tr>`
     ).join('') +
     '</table>';
 }
@@ -255,11 +275,7 @@ const overallMsg = !authOk
     ? '✅ All assertions passed'
     : `❌ ${failTests} assertion(s) failed`;
 
-const authSection = authReqs.length > 0 ? `
-<div class="section-title">🔐 Authentication (${authReqs.length} request${authReqs.length > 1 ? 's' : ''})
-  <span class="section-note">${authOk ? '✅ Token obtained' : '❌ Authentication failed'}</span>
-</div>
-${authReqs.map(requestBlock).join('\n')}` : '';
+const authSection = '';
 
 const osdmSection = osdmReqs.length > 0 ? `
 <div class="section-title">🚂 OSDM Scenario Steps (${osdmReqs.length} request${osdmReqs.length > 1 ? 's' : ''})</div>

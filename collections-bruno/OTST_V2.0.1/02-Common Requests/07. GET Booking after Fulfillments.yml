@@ -1,7 +1,7 @@
 info:
-  name: 09. GET Booking after Fulfillments
+  name: 07. GET Booking after Fulfillments
   type: http
-  seq: 8
+  seq: 7
 
 http:
   method: GET

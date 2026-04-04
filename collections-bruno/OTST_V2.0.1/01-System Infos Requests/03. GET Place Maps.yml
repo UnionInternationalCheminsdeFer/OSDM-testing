@@ -1,7 +1,7 @@
 info:
-  name: 02. GET Place Maps for Reservation of Offer (Bileto env)
+  name: 03. GET Place Maps
   type: http
-  seq: 2
+  seq: 3
 
 http:
   method: GET

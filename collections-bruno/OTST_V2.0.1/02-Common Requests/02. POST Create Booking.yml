@@ -1,28 +1,36 @@
 info:
-  name: 07. GET Booking before Fulfillments
+  name: 02. POST Create Booking
   type: http
-  seq: 6
+  seq: 2
 
 http:
-  method: GET
-  url: "{{api_base}}/bookings/{{bookingId}}"
+  method: POST
+  url: "{{api_base}}/bookings"
   headers:
     - name: Authorization
       value: Bearer {{access_token}}
     - name: Content-Type
       value: application/json;version={{osdmVersion}}
+    - name: Accept
+      value: application/json
     - name: Requestor
       value: "{{requestor}}"
+  body:
+    type: json
+    data: |
+      {{BookingRequest}}
   auth: inherit
 
 runtime:
   scripts:
     - type: before-request
-      code: 'console.log("⏩ [STEP] Executing request : " + req.getName());'
+      code: |-
+        const { buildBookingRequest } = require(bru.getEnvVar("library_base") + "requestsBuilder.js");
+        console.log("⏩ [STEP] Executing request : " + req.getName());
+        buildBookingRequest();
     - type: after-response
       code: |-
         const { postCreateBookingResponse } = require(bru.getEnvVar("library_base") + "bookings.js");
-        const { displayFulFilledBooking } = require(bru.getEnvVar("library_base") + "displays.js");
 
         test("Status code is 200", () => {
             expect(res.getStatus(), "[ERROR] Wrong response status").to.eql(200);
@@ -36,16 +44,20 @@ runtime:
           throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
         }
 
-        const jsonData = res.getBody();
-
         postCreateBookingResponse(
             bru.getEnvVar("offer"),
-            jsonData,
+            res.getBody(),
             ["PREBOOKED"],
             ["ON_HOLD", "AVAILABLE"]
         );
 
-        displayFulFilledBooking(jsonData);
+        bru.deleteEnvVar("currentPassengerIndex");
+
+        if (bru.getEnvVar("skipPatchPassengerRequest") === "true") {
+            bru.runner.setNextRequest("06. GET Passenger");
+        } else {
+            bru.runner.setNextRequest("05. PATCH Multi Passenger");
+        }
 
 settings:
   encodeUrl: true

@@ -1,0 +1,111 @@
+info:
+  name: 08. GET Products
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{api_base}}/products"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{access_token}}
+    - name: Requestor
+      value: "{{requestor}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const { validationLogger } = require(bru.getEnvVar("library_base") + "displays.js");
+        const { bruTest } = require(bru.getEnvVar("library_base") + "testCapture.js");
+
+        const endpoint = '/products';
+        const statusCode = res.getStatus();
+
+        // Reset product list markers for this request execution
+        bru.setEnvVar('productListHasValidData', 'false');
+        bru.setEnvVar('productListCandidateIds', '[]');
+
+        function pickProductIds(body) {
+          const ids = [];
+          const add = (v) => {
+            const s = v == null ? '' : String(v).trim();
+            if (!s || /^null$/i.test(s) || ids.includes(s)) return;
+            ids.push(s);
+          };
+
+          const fromArr = (arr) => {
+            if (!Array.isArray(arr)) return;
+            arr.forEach(item => {
+              if (!item || typeof item !== 'object') return;
+              add(item.id);
+            });
+          };
+
+          if (Array.isArray(body)) fromArr(body);
+          if (body && typeof body === 'object') {
+            fromArr(body.products);
+            fromArr(body.items);
+          }
+
+          return ids;
+        }
+
+        if (statusCode === 200) {
+          bruTest(`GET ${endpoint} -> 200 OK`, () => {
+            expect(statusCode).to.eql(200);
+          });
+          let body;
+          try { body = res.getBody(); } catch (_e) {}
+          const bodyNotEmpty = Array.isArray(body)
+            ? body.length > 0
+            : (body != null && typeof body === 'object' && Object.keys(body).length > 0);
+          bruTest(`GET ${endpoint} response body is present and not empty`, () => {
+            expect(body, 'Response body should not be null/undefined').to.exist;
+            expect(bodyNotEmpty, 'Response array/object should not be empty').to.be.true;
+          });
+
+          const productIds = pickProductIds(body);
+          bruTest(`GET ${endpoint} response contains at least one product id`, () => {
+            expect(productIds.length, 'No product id found in list response').to.be.greaterThan(0);
+          });
+
+          if (productIds.length > 0) {
+            bru.setEnvVar('productListHasValidData', 'true');
+            bru.setEnvVar('productListCandidateIds', JSON.stringify(productIds));
+          }
+          validationLogger(`[INFO] GET ${endpoint} -> 200 OK, ${Array.isArray(body) ? body.length + ' item(s)' : 'body received'}`);
+
+        } else if (statusCode === 401) {
+          validationLogger(`[ERROR] GET ${endpoint} -> 401 Unauthorized - check access token`);
+          bruTest(`GET ${endpoint} -> 401 Unauthorized (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 401 Unauthorized').to.eql(200);
+          });
+
+        } else if (statusCode === 403) {
+          validationLogger(`[ERROR] GET ${endpoint} -> 403 Forbidden - insufficient permissions`);
+          bruTest(`GET ${endpoint} -> 403 Forbidden (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 403 Forbidden').to.eql(200);
+          });
+
+        } else if (statusCode === 404) {
+          validationLogger(`[ERROR] GET ${endpoint} -> 404 Not Found - endpoint not implemented by this vendor`);
+          bruTest(`GET ${endpoint} -> 404 Not Found (FAIL)`, () => {
+            expect(statusCode, 'Expected 200, got 404 - endpoint not supported').to.eql(200);
+          });
+
+        } else if (statusCode >= 500) {
+          validationLogger(`[ERROR] GET ${endpoint} -> ${statusCode} Server Error`);
+          bruTest(`GET ${endpoint} -> ${statusCode} Server Error (FAIL)`, () => {
+            expect(statusCode, `Expected 200, got ${statusCode} server error`).to.eql(200);
+          });
+
+        } else {
+          validationLogger(`[WARNING] GET ${endpoint} -> unexpected status ${statusCode}`);
+          bruTest(`GET ${endpoint} -> unexpected status ${statusCode}`, () => {
+            expect(statusCode, `Unexpected status ${statusCode}, expected 200`).to.eql(200);
+          });
+        }

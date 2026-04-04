@@ -1,11 +1,11 @@
 info:
-  name: 04. GET Coach Layout By Id
+  name: 05. GET Promotion Codes
   type: http
-  seq: 4
+  seq: 5
 
 http:
   method: GET
-  url: "{{api_base}}/coach-layouts/{{masterDataLayoutId}}"
+  url: "{{api_base}}/promotion-codes"
   headers:
     - name: Accept
       value: application/json
@@ -22,18 +22,8 @@ runtime:
         const { validationLogger } = require(bru.getEnvVar("library_base") + "displays.js");
         const { bruTest } = require(bru.getEnvVar("library_base") + "testCapture.js");
 
-        const endpoint = '/coach-layouts/{id}';
-        const layoutId = bru.getEnvVar("masterDataLayoutId");
+        const endpoint = '/promotion-codes';
         const statusCode = res.getStatus();
-
-        // ── Guard: missing ID is a setup failure, not a pass/skip ─────────────
-        if (!layoutId) {
-          validationLogger(`[ERROR] GET ${endpoint} → missing masterDataLayoutId (setup issue) while response status is ${statusCode}`);
-          bruTest(`GET ${endpoint} → missing masterDataLayoutId must fail`, () => {
-            expect(layoutId, 'masterDataLayoutId must be set before calling By Id endpoint').to.exist;
-          });
-          return;
-        }
 
         // ── Status code classification ────────────────────────────────────
         if (statusCode === 200) {
@@ -42,10 +32,14 @@ runtime:
           });
           let body;
           try { body = res.getBody(); } catch (_e) {}
-          bruTest(`GET ${endpoint} response body is present`, () => {
+          const bodyNotEmpty = Array.isArray(body)
+            ? body.length > 0
+            : (body != null && typeof body === 'object' && Object.keys(body).length > 0);
+          bruTest(`GET ${endpoint} response body is present and not empty`, () => {
             expect(body, 'Response body should not be null/undefined').to.exist;
+            expect(bodyNotEmpty, 'Response array/object should not be empty').to.be.true;
           });
-          validationLogger(`[INFO] GET ${endpoint} → 200 OK, ID=${layoutId}`);
+          validationLogger(`[INFO] GET ${endpoint} → 200 OK, ${Array.isArray(body) ? body.length + ' item(s)' : 'body received'}`);
 
         } else if (statusCode === 401) {
           validationLogger(`[ERROR] GET ${endpoint} → 401 Unauthorized — check access token`);
@@ -60,9 +54,9 @@ runtime:
           });
 
         } else if (statusCode === 404) {
-          validationLogger(`[ERROR] GET ${endpoint} → 404 Not Found — ID=${layoutId} not found or endpoint not supported`);
+          validationLogger(`[ERROR] GET ${endpoint} → 404 Not Found — endpoint not implemented by this vendor`);
           bruTest(`GET ${endpoint} → 404 Not Found (FAIL)`, () => {
-            expect(statusCode, 'Expected 200, got 404').to.eql(200);
+            expect(statusCode, 'Expected 200, got 404 — endpoint not supported').to.eql(200);
           });
 
         } else if (statusCode >= 500) {

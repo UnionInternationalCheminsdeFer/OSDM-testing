@@ -208,6 +208,26 @@ function _prettyJson(raw) {
   catch (_e) { return String(raw); }
 }
 
+function _maskHeaderValue(name, value) {
+  const key = String(name || '').toLowerCase();
+  const raw = value == null ? '' : String(value);
+  const maskTail = 'xxxxxxxxxxxxxxxxx';
+
+  if (key === 'authorization' && /^bearer\s+/i.test(raw)) {
+    const token = raw.replace(/^bearer\s+/i, '').trim();
+    const first3 = token.slice(0, 3);
+    return `Bearer ${first3}${maskTail}`;
+  }
+
+  if (key === 'requestor') {
+    const trimmed = raw.trim();
+    if (!trimmed || /^null$/i.test(trimmed)) return raw;
+    return `${trimmed.slice(0, 3)}${maskTail}`;
+  }
+
+  return raw;
+}
+
 function _statusBadge(status) {
   const cls = (status >= 200 && status < 300) ? 'badge-ok'
             : (status >= 400)                  ? 'badge-err'
@@ -228,8 +248,11 @@ function _deriveRunType(url) {
   if (/\/promotion-codes$/.test(u)) return 'System Information';
   if (/\/reduction-cards$/.test(u)) return 'System Information';
   if (/\/zones$/.test(u)) return 'System Information';
-    if (/\/(refundoffer|refunds?)/.test(u)) return 'Refund';
-    if (/\/(exchangeoffer|exchanges?)/.test(u)) return 'Exchange';
+  if (/\/products$/.test(u)) return 'System Information';
+  if (/\/products\/[^/]+$/.test(u)) return 'System Information';
+  if (/\/product-tags$/.test(u)) return 'System Information';
+  if (/\/(refundoffer|refunds?)/.test(u)) return 'Refund';
+  if (/\/(exchangeoffer|exchanges?)/.test(u)) return 'Exchange';
   return 'Common Requests';
 }
 
@@ -237,7 +260,7 @@ function _headerTable(hdrs) {
   if (!hdrs || !Object.keys(hdrs).length) return '<em class="muted">no headers captured</em>';
   return '<table class="hdrtbl">' +
     Object.entries(hdrs).map(([k, v]) =>
-      `<tr><td class="hdrk">${_esc(k)}</td><td class="hdrv">${_esc(v)}</td></tr>`
+      `<tr><td class="hdrk">${_esc(k)}</td><td class="hdrv">${_esc(_maskHeaderValue(k, v))}</td></tr>`
     ).join('') + '</table>';
 }
 
@@ -405,15 +428,7 @@ function _generateHtml(meta, requests) {
   });
   const activeRunTypes = _runTypeOrder.filter(rt => byRunType[rt] && byRunType[rt].length > 0);
 
-  const authBlocksHtml = authReqs.map((r, i) => _requestBlock(r, i)).join('\n');
-
-  const authSectionHtml = authReqs.length > 0 ? `
-<details class="section-details">
-  <summary class="section-title">🔐 Authentication (${authReqs.length} request${authReqs.length > 1 ? 's' : ''})
-    <span class="section-note">${authOk ? '✅ Token obtained' : '❌ Authentication failed — OSDM steps did not run'}</span>
-  </summary>
-  ${authBlocksHtml}
-</details>` : '';
+  const authSectionHtml = '';
 
   // Extract API version from /versions request response
   let apiVersion = 'N/A';

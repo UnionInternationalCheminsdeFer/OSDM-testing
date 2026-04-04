@@ -1,11 +1,11 @@
 info:
-  name: 03. GET Coach Layouts
+  name: 07. GET Zones
   type: http
-  seq: 3
+  seq: 7
 
 http:
   method: GET
-  url: "{{api_base}}/coach-layouts"
+  url: "{{api_base}}/zones"
   headers:
     - name: Accept
       value: application/json
@@ -22,7 +22,7 @@ runtime:
         const { validationLogger } = require(bru.getEnvVar("library_base") + "displays.js");
         const { bruTest } = require(bru.getEnvVar("library_base") + "testCapture.js");
 
-        const endpoint = '/coach-layouts';
+        const endpoint = '/zones';
         const statusCode = res.getStatus();
 
         // ── Status code classification ────────────────────────────────────

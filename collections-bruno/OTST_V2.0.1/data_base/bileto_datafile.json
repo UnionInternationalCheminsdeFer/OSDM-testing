@@ -1,9 +1,16 @@
 {
     "scenariosToRun": [
-        "OTST_RFND_PATCH_SRCH_CRIT_1ADT_1LEG"
+        "OTST_RFND_PATCH_SRCH_CRIT_1ADT_1LEG",
+        "OTST_RFND_DEL_SRCH_CRIT_1ADT_1LEG",
+        "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+        "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+        "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+        "OTST_RFND_TRIP_SPEC_2ADT_2LEG",
+        "OTST_EXCH_SRCH_CRIT_1ADT_1LEG"
     ],
     "systemInfoParameters": {
-        "masterDataLayoutId": null
+        "coachId": null,
+        "productId": null
     },
     "scenarios": [
         {
