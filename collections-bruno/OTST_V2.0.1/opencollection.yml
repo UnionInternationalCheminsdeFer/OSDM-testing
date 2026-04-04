@@ -248,6 +248,30 @@ request:
           console.log("[WARNING] Report init error: " + (_rErr && _rErr.message));
         }
 
+        // ── Load scenario data for unitary runs (no /versions trigger) ───────
+        // When a single OSDM request is run outside a full collection run,
+        // getScenarioData() never fires via the /versions route.
+        // If scenarioCode is absent, load from data file now using index 0
+        // (first scenario in scenariosToRun list) without advancing the counter.
+        try {
+          const _rqUrlForScenario = String(req.getUrl ? req.getUrl() : (req.url || '')).toLowerCase();
+          const _rqNameForScenario = String(req.getName ? req.getName() : '').toLowerCase();
+          const _isAuthReq = /\/(token|login|auth|logon|oauth)/.test(_rqUrlForScenario)
+            || _rqNameForScenario.includes('token') || _rqNameForScenario.includes('access');
+
+          if (!_isAuthReq && !bru.getEnvVar('scenarioCode')) {
+            console.log('[INFO] 🔄 scenarioCode not set — loading first scenario for unitary run (index 0)...');
+            const _savedIdx = bru.getEnvVar('scenariosToRunIndex') || '0';
+            bru.setEnvVar('scenariosToRunIndex', '0');
+            await getScenarioData();
+            // Restore index so subsequent collection runs are not disrupted
+            bru.setEnvVar('scenariosToRunIndex', _savedIdx);
+            console.log('[INFO] ✅ Unitary run — scenario loaded: ' + bru.getEnvVar('scenarioCode'));
+          }
+        } catch (_uErr) {
+          console.log('[WARNING] Unitary run scenario load: ' + (_uErr && _uErr.message));
+        }
+
         test(`API base is available : ${bru.getEnvVar("api_base")}`, function () {
             expect(bru.getEnvVar("api_base")).to.not.be.null;
             console.log(`API base is available : ${bru.getEnvVar("api_base")}`);

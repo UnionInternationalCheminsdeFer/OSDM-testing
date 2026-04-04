@@ -12,15 +12,12 @@ variables:
     value: https://sqills-osdm-test.osdm-s3-adapter.s3p.cloud
   - name: api-host
     value: https://api.sqills-osdm-test.cloud.sqills.com
-  - name: data_file
-    value: <own value here>
-    disabled: true
   - name: library_base
     value: ./library-bruno/
   - name: data_base
     value: http://localhost:8080/data_base/sqills_datafile.json
   - name: json_schema
     value: https://github.com/UnionInternationalCheminsdeFer/OSDM-testing/tree/Bruno-Enhancements/collections-bruno/OTST_V2.0.1/json_validator/datafile.schema.json
-
   - name: scenariosToRunIndex
     value: "0"
+ 

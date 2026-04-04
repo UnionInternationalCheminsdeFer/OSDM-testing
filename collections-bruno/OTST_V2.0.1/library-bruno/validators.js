@@ -289,9 +289,10 @@ function validateDataFileJsonWithTemplate(jsonData) {
               key === "updateFirstName" || key === "updateLastName" || key === "updateDateOfBirth" ||
               key === "updatePhoneNumber" || key === "updateEmail" || key === "requestedOfferParts" ||
               key === "serviceClass" || key === "travelClass" || key === "refundDate" || key === "flexibilities" ||
-              key === "desiredFlexibility"
+              key === "desiredFlexibility" || key === "overruleCode" || key === "scenarioAction" ||
+              key === "accommodationSelection" || key === "loggingType"
             ) {
-              validationLogger(`[FULL] ⚠️ Optional field '${fullPath}' is missing.`);
+              validationLogger(`[FULL] ⚠️ Optional field '${fullPath}' is null/missing — this is allowed.`);
               return;
             }
             validationErrors.push(`❌ Required property '${fullPath}' is missing.`);
