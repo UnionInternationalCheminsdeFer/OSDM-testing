@@ -1,2 +1,10 @@
 _site/*
 .vscode/*
+
+# Chaps-specific files contain sensitive credentials — never commit
+collections-bruno/**/environments/OTST_Chaps_Env.yml
+collections-bruno/**/00-Access Token/Chaps access Token.yml
+
+# Validation Reports — ignore all generated reports, keep only the example
+collections-bruno/**/Validation_Reports/*
+!collections-bruno/**/Validation_Reports/Example_OTST_EXCH_SRCH_CRIT_1ADT_1LEG_Report.html
