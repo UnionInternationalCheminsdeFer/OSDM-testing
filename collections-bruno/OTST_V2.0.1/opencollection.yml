@@ -217,18 +217,13 @@ request:
               ];
               _deleteList.forEach(key => bru.deleteEnvVar(key));
               console.log("✅ All environment variables cleared");
-              // ── Ensure scenariosToRunIndex exists — initialize to 0 if missing ──
-              // Each Bruno environment file is isolated. Switching environments (e.g.
-              // Chaps → Paxone) activates a fresh set of env vars. If the new env file
-              // does not define scenariosToRunIndex (first use, or manually deleted),
-              // parseScenarioData would still default to 0 via its || "0" fallback,
-              // but it would NOT persist the var to the file for subsequent runs.
-              // This guard writes the var explicitly so it is visible and editable
-              // in the environment file after the very first collection run.
-              if (bru.getEnvVar('scenariosToRunIndex') == null || bru.getEnvVar('scenariosToRunIndex') === '') {
-                bru.setEnvVar('scenariosToRunIndex', '0');
-                console.log('[INFO] scenariosToRunIndex was not set — initialized to 0 for this environment');
-              }
+              // ── Always restart from scenario 0 on every fresh collection run ───
+              // Multi-scenario mode: every "Run Collection" click iterates through
+              // ALL scenarios in scenariosToRun from the beginning.
+              // Reset the loop flag and the index so the run always starts clean.
+              bru.setEnvVar('scenariosToRunIndex', '0');
+              bru.setEnvVar('__loopback', null);
+              console.log('[INFO] Multi-scenario run initialised — scenariosToRunIndex reset to 0');
               try {
                 await getScenarioData();
                 console.log("✅ Scenario data loaded — osdmVersion: " + (bru.getEnvVar("osdmVersion") || "not set"));

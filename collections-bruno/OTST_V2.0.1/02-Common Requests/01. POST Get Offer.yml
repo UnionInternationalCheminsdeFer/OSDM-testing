@@ -24,6 +24,30 @@ runtime:
   scripts:
     - type: before-request
       code: |-
+        // ── Multi-scenario loop-back: reset env vars and load next scenario ────
+        // When __loopback is 'true' the runner has been routed back here from the
+        // terminal step of the previous scenario.  Reset all business env vars,
+        // load the next scenario's data, and initialise a fresh HTML report so
+        // each scenario produces its own independent report file.
+        if (bru.getEnvVar('__loopback') === 'true') {
+          bru.setEnvVar('__loopback', null);
+          try {
+            const { getScenarioData, resetScenarioEnvVars } = require(bru.getEnvVar('library_base') + 'scenarioParser.js');
+            const { initReport } = require(bru.getEnvVar('library_base') + 'reportGenerator.js');
+            resetScenarioEnvVars();
+            await getScenarioData();
+            initReport(bru.getEnvVar('library_base'));
+            bru.setEnvVar('__reportInitDone', 'true');
+            const _list = JSON.parse(bru.getEnvVar('__scenariosList') || '[]');
+            const _idx  = parseInt(bru.getEnvVar('scenariosToRunIndex') || '0', 10);
+            console.log('🔄 Loop-back — starting scenario: ' + (bru.getEnvVar('scenarioCode') || '?') +
+              ' [' + _idx + '/' + _list.length + ' remaining]');
+          } catch (_lbErr) {
+            console.log('[ERROR] Loop-back setup failed: ' + (_lbErr && _lbErr.message));
+            bru.runner.stopExecution();
+          }
+        }
+
         const { postOfferResponsePreRequest } = require(bru.getEnvVar("library_base")+"offers.js");
         postOfferResponsePreRequest();
     - type: after-response

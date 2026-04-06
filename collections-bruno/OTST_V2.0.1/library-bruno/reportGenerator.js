@@ -648,7 +648,7 @@ h1{color:#1a3a6b;margin:0 0 6px;font-size:22px}
 </head>
 <body>
 
-<h1>🚂 OTST Validation Report</h1>
+<h1><img src="/oscar-icon.svg" alt="OSCAR" style="height:32px;vertical-align:middle;margin-right:10px">OTST Validation Report</h1>
 
 <div class="scenario-card">
   <div class="row">

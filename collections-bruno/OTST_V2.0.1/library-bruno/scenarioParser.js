@@ -16,11 +16,64 @@ function randomUUID() {
 module.exports = {
   getScenarioData,
   parseScenarioData,
+  resetScenarioEnvVars,
   osdmTripSearchCriteria,
   osdmTripSpecification,
   osdmOfferSearchCriteria,
   osdmFulfillmentOptions
 };
+
+// Deletes all business-logic env vars so a new scenario starts with a clean slate.
+// Must stay in sync with the _deleteList in opencollection.yml.
+function resetScenarioEnvVars() {
+  const deleteList = [
+    // Scenario / trip
+    "loggingType", "scenarioType", "scenarioAction", "osdmVersion",
+    "desiredFlexibility", "accommodationSelection", "requiresPlaceSelection",
+    "overruleCode", "refundDate", "TripType",
+    "tripStartStopPlaceRef", "tripEndStopPlaceRef", "tripStartDatetime", "tripEndDatetime",
+    "tripOperatorCode", "tripVehicleNumber", "tripProductCategoryRef",
+    "tripProductCategoryName", "tripProductCategoryShortName",
+    // Offer
+    "offer", "offerId", "offers", "OfferCollectionRequest",
+    "offerSearchCriteria", "offerTripSearchCriteria", "offerTripSpecifications",
+    "offerFulfillmentOptions", "offerPassengerSpecifications",
+    "admissionReservationAncillaryOfferPartsIds",
+    "admissionReservationAncillaryOfferPartsAftersalesConditions",
+    "overallFlexibility", "coveredTripId", "minimalPrice",
+    "admissionPartsPrice", "reservationPartsPrice", "ancillaryPartsPrice",
+    "referencedAncillaryIds", "passengerCount",
+    // Booking
+    "BookingRequest", "bookingId",
+    "admissionReservationAncillaryBookingPartsIds",
+    "provisionalPrice", "provisionalPriceAmount",
+    "confirmedPriceAmount", "bookingConfirmedPrice",
+    // Passengers
+    "passengerIdList", "passengerId", "passengerSpecificationExternalRef",
+    "passengerAdditionalData", "bookingPassengerSpecifications",
+    "bookingPassengerReferences", "bookingPurchaserSpecifications",
+    "currentPassengerIndex", "skipPatchPassengerRequest",
+    "patchDateOfBirth", "patchFirstName", "patchLastName",
+    "patchEmail", "patchPhoneNumber", "patchGender",
+    // Place selection
+    "placeSelections", "layoutId", "preselectedCoach", "preselectedPlace",
+    "reservationId", "reservationIds", "tripLegCoverage",
+    // Fulfillment
+    "fulfillmentIds",
+    // Exchange / Refund
+    "exchangeOffersOfferId", "exchangeOperationId",
+    "requestExchangeOffersBodyData", "requestExchangeOperationsBodyData",
+    "refundOffersOfferId", "refundRefundAmount", "refundFee", "isRefundConfirmed",
+    "requestRefundOffersBodyData",
+    "afterSaleCondition_EXCHANGE_amount", "afterSaleCondition_EXCHANGE_currency", "afterSaleCondition_EXCHANGE_scale",
+    "afterSaleCondition_REFUND_amount",   "afterSaleCondition_REFUND_currency",   "afterSaleCondition_REFUND_scale",
+    // Misc
+    "data_base_tmp", "scriptContent", "swaggerJson",
+    "scenarioCode"
+  ];
+  deleteList.forEach(function(key) { bru.deleteEnvVar(key); });
+  validationLogger('[INFO] resetScenarioEnvVars: all business env vars cleared');
+}
 
 // Helper: stringify any error (bru.sendRequest gives plain objects, not JS Errors)
 function _errMsg(e) {
@@ -224,6 +277,10 @@ function parseScenarioData(jsonData) {
       `Check that the codes in scenariosToRun match the codes in the scenarios array of the data file.`
     );
   }
+
+  // Persist the full resolved list so terminal requests can decide whether to
+  // loop back for the next scenario or truly stop the runner.
+  bru.setEnvVar('__scenariosList', JSON.stringify(effectiveList));
 
   // Read current index (persists across collection runs via env var)
   let idx = parseInt(bru.getEnvVar("scenariosToRunIndex") || "0", 10);
@@ -704,7 +761,7 @@ function osdmFulfillmentOptions(requestedFulfillmentOptions) {
   }
 }
 
-// Expose globally for convenience
+// Expose globally for convenience (includes resetScenarioEnvVars)
 try {
   Object.assign(globalThis, module.exports);
 } catch (e) {
