@@ -14,7 +14,7 @@ variables:
     value: https://identity.sandbox.turnit.tech
   - name: data_file
     value: <own value here>
-    disabled: true   
+    disabled: true
   - name: library_base
     value: ./library-bruno/
   - name: data_base

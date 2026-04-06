@@ -21,4 +21,3 @@ variables:
     value: https://github.com/UnionInternationalCheminsdeFer/OSDM-testing/tree/Bruno-Enhancements/collections-bruno/OTST_V2.0.1/json_validator/datafile.schema.json
   - name: scenariosToRunIndex
     value: "0"
-

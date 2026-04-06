@@ -83,7 +83,33 @@ runtime:
             return;
         }
 
-        postOfferResponse(jsonData);
+        // Catch "no offers": retry up to 3 times, then skip to next scenario
+        try {
+          postOfferResponse(jsonData);
+          bru.setEnvVar('__offerRetryCount', '0'); // reset on success
+        } catch (noOffersErr) {
+          bruTest("Offers found in response", () => { throw noOffersErr; });
+          const _retryCount = parseInt(bru.getEnvVar('__offerRetryCount') || '0', 10) + 1;
+          bru.setEnvVar('__offerRetryCount', String(_retryCount));
+          if (_retryCount < 3) {
+            console.log('⚠️ No offers (attempt ' + _retryCount + '/3) — retrying...');
+            bru.runner.setNextRequest('01. POST Get Offer');
+          } else {
+            console.log('[INFO] No offers returned after 3 attempts — skipping this scenario');
+            bru.setEnvVar('__offerRetryCount', '0');
+            const _scList    = JSON.parse(bru.getEnvVar('__scenariosList') || '[]');
+            const _scNextIdx = parseInt(bru.getEnvVar('scenariosToRunIndex') || '0', 10);
+            if (_scList.length > 0 && _scNextIdx < _scList.length) {
+              console.log('⏭️ Skipping to next scenario [' + (_scNextIdx + 1) + '/' + _scList.length + ']: ' + _scList[_scNextIdx]);
+              bru.setEnvVar('__loopback', 'true');
+              bru.runner.setNextRequest('01. POST Get Offer');
+            } else {
+              console.log('✅ No more scenarios — stopping run');
+              bru.runner.stopExecution();
+            }
+          }
+          return;
+        }
         displayOfferResponse(jsonData);
 
         //swaggerSchemaValidatorContent();

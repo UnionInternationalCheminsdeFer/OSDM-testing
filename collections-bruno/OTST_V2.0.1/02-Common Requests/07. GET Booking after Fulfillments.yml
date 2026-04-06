@@ -65,8 +65,18 @@ runtime:
             bru.runner.setNextRequest("10. POST Exchange Offers");
             console.log("scenarioType in data file contains 'EXCHANGE' keyword, executing 10. POST Exchange Offers")    
         } else{
-            console.log("scenarioType in data file doesn't contain 'REFUND' or 'EXCHANGE' keyword, ending test scenario ...")    
-            bru.runner.stopExecution();
+            console.log("scenarioType in data file doesn't contain 'REFUND' or 'EXCHANGE' keyword, SALE scenario complete.");
+            // ── Multi-scenario: loop to next scenario or truly stop ────────────
+            const _scList    = JSON.parse(bru.getEnvVar('__scenariosList') || '[]');
+            const _scNextIdx = parseInt(bru.getEnvVar('scenariosToRunIndex') || '0', 10);
+            if (_scList.length > 0 && _scNextIdx < _scList.length) {
+              console.log('🔄 Looping to scenario [' + (_scNextIdx + 1) + '/' + _scList.length + ']: ' + _scList[_scNextIdx]);
+              bru.setEnvVar('__loopback', 'true');
+              bru.runner.setNextRequest('01. POST Get Offer');
+            } else {
+              console.log('✅ All scenarios complete — run finished');
+              bru.runner.stopExecution();
+            }
         }
 
 settings:

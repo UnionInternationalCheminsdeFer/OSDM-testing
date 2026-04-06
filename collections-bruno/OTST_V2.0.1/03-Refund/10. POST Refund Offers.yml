@@ -65,30 +65,48 @@ runtime:
             return;
         }
 
-        // Ensure refundOffers is always an array with the expected structure
-        if (!jsonData.refundOffers) {
-            throw new Error("⛔ Exiting script, refundOffers property is missing in the response");
-        }
-
-        // Convert to array if it's not already (defensive programming)
-        if (!Array.isArray(jsonData.refundOffers)) {
-            jsonData.refundOffers = [jsonData.refundOffers];
-        }
-
-        // Validate array is not empty
-        if (jsonData.refundOffers.length === 0) {
-            throw new Error("⛔ Exiting script, no refundOffers available in the response");
-        }
-
-        // Normalize the array structure - ensure each offer has at least an id property
-        jsonData.refundOffers = jsonData.refundOffers.map(offer => {
-            if (!offer || typeof offer !== 'object') {
-                throw new Error("⛔ Invalid refundOffer item in array");
+        // Validate refundOffers and call response handler — retry up to 3 times if no offers
+        try {
+          if (!jsonData.refundOffers) {
+              throw new Error("⛔ refundOffers property is missing in the response");
+          }
+          if (!Array.isArray(jsonData.refundOffers)) {
+              jsonData.refundOffers = [jsonData.refundOffers];
+          }
+          if (jsonData.refundOffers.length === 0) {
+              throw new Error("⛔ No refundOffers available in the response");
+          }
+          jsonData.refundOffers = jsonData.refundOffers.map(offer => {
+              if (!offer || typeof offer !== 'object') {
+                  throw new Error("⛔ Invalid refundOffer item in array");
+              }
+              return offer;
+          });
+          postPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus=["PROPOSED"], expectedFulfillmentStatus=["CONFIRMED", "FULFILLED"]);
+          bru.setEnvVar('__refundOfferRetryCount', '0'); // reset on success
+        } catch (noOffersErr) {
+          test("Refund offers found in response", () => { throw noOffersErr; });
+          const _retryCount = parseInt(bru.getEnvVar('__refundOfferRetryCount') || '0', 10) + 1;
+          bru.setEnvVar('__refundOfferRetryCount', String(_retryCount));
+          if (_retryCount < 3) {
+            console.log('⚠️ No refund offers (attempt ' + _retryCount + '/3) — retrying...');
+            bru.runner.setNextRequest('10. POST Refund Offers');
+          } else {
+            console.log('[INFO] No refund offers returned after 3 attempts — skipping this scenario');
+            bru.setEnvVar('__refundOfferRetryCount', '0');
+            const _scList    = JSON.parse(bru.getEnvVar('__scenariosList') || '[]');
+            const _scNextIdx = parseInt(bru.getEnvVar('scenariosToRunIndex') || '0', 10);
+            if (_scList.length > 0 && _scNextIdx < _scList.length) {
+              console.log('⏭️ Skipping to next scenario [' + (_scNextIdx + 1) + '/' + _scList.length + ']: ' + _scList[_scNextIdx]);
+              bru.setEnvVar('__loopback', 'true');
+              bru.runner.setNextRequest('01. POST Get Offer');
+            } else {
+              console.log('✅ No more scenarios — stopping run');
+              bru.runner.stopExecution();
             }
-            return offer;
-        });
-
-        postPatchRefundOfferResponse(jsonData, expectedexchangeOperationStatus=["PROPOSED"], expectedFulfillmentStatus=["CONFIRMED", "FULFILLED"]);
+          }
+          return;
+        }
 
 settings:
   encodeUrl: true
