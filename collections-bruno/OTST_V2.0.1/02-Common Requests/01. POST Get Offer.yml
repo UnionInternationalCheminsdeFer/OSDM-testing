@@ -44,7 +44,8 @@ runtime:
               ' [' + _idx + '/' + _list.length + ' remaining]');
           } catch (_lbErr) {
             console.log('[ERROR] Loop-back setup failed: ' + (_lbErr && _lbErr.message));
-            bru.runner.stopExecution();
+            const { loopbackOrStop } = require(bru.getEnvVar('library_base') + 'loopback.js');
+            loopbackOrStop('Loop-back setup');
           }
         }
 
@@ -66,8 +67,9 @@ runtime:
           bruTest("Status code is 200 — STOP on failure", () => {
             throw new Error(`[ERROR] Wrong response status: ${res.getStatus()}`);
           });
-          bru.runner.stopExecution();
-          throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+          const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+          loopbackOrStop("POST Get Offer");
+          return;
         }
 
         // Parse JSON safely
@@ -79,7 +81,8 @@ runtime:
             bruTest("JSON parsing should succeed", () => {
                 throw e;
             });
-            bru.runner.stopExecution();
+            const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+            loopbackOrStop("POST Get Offer (JSON parse)");
             return;
         }
 

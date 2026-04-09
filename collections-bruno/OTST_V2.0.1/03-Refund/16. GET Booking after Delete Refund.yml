@@ -34,8 +34,9 @@ runtime:
         });
 
         if (res.getStatus() !== 200) {
-            bru.runner.stopExecution();
-            throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+            const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+            loopbackOrStop("GET Booking after Delete Refund");
+            return;
         }
 
         // Parse JSON safely
@@ -47,7 +48,8 @@ runtime:
             test("JSON parsing should succeed", () => {
                 throw e;
             });
-            bru.runner.stopExecution();
+            const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+            loopbackOrStop("GET Booking after Delete Refund (JSON parse)");
             return;
         }
 

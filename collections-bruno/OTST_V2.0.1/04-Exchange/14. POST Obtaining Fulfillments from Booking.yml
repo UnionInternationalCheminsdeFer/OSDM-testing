@@ -35,8 +35,9 @@ runtime:
         });
 
         if (![200, 202].includes(res.getStatus())) {
-            bru.runner.stopExecution();
-            throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+            const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+            loopbackOrStop("POST Obtaining Fulfillments (Exchange)");
+            return;
         }
 
         // Parse JSON safely
@@ -48,7 +49,8 @@ runtime:
             test("JSON parsing should succeed", () => {
                 throw e;
             });
-            bru.runner.stopExecution();
+            const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+            loopbackOrStop("POST Obtaining Fulfillments (Exchange, JSON parse)");
             return;
         }
 

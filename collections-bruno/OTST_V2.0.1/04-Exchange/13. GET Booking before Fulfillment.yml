@@ -37,8 +37,9 @@ runtime:
           test("Status code is 200", () => {
             throw new Error(`[ERROR] Wrong response status: ${res.getStatus()}`);
           });
-          bru.runner.stopExecution();
-          throw new Error(`Exiting script due to wrong response status: ${res.getStatus()}`);
+          const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+          loopbackOrStop("GET Booking before Fulfillment (Exchange)");
+          return;
         }
 
         // Parse JSON safely
@@ -50,7 +51,8 @@ runtime:
             test("JSON parsing should succeed", () => {
                 throw e;
             });
-            bru.runner.stopExecution();
+            const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+            loopbackOrStop("GET Booking before Fulfillment (Exchange, JSON parse)");
             return;
         }
         postCreateBookingResponse(
@@ -62,8 +64,9 @@ runtime:
         displayFulFilledBooking(jsonData);
 
         if(bru.getEnvVar("scenarioAction")?.includes("PATCH")) {
-            bru.runner.stopExecution();
-            console.log("scenarioAction in data file contains 'PATCH' keyword, not implemented")
+            console.log("scenarioAction in data file contains 'PATCH' keyword, not implemented");
+            const { loopbackOrStop } = require(bru.getEnvVar("library_base") + "loopback.js");
+            loopbackOrStop("Exchange PATCH (not implemented)");
         //     //pm.execution.setNextRequest("13. PATCH Refund Offer");
             //console.log("scenarioAction in data file contains 'PATCH' keyword, executing 13. PATCH Refund Offer")
         } else if(bru.getEnvVar("scenarioAction")?.includes("DELETE")) {
