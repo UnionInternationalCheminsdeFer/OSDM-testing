@@ -284,17 +284,30 @@ function parseScenarioData(jsonData) {
 
   // Read current index (persists across collection runs via env var)
   let idx = parseInt(bru.getEnvVar("scenariosToRunIndex") || "0", 10);
-  if (isNaN(idx) || idx < 0 || idx >= effectiveList.length) idx = 0;
+  if (isNaN(idx) || idx < 0) idx = 0;
+  // If index exceeds list length, all scenarios have been attempted.
+  // Do NOT wrap to 0 — that would cause an infinite loop in multi-scenario runs.
+  // Instead, stop execution gracefully.
+  if (idx >= effectiveList.length) {
+    console.log('✅ All ' + effectiveList.length + ' scenarios attempted — stopping run (index ' + idx + ')');
+    bru.runner.stopExecution();
+    return;
+  }
 
   scenarioCode = effectiveList[idx];
 
-  // Advance index; wrap to 0 after the last scenario
-  const nextIdx = (idx + 1) >= effectiveList.length ? 0 : idx + 1;
+  // Advance index WITHOUT wrapping back to 0.
+  // When nextIdx reaches effectiveList.length the loopback checks in the
+  // terminal .bru files evaluate (_scNextIdx < _scList.length) = false and
+  // call bru.runner.stopExecution() correctly.
+  // Wrapping to 0 caused an infinite loop because 0 < length is always true
+  // and the run never stopped after the last scenario.
+  const nextIdx = idx + 1;
   bru.setEnvVar("scenariosToRunIndex", String(nextIdx));
 
   validationLogger(
     `[INFO] 🎯 scenariosToRun [${idx + 1}/${effectiveList.length}]: selected "${scenarioCode}"` +
-    (nextIdx === 0 ? " — last in list, index reset to 0 for next run" : ` — next run will pick index ${nextIdx}`)
+    (nextIdx >= effectiveList.length ? ` — last in list, run will stop after this scenario` : ` — next will pick index ${nextIdx}`)
   );
 
   let dataFileIndex = 0;
