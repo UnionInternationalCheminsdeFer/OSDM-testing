@@ -303,6 +303,13 @@ request:
             req.setHeader('tracestate', bru.getEnvVar("tracestate"));
         }
 
+        // Azure APIM subscription key — required by some sandboxes (e.g. Benerail)
+        // Injected on every request when the env variable is set and non-empty.
+        const _subscriptionKey = bru.getEnvVar("Ocp-Apim-Subscription-Key");
+        if (_subscriptionKey) {
+            req.setHeader('Ocp-Apim-Subscription-Key', _subscriptionKey);
+        }
+
         } // end RUNSCRIPT
     - type: after-response
       code: |-
