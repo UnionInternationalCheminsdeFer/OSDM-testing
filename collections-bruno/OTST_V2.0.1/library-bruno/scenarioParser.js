@@ -286,12 +286,18 @@ function parseScenarioData(jsonData) {
   let idx = parseInt(bru.getEnvVar("scenariosToRunIndex") || "0", 10);
   if (isNaN(idx) || idx < 0) idx = 0;
   // If index exceeds list length, all scenarios have been attempted.
-  // Do NOT wrap to 0 — that would cause an infinite loop in multi-scenario runs.
-  // Instead, stop execution gracefully.
+  // In a loopback context (__loopback was recently true), stop execution.
+  // Otherwise (fresh run or unitary run), wrap to 0 so the run can proceed.
   if (idx >= effectiveList.length) {
-    console.log('✅ All ' + effectiveList.length + ' scenarios attempted — stopping run (index ' + idx + ')');
-    bru.runner.stopExecution();
-    return;
+    if (effectiveList.length > 0 && bru.getEnvVar('__scenariosList')) {
+      // Multi-scenario run completed — stop gracefully
+      console.log('✅ All ' + effectiveList.length + ' scenarios attempted — stopping run (index ' + idx + ')');
+      bru.runner.stopExecution();
+      return;
+    }
+    // Fresh run or stale index from previous session — wrap to 0
+    console.log('[INFO] Index ' + idx + ' exceeds list length ' + effectiveList.length + ' — resetting to 0');
+    idx = 0;
   }
 
   scenarioCode = effectiveList[idx];
