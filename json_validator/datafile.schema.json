@@ -62,8 +62,51 @@
           "passengersListId": {
             "type": "integer"
           },
-          "offerSearchCriteriaListId": {
-            "type": "integer"
+          "offerSearchCriteria": {
+            "type": "object",
+            "properties": {
+              "requestedOfferParts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["RESERVATION", "ADMISSION", "ANCILLARY", "FARE_ADMISSION", "FARE_RESERVATION", "FARE_ANCILLARY", "ALL"]
+                }
+              },
+              "currency": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 3
+              },
+              "serviceClass": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["STANDARD", "BEST", "HIGH", "BASIC", "ANY_CLASS"]
+                }
+              },
+              "travelClass": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["FIRST", "SECOND", "ANY_CLASS"]
+                }
+              },
+              "requiresPlaceSelection": {
+                "type": "boolean"
+              },
+              "flexibilities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["FULL_FLEXIBLE", "SEMI_FLEXIBLE", "NON_FLEXIBLE"]
+                }
+              },
+              "offerMode": {
+                "type": "string",
+                "enum": ["INDIVIDUAL", "COLLECTIVE"]
+              }
+            },
+            "required": ["currency"]
           },
           "requestedFulfillmentOptionsListId": {
             "type": "integer"
@@ -79,90 +122,8 @@
           "overruleCode",
           "tripRequirementId",
           "passengersListId",
-          "offerSearchCriteriaListId",
+          "offerSearchCriteria",
           "requestedFulfillmentOptionsListId"
-        ]
-      }
-    },
-    "offerSearchCriteriaList": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "offerSearchCriteria": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "requestedOfferParts": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "RESERVATION",
-                      "ADMISSION",
-                      "ANCILLARY"
-                    ]
-                  }
-                },
-                "currency": {
-                  "type": "string",
-                  "minLength": 3,
-                  "maxLength": 3
-                },
-                "serviceClass": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "STANDARD"
-                    ]
-                  }
-                },
-                "travelClass": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "FIRST",
-                      "SECOND"
-                    ]
-                  }
-                },
-                "requiresPlaceSelection": {
-                  "type": "boolean"
-                },
-                "flexibilities": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "FULL_FLEXIBLE",
-                      "SEMI_FLEXIBLE",
-                      "NON_FLEXIBLE"
-                    ]
-                  }
-                },
-                "offerMode": {
-                  "type": "string",
-                  "enum": [
-                    "INDIVIDUAL",
-                    "COLLECTIVE"
-                  ]
-                }
-              },
-              "required": [
-                "currency"
-              ]
-            }
-          }
-        },
-        "required": [
-          "id",
-          "offerSearchCriteria"
         ]
       }
     },
@@ -308,7 +269,6 @@
   },
   "required": [
     "scenarios",
-    "offerSearchCriteriaList",
     "requestedFulfillmentOptionsList",
     "tripRequirements",
     "passengersList"

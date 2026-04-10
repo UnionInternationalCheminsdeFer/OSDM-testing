@@ -556,34 +556,20 @@ function parseScenarioData(jsonData) {
         }
       });
 
-      // Offer search criteria
-      if (Array.isArray(jsonData.offerSearchCriteriaList) && jsonData.offerSearchCriteriaList.length > 0) {
-        jsonData.offerSearchCriteriaList.some(function (offerSearchCriteriaItem) {
-          if (offerSearchCriteriaItem.id === scenario.offerSearchCriteriaListId) {
-            const criteriaList = offerSearchCriteriaItem.offerSearchCriteria;
-            if (Array.isArray(criteriaList) && criteriaList.length > 0) {
-              const criteria = criteriaList.find(() => true);
-              if (criteria) {
-                osdmOfferSearchCriteria(
-                  criteria.currency || null,
-                  criteria.offerMode || null,
-                  criteria.requestedOfferParts,
-                  criteria.flexibilities || null,
-                  criteria.serviceClass || null,
-                  criteria.travelClass || null,
-                  null
-                );
-              } else {
-                validationLogger(`[WARN] No matching offerSearchCriteria found in list for ID '${offerSearchCriteriaItem.id}'`);
-              }
-            } else {
-              validationLogger(`[WARN] No offerSearchCriteria array found or it's empty in offerSearchCriteriaItem with ID '${offerSearchCriteriaItem.id}'`);
-            }
-            return true;
-          }
-        });
+      // Offer search criteria (inline on scenario)
+      const criteria = scenario.offerSearchCriteria;
+      if (criteria && typeof criteria === 'object') {
+        osdmOfferSearchCriteria(
+          criteria.currency || null,
+          criteria.offerMode || null,
+          criteria.requestedOfferParts,
+          criteria.flexibilities || null,
+          criteria.serviceClass || null,
+          criteria.travelClass || null,
+          null
+        );
       } else {
-        validationLogger("[ERROR] offerSearchCriteriaList is empty or not an array.");
+        validationLogger(`[WARN] No offerSearchCriteria found on scenario '${scenario.code}'.`);
       }
 
       // Requested fulfillment options
