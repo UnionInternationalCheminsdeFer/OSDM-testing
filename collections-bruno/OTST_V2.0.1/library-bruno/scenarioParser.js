@@ -557,19 +557,26 @@ function parseScenarioData(jsonData) {
       });
 
       // Offer search criteria (inline on scenario)
+      // Defaults only apply when offerSearchCriteria is entirely absent (legacy scenarios).
+      // When present, each field is sent only if explicitly set — empty/null = not sent.
       const criteria = scenario.offerSearchCriteria;
       if (criteria && typeof criteria === 'object') {
         osdmOfferSearchCriteria(
           criteria.currency || null,
           criteria.offerMode || null,
-          criteria.requestedOfferParts,
+          criteria.requestedOfferParts || null,
           criteria.flexibilities || null,
           criteria.serviceClass || null,
           criteria.travelClass || null,
-          null
+          criteria.productTags || null,
+          criteria.productSelections || null,
+          criteria.inboundDate || null
         );
       } else {
-        validationLogger(`[WARN] No offerSearchCriteria found on scenario '${scenario.code}'.`);
+        // Legacy scenario without inline offerSearchCriteria — use safe defaults
+        validationLogger(`[WARN] No offerSearchCriteria on scenario '${scenario.code}' — using defaults.`);
+        osdmOfferSearchCriteria('EUR', 'INDIVIDUAL', ['ADMISSION', 'RESERVATION'],
+          null, null, null, null, null, null);
       }
 
       // Requested fulfillment options
@@ -734,6 +741,8 @@ function osdmOfferSearchCriteria(
   serviceClassTypes,
   travelClasses,
   productTags,
+  productSelections,
+  inboundDate,
 ) {
   const offerSearchCriteria = {};
 
@@ -754,6 +763,15 @@ function osdmOfferSearchCriteria(
   }
   if (Array.isArray(travelClasses) && travelClasses.length > 0) {
     offerSearchCriteria.travelClasses = travelClasses;
+  }
+  if (Array.isArray(productTags) && productTags.length > 0) {
+    offerSearchCriteria.productTags = productTags;
+  }
+  if (Array.isArray(productSelections) && productSelections.length > 0) {
+    offerSearchCriteria.productSelections = productSelections;
+  }
+  if (inboundDate != null && inboundDate !== '') {
+    offerSearchCriteria.inboundDate = inboundDate;
   }
 
   bru.setEnvVar("offerSearchCriteria", JSON.stringify(offerSearchCriteria));

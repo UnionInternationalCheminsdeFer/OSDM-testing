@@ -69,7 +69,7 @@
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "enum": ["RESERVATION", "ADMISSION", "ANCILLARY", "FARE_ADMISSION", "FARE_RESERVATION", "FARE_ANCILLARY", "ALL"]
+                  "enum": ["RESERVATION", "ADMISSION", "ANCILLARY", "FARE_ADMISSION", "FARE_RESERVATION", "FARE_ANCILLARY", "CONTINUOUS_SERVICE", "ALL"]
                 }
               },
               "currency": {
@@ -104,6 +104,17 @@
               "offerMode": {
                 "type": "string",
                 "enum": ["INDIVIDUAL", "COLLECTIVE"]
+              },
+              "productTags": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "productSelections": {
+                "type": "array",
+                "items": { "type": "object" }
+              },
+              "inboundDate": {
+                "type": "string"
               }
             },
             "required": ["currency"]

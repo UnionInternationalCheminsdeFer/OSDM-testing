@@ -1,0 +1,307 @@
+{
+    "scenariosToRun": [
+        "OTST_SALE_PATCH_SRCH_CRIT_1ADT_1LEG",
+        "OTST_RFND_PATCH_SRCH_CRIT_1ADT_1LEG",
+        "OTST_RFND_DEL_SRCH_CRIT_1ADT_1LEG",
+        "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+        "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+        "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+        "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
+        "OTST_EXCH_SRCH_CRIT_1ADT_1LEG"
+    ],
+    "systemInfoParameters": {
+            "coachId": null,
+            "productId": null
+    },
+    "scenarios": [
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_SALE_PATCH_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "SALE",
+            "scenarioAction": "PATCH",
+            "osdmVersion": "3.5",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": null,
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_PATCH_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "PATCH",
+            "osdmVersion": "3.5",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": null,
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_DEL_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": "DELETE",
+            "osdmVersion": "3.5",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": null,
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": null,
+            "osdmVersion": "3.5",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": null,
+            "tripRequirementId": 1,
+            "passengersListId": 2,
+            "offerSearchCriteriaListId" : 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_1CHD_1LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": null,
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": null,
+            "osdmVersion": "3.5",
+            "tripRequirementId": 1,
+            "passengersListId": 3,
+            "offerSearchCriteriaListId" : 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_1ADT_2LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": null,
+            "osdmVersion": "3.5",
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": null,
+            "tripRequirementId": 2,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+            "loggingType": "INFO",
+            "code": "OTST_RFND_SRCH_CRIT_2ADT_2LEG",
+            "scenarioType": "REFUND",
+            "scenarioAction": null,
+            "overruleCode": "PAYMENT_FAILURE",
+            "refundDate": null,
+            "osdmVersion": "3.5",
+            "tripRequirementId": 2,
+            "passengersListId": 2,
+            "offerSearchCriteriaListId": 2,
+            "requestedFulfillmentOptionsListId": 1
+        },
+        {
+            "collection": "OTST_V2.0.1_RFND_EXCH_ALL",
+			"loggingType": "INFO",
+            "code": "OTST_EXCH_SRCH_CRIT_1ADT_1LEG",
+            "scenarioType": "EXCHANGE",
+            "scenarioAction": null,
+            "osdmVersion": "3.5",
+            "overruleCode": "PAYMENT_FAILURE",
+            "tripRequirementId": 1,
+            "passengersListId": 1,
+            "offerSearchCriteriaListId" : 1,
+            "requestedFulfillmentOptionsListId": 1
+        }
+    ],
+    "offerSearchCriteriaList": [
+        {
+            "id": 1,
+            "offerSearchCriteria": [
+                {
+                    "currency": "EUR",
+                    "requiresPlaceSelection": false,
+                    "offerMode": "INDIVIDUAL"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "offerSearchCriteria": [
+                {
+                    "currency": "EUR",
+                    "requiresPlaceSelection": false,
+                    "offerMode": "INDIVIDUAL"
+                }
+            ]
+        }
+    ],
+    "requestedFulfillmentOptionsList": [
+        {
+            "id": 1,
+            "requestedFulfillmentOptions": []
+        }
+    ],
+    "tripRequirements": [
+        {
+            "id": 1,
+            "tripType": "SEARCH",
+            "trip": 
+                {
+                    "origin": "urn:uic:stn:0088140010",
+                    "destination": "urn:uic:stn:0070154005",
+                    "startDatetime": "%TRIP_DATE%T11:00:00Z+02:00",
+                    "endDatetime": "%TRIP_DATE%T15:20:00Z+02:00"
+                }
+        },
+        {
+            "id": 2,
+            "tripType": "SEARCH",
+            "trip": 
+                {
+                    "origin": "urn:uic:stn:0080334524",
+                    "destination": "urn:uic:stn:0071718010",
+                    "startDatetime": "%TRIP_DATE%T11:00:00Z+02:00",
+                    "endDatetime": "%TRIP_DATE%T15:20:00Z+02:00"
+                }
+        }
+    ],
+    "purchaserList": [
+        {
+            "id": 1,
+            "purchaser": [
+                {
+                    "purchaserFirstName": "johnpurchaser",
+                    "purchaserLastName": "doepurchaser",
+                    "purchaserPhoneNumber": "+33699999999",
+                    "purchaserEmail": "emailPurchaser@email.com"
+                }
+            ]
+        }
+    ],
+    "passengersList": [
+        {
+            "id": 1,
+            "passengers": [
+                {
+                    "reference": "00001",
+                    "dateOfBirth": "1999-01-01",
+                    "firstName": "john",
+                    "lastName": "doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "gender" : "X",
+                    "type": "PERSON",
+                    "updateFirstName": "johnupdate",
+                    "updateLastName": "doeupdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "updateGender": "MALE"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "passengers": [
+                {
+                    "reference": "00001",
+                    "dateOfBirth": "1999-01-01",
+                    "firstName": "john",
+                    "lastName": "doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "gender" : "X",
+                    "updateFirstName": "johnupdate",
+                    "updateLastName": "doeupdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON",
+                    "updateGender": "MALE"
+                },
+                {
+                    "reference": "00002",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "marta",
+                    "lastName": "doe",
+					"phoneNumber": "+33612345678",
+					"email": "email@email.com",
+                    "gender" : "X",
+                    "updateFirstName": "martaupdate",
+                    "updateLastName": "doeupdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON",
+                    "updateGender": "FEMALE"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "passengers": [
+                {
+                    "reference": "00001",
+                    "dateOfBirth": "1999-01-01",
+                    "firstName": "john",
+                    "lastName": "doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "gender" : "X",
+                    "updateFirstName": "johnupdate",
+                    "updateLastName": "doeupdate",
+                    "updateDateOfBirth": "1999-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON",
+                    "updateGender": "MALE"
+                },
+                {
+                    "reference": "00002",
+                    "dateOfBirth": "1999-01-03",
+                    "firstName": "marta",
+                    "lastName": "doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "gender" : "X",
+                    "updateFirstName": "martaupdate",
+                    "updateLastName": "doeupdate",
+                    "updateDateOfBirth": "1999-01-04",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON",
+                    "updateGender": "FEMALE"
+                },
+                {
+                    "reference": "00003",
+                    "dateOfBirth": "2010-01-01",
+                    "firstName": "alice",
+                    "lastName": "doe",
+                    "phoneNumber": "+33612345678",
+                    "email": "email@email.com",
+                    "gender" : "X",
+                    "updateFirstName": "aliceupdate",
+                    "updateLastName": "doeupdate",
+                    "updateDateOfBirth": "2010-01-02",
+					"updatePhoneNumber": "+33612345679",
+					"updateEmail": "email@email.com",
+                    "type": "PERSON",
+                    "updateGender": "MALE"
+                }
+            ]
+        }
+    ]
+}

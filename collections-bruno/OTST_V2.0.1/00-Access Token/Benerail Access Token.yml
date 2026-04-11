@@ -15,7 +15,7 @@ http:
       - name: grant_type
         value: urn:ietf:params:oauth:grant-type:jwt-bearer
       - name: assertion
-        value: ""
+        value: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjQ1NGVjNjA1NDc1N2MxMmM4MzU3ZjA2MGI4ZmMwZmQyYTYyY2M2MDNmYzQzY2I0OGNhNmUyNTAwOWMyNjIzMTYifQ.eyJzdWIiOiJvc2RtX2FwaV9CRF9zYW5kYm94X3VpYyIsImF1ZCI6Imh0dHBzOi8vYmVuZXJhaWwtc3RnLWFwaW0uYXp1cmUtYXBpLm5ldC9hY2MvbG9nb24tc2VydmVyL3B1YmxpYy90b2tlbiIsInNjb3BlIjoidWljX29zZG0iLCJpc3MiOiJodHRwczovL3VpYy5vcmciLCJleHAiOjE3NzU4ODcxNjEsImlhdCI6MTc3NTg1ODM2MX0.ah5wC-LXSLoeO-5hu6ADk5QcvysBohkQnKgvQzJBNzacMHgIwmCxaNlfMnxvn1lo4bAYzQQJ9uYYpWTRvT-OGqoN8HLdNrf4ezcgrmYPTHvbbef19Xi6amd5SJCjMKvWx-39zx4SSK3bF9cqgLNDqpZBZ7SUddoKv3UMCw1vyoNXJ0IWc4Ktga9iPeKbpPXMBO_RcYUVhOxiiBb0Yziu9RyjH0HsksLoK0PWiJEqcL5Om8jRkHHukqeQdQU-7-i-qQL01h6XygstQAvkkZVYQbV8FL-2rH_1NTG79RSym4U5iUiFRYETOEXc-b74IFIDntvIgTNtLE6ftBOyxjQwwA
       - name: scope
         value: uic_osdm
 
