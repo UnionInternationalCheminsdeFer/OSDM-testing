@@ -18,6 +18,6 @@ variables:
   - name: data_base
     value: http://localhost:8080/data_base/benerail_datafile.json
   - name: json_schema
-    value: https://github.com/UnionInternationalCheminsdeFer/OSDM-testing/tree/Bruno-Enhancements/collections-bruno/OTST_V2.0.1/json_validator/datafile.schema.json
+    value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/Bruno-Enhancements/json_validator/datafile.schema.json
   - name: scenariosToRunIndex
     value: "0"

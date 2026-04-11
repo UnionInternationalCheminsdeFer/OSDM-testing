@@ -1,24 +1,23 @@
-name: OTST_Turnit_Env
+name: OTST_Chaps_Env
 variables:
   - secret: true
-    name: client.id
+    name: Ocp-Apim-Subscription-Key
   - secret: true
-    name: client.secret
+    name: client_id
   - secret: true
-    name: requestor
+    name: client_secret
+  - secret: true
+    name: assertion
   - secret: true
     name: access_token
   - name: api_base
-    value: https://api.sandbox.turnit.tech/retailer
+    value: https://osdm-api-test.cd.cz/v38
   - name: api-host
-    value: https://identity.sandbox.turnit.tech
-  - name: data_file
-    value: <own value here>
-    disabled: true
+    value: https://osdm-api-test.cd.cz/auth/login
   - name: library_base
     value: ./library-bruno/
   - name: data_base
-    value: http://localhost:8080/data_base/turnit_datafile.json
+    value: http://localhost:8080/data_base/chaps_datafile.json
   - name: json_schema
     value: https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM-testing/Bruno-Enhancements/json_validator/datafile.schema.json
   - name: scenariosToRunIndex
