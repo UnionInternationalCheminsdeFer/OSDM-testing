@@ -272,7 +272,26 @@ function selectAndSetOffer(jsonData) {
   const selectedOffer = filteredOffers[0] || jsonData.offers[0];
 
   validationLogger(`[INFO] Selected Offer ID: ${selectedOffer.offerId}`);
-  console.log("[INFO] 🔍 Selected Offer:", selectedOffer);
+  // Per-part summary first, so a certifier reading the log can tell at a glance
+  // which part(s) carry which flags. An Offer has no top-level refundable /
+  // exchangeable — only its parts do, and a "refundable: NO" on an ancillary
+  // (e.g. luggage fee) is often misread as the whole offer being non-refundable.
+  const _partSummary = (parts, label) =>
+    (parts || []).map((p, i) =>
+      `  ${label}[${i}] type=${p.type || p.objectType || '?'} refundable=${p.refundable} exchangeable=${p.exchangeable}`
+    ).join('\n');
+  const _admissionLines   = _partSummary(selectedOffer.admissionOfferParts,   'admission');
+  const _reservationLines = _partSummary(selectedOffer.reservationOfferParts, 'reservation');
+  const _ancillaryLines   = _partSummary(selectedOffer.ancillaryOfferParts,   'ancillary');
+  console.log(`[INFO] 🔍 Selected Offer: ${selectedOffer.offerId}`);
+  if (_admissionLines)   console.log(_admissionLines);
+  if (_reservationLines) console.log(_reservationLines);
+  if (_ancillaryLines)   console.log(_ancillaryLines);
+  // Single-line JSON tagged with a marker the OSCAR Report Builder recognises —
+  // it renders the block as one collapsible pill instead of ~30 stdout rows.
+  // JSON.stringify also serialises at full depth (no [Array] / [Object] truncation
+  // from Node's util.inspect default depth=2).
+  console.log(`[JSON:selectedOffer] ${JSON.stringify(selectedOffer)}`);
 
   // Store selected offer and related info in environment
   bru.setEnvVar("offer", selectedOffer);
