@@ -2,6 +2,7 @@
 const display = require('./displays.js');
 const requestsBuilder = require('./requestsBuilder.js');
 const { bruTest: test } = require('./testCapture.js');
+const { OSDM_PASSENGER_TYPES } = require('./osdmEnums.js');
 
 module.exports = {
   checkWarningsAndProblems,
@@ -714,9 +715,12 @@ function validateAdmissions(selectedOffer) {
           validationLogger(`[INFO] AdmissionOfferPart ${i + 1} appliedPassengerTypes count: ${appliedPassengerTypes.length}`);
           appliedPassengerTypes.forEach((apt, aptIdx) => {
             expect(apt.passengerRef, `appliedPassengerTypes[${aptIdx}].passengerRef should exist`).to.be.a("string");
-            expect(apt.type, `appliedPassengerTypes[${aptIdx}].type should be a known value`).to.be.oneOf([
-              "ADULT", "YOUTH", "SENIOR", "CHILD", "INFANT", "PERSON"
-            ]);
+            // Use the shared OSDM PassengerType enum from osdmEnums.js so this
+            // check stays in lockstep with passengers.js. The previous inline
+            // 6-value list (ADULT/YOUTH/SENIOR/CHILD/INFANT/PERSON) wrongly
+            // rejected valid OSDM values like YOUNG_CHILD, DOG, BICYCLE, CAR
+            // — which appear in family, pet-friendly, and auto-train offers.
+            expect(apt.type, `appliedPassengerTypes[${aptIdx}].type should be a known value`).to.be.oneOf(OSDM_PASSENGER_TYPES);
           });
         });
       }

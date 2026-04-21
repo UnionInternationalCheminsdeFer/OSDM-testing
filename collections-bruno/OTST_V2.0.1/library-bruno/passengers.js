@@ -1,5 +1,6 @@
 const { validationLogger } = require('./displays.js');
 const { bruTest: test } = require('./testCapture.js');
+const { OSDM_PASSENGER_TYPES } = require('./osdmEnums.js');
 
 module.exports = {
   patchMultiPassengerResponse
@@ -26,13 +27,10 @@ function patchMultiPassengerResponse(response, passengerIndex) {
   }
 
   // G2: passenger.type must be a valid OSDM PassengerType enum value (OSDM: Passenger.type)
-  const _validPassengerTypes = ['YOUNG_CHILD','CHILD','YOUTH','ADULT','SENIOR','FAMILY_CHILD',
-    'ACCOMP_PRM','PRM_CHILD','WHEELCHAIR','PERSON','PRM','DOG','PET','LUGGAGE',
-    'BICYCLE','PRAM','COMPANION_DOG','CAR','MOTORCYCLE','TRAILER'];
   const _passengerType = response.passenger?.type;
   if (_passengerType !== undefined) {
     test(`Passenger ${passengerIndex} - type '${_passengerType}' is a valid OSDM PassengerType`, () => {
-      expect(_validPassengerTypes).to.include(_passengerType,
+      expect(OSDM_PASSENGER_TYPES).to.include(_passengerType,
         `'${_passengerType}' is not a valid OSDM PassengerType`);
     });
   }
