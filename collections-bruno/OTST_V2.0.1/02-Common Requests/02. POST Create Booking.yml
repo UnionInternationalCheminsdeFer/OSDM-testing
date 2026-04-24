@@ -62,11 +62,20 @@ runtime:
         //      Missing / unset → defaults to "true" so scenarios that predate
         //      the flag retain their historic behaviour.
         //   3. Default → run the PATCH Multi Passenger step.
+        //
+        // NOTE: the previous numbering ("05. PATCH Multi Passenger" /
+        // "06. GET Passenger") in this routing block was a silent bug — the
+        // collection was re-numbered to 03 / 04 at some point and Bruno's
+        // setNextRequest accepts the call but when the named request does
+        // not exist it just continues to the next request in sequence. As a
+        // consequence the skip path (old `skipPatchPassengerRequest === true`)
+        // silently never worked either. Fixed here to match the actual
+        // request names in the collection.
         if (bru.getEnvVar("skipPatchPassengerRequest") === "true"
             || bru.getEnvVar("salesFlow_patchPassengers") === "false") {
-            bru.runner.setNextRequest("06. GET Passenger");
+            bru.runner.setNextRequest("04. GET Passenger");
         } else {
-            bru.runner.setNextRequest("05. PATCH Multi Passenger");
+            bru.runner.setNextRequest("03. PATCH Multi Passenger");
         }
 
 settings:
