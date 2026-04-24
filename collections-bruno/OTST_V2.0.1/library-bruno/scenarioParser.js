@@ -28,6 +28,7 @@ module.exports = {
 function resetScenarioEnvVars() {
   const deleteList = [
     // Scenario / trip
+    "scenario_override",
     "loggingType", "scenarioType", "scenarioAction", "osdmVersion",
     "desiredFlexibility", "accommodationSelection", "requiresPlaceSelection",
     "overruleCode", "refundDate", "TripType",
@@ -55,6 +56,9 @@ function resetScenarioEnvVars() {
     "currentPassengerIndex", "skipPatchPassengerRequest",
     "patchDateOfBirth", "patchFirstName", "patchLastName",
     "patchEmail", "patchPhoneNumber", "patchGender",
+    // Sales-flow action flags (opt-in intermediate steps for SALE scenarios)
+    "salesFlow_patchPassengers", "salesFlow_placeSelection",
+    "salesFlow_addAncillary",   "salesFlow_getBooking", "salesFlow_deleteAncillary",
     // Place selection
     "placeSelections", "layoutId", "preselectedCoach", "preselectedPlace",
     "reservationId", "reservationIds", "tripLegCoverage",
@@ -278,6 +282,21 @@ function parseScenarioData(jsonData) {
     );
   }
 
+  // ── Parallel execution mode ──────────────────────────────────────────────
+  // If scenario_override is set (by OSCAR runner for parallel batch runs),
+  // run only that specific scenario instead of the full list.
+  const scenarioOverride = bru.getEnvVar('scenario_override');
+  if (scenarioOverride) {
+    if (!allCodes.includes(scenarioOverride)) {
+      throw new Error(
+        `[ERROR] ❌ scenario_override "${scenarioOverride}" not found in scenarios list. ` +
+        `Available: ${allCodes.join(', ')}`
+      );
+    }
+    effectiveList = [scenarioOverride];
+    validationLogger(`[INFO] ⚡ Parallel mode — running only: ${scenarioOverride}`);
+  }
+
   // Persist the full resolved list so terminal requests can decide whether to
   // loop back for the next scenario or truly stop the runner.
   bru.setEnvVar('__scenariosList', JSON.stringify(effectiveList));
@@ -346,6 +365,28 @@ function parseScenarioData(jsonData) {
       bru.setEnvVar("requiresPlaceSelection", ["", "null"].includes(scenario.requiresPlaceSelection) ? null : scenario.requiresPlaceSelection);
       bru.setEnvVar("overruleCode", ["", "null"].includes(scenario.overruleCode) ? null : scenario.overruleCode);
       bru.setEnvVar("refundDate", ["", "null"].includes(scenario.refundDate) ? null : scenario.refundDate);
+
+      // Optional intermediate SALE-flow actions. The scenario may carry a
+      // `salesFlowActions` map { patchPassengers, placeSelection, addAncillary,
+      // getBooking, deleteAncillary } indicating which steps to exercise
+      // between POST /bookings and POST /fulfillments. Missing object → all
+      // actions enabled (legacy scenarios behave like before). Each flag is
+      // exported as an env var `salesFlow_<key>` with value "true" / "false"
+      // so individual .bru files can branch on it with a simple getEnvVar.
+      const _salesActionDefaults = {
+        patchPassengers: true, placeSelection: true, addAncillary: true,
+        getBooking: true, deleteAncillary: true
+      };
+      const _salesActions = (scenario.salesFlowActions && typeof scenario.salesFlowActions === 'object')
+        ? scenario.salesFlowActions : {};
+      Object.keys(_salesActionDefaults).forEach(function (k) {
+        const on = _salesActions[k] === false ? false : true;
+        bru.setEnvVar("salesFlow_" + k, on ? "true" : "false");
+      });
+      validationLogger("[INFO] 🛒 Sales-flow actions: " +
+        Object.keys(_salesActionDefaults).map(function (k) {
+          return k + "=" + bru.getEnvVar("salesFlow_" + k);
+        }).join(", "));
 
       // Trip requirements
       jsonData.tripRequirements?.some(function (tripRequirement) {

@@ -54,7 +54,16 @@ runtime:
 
         bru.deleteEnvVar("currentPassengerIndex");
 
-        if (bru.getEnvVar("skipPatchPassengerRequest") === "true") {
+        // Routing after POST Create Booking:
+        //   1. Legacy `skipPatchPassengerRequest` still wins for explicit
+        //      test-harness overrides.
+        //   2. New per-scenario opt-out `salesFlow_patchPassengers` — set by
+        //      scenarioParser from the data file's scenario.salesFlowActions.
+        //      Missing / unset → defaults to "true" so scenarios that predate
+        //      the flag retain their historic behaviour.
+        //   3. Default → run the PATCH Multi Passenger step.
+        if (bru.getEnvVar("skipPatchPassengerRequest") === "true"
+            || bru.getEnvVar("salesFlow_patchPassengers") === "false") {
             bru.runner.setNextRequest("06. GET Passenger");
         } else {
             bru.runner.setNextRequest("05. PATCH Multi Passenger");
