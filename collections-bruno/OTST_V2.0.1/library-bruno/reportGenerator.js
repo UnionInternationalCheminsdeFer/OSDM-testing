@@ -413,7 +413,13 @@ function _generateHtml(meta, requests) {
   const osdmFailed = osdmTests - osdmPassed;
 
   // Auth outcome: did any auth call succeed?
-  const authOk = authReqs.some(r => r.responseStatus >= 200 && r.responseStatus < 300);
+  // When the collection is run via OSCAR, the OAuth token is fetched
+  // server-side (runner.js) before Bruno starts, so no auth request is
+  // recorded in this run. Treat an empty authReqs list as "auth was
+  // handled upstream and is fine" — otherwise the banner falsely reports
+  // an auth failure for every successful OSCAR run.
+  const authOk = authReqs.length === 0
+    || authReqs.some(r => r.responseStatus >= 200 && r.responseStatus < 300);
 
   const overallPass = authOk && osdmFailed === 0;
 
