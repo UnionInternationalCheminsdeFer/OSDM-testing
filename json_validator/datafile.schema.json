@@ -118,7 +118,8 @@
                   "items": {
                     "type": "string",
                     "enum": [
-                      "STANDARD"
+                      "STANDARD",
+					  "HIGH"
                     ]
                   }
                 },

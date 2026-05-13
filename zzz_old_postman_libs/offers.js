@@ -35,7 +35,11 @@ checkWarningsAndProblems = function (jsonData) {
 postOfferResponsePreRequest = function () {
 	validationLogger("[INFO] ➤ postOfferResponsePreRequest");
 	console.log("⏩ [STEP] Executing request : " + pm.info.requestName);
+	
 	buildOfferCollectionRequest();
+	
+	console.log("[INFO] OfferCollectionRequest: "+pm.environment.get("OfferCollectionRequest"));
+	
 	ensureAuthorizationOr403();
 
 	//captureSwaggerSchemaValidator();
@@ -101,6 +105,8 @@ function ensureAuthorizationOr403() {
 			console.log("⛔ Stop: Access forbidden (403)  or Unauthorized (401). Check permissions. Access token could be expired.")
 			pm.execution.setNextRequest(null);
 		} else if (res && res.code == 400) {
+			var jsonData = JSON.parse(res.text());
+			console.log(jsonData)
 			console.log("⛔ Stop: Bad Request (400). Check request parameters and body. Issue probably due to authorization. Check above logs for details.");
 			pm.execution.setNextRequest(null);
 		} else {
@@ -883,12 +889,15 @@ function handleAccommodationAndPlaceSelection(selectedOffer) {
 	validationLogger("[INFO] ➤ handleAccommodationAndPlaceSelection");
 
 	const accommodationSelection = pm.environment.get("accommodationSelection");
+	const requiresPlaceSelection = pm.environment.get("requiresPlaceSelection");
 
 	if (accommodationSelection !== "COUCHETTE" && accommodationSelection !== "BERTH") {
 		validationLogger(`[INFO] accommodationSelection is ${accommodationSelection}, skipping place selection`);
 		return;
 	}
-
+	if (requiresPlaceSelection !== true) {
+		pm.execution.setNextRequest("03. POST Create Booking");
+	}
 	const reservationParts = selectedOffer.reservationOfferParts || [];
 	validationLogger(`[INFO] Reservation Offer Parts count: ${reservationParts.length}`);
 
@@ -934,7 +943,7 @@ function ensureYesWhenRefundOrExchangeSelected(selectedOffer) {
 				} else {
 					validationLogger(`[INFO] Admission part ${i + 1} is refundable as expected, continuing.`);
 				}
-			} else if (scenarioTypeStr.includes("EXCHANGE")) {
+			} else if (pm.environment.get("scenarioType").includes("EXCHANGE")) {
 				if (admission.exchangeable !== "YES") {
 					validationLogger(`[ERROR] ⛔ scenarioType is EXCHANGE but Admission part ${i + 1} is not exchangeable, exiting script ...`);
 					pm.execution.setNextRequest(null);

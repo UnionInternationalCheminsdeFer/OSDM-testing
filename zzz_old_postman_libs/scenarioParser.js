@@ -30,6 +30,15 @@ getScenarioData = function () {
 			}
 		});
 	} else if (pm.environment.has('data_file')) {
+		
+		var jsonDataFile = pm.environment.get("data_file")
+
+		try {
+		        const jsonDataObj = JSON.parse(jsonDataFile);
+		    } catch (e) {
+		        console.error(e); 
+		}
+		
 
 		// Validate JSON with template
 		validateDataFileJsonWithTemplate(JSON.parse(pm.environment.get("data_file")));
@@ -88,6 +97,8 @@ parseScenarioData = function (jsonData) {
 			pm.environment.set("overruleCode", ["", "null"].includes(jsonData.scenarios[dataFileIndex].overruleCode) ? null : jsonData.scenarios[dataFileIndex].overruleCode);
 			pm.environment.set("refundDate", ["", "null"].includes(jsonData.scenarios[dataFileIndex].refundDate) ? null : jsonData.scenarios[dataFileIndex].refundDate);
 
+			console.log('[INFO] OSDM Version that was set: ' + JSON.stringify(pm.environment.get("osdmVersion")));
+			
 			// Loop through trip requirements to find the matching trip requirement ID
 			jsonData.tripRequirements.some(function (tripRequirement) {
 				if (tripRequirement.id === jsonData.scenarios[dataFileIndex].tripRequirementId) {
